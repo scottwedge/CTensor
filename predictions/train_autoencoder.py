@@ -110,6 +110,8 @@ class train:
         # if window = 7 days, test_end_time  = '2018-04-30 23:00:00', actual_end_time =  04/23 - 23:00
         self.actual_end_time = self.predict_end_time - self.window
 
+        self.train_hours = datetime_utils.get_total_hour_range(self.train_start_time, self.train_end_time)
+
         # self.train_df = raw_df[self.train_start_time: self.train_end_time]
         # self.test_df = raw_df[self.test_start_time: self.test_end_time]
         # self.grid_list = list(raw_df)
@@ -583,8 +585,8 @@ def main():
         data_3d = np.concatenate(datalist_3d, axis=3)
         print('data_3d.shape: ', data_3d.shape)
 
-        self.train_hours = datetime_utils.get_total_hour_range(self.train_start_time, self.train_end_time)
-        print('train_hours: ', train_hours)
+        # train_obj.train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
+        print('train_hours: ', train_obj.train_hours)
 
         # -----  load bike data ------ #
         # if os.path.isfile('bikedata_32_20_171001-181031.npy'):
