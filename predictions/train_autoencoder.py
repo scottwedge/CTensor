@@ -578,6 +578,7 @@ def main():
         collisions_extend_arr = np.repeat(collisions_arr, 24, axis =0)
         building_permit_extend_arr = np.expand_dims(building_permit_extend_arr, axis=3)
         collisions_extend_arr = np.expand_dims(collisions_extend_arr, axis=3)
+        seattle911calls_arr = np.expand_dims(seattle911calls_arr, axis=3)
         datalist_3d = [seattle911calls_arr, building_permit_extend_arr, collisions_extend_arr]
         data_3d = np.concatenate(datalist_3d, axis=3)
         print('data_3d.shape: ', data_3d.shape)
