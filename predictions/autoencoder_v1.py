@@ -649,7 +649,7 @@ class Autoencoder_entry:
 
         # ignore non-intersection cells in test_df
         # this is for evaluation
-        self.test_df_cut = self.test_df.loc[:,self.test_df.columns.isin(list(self.intersect_pos_set))]
+        # self.test_df_cut = self.test_df.loc[:,self.test_df.columns.isin(list(self.intersect_pos_set))]
 
         if is_inference == False:
             if resume_training == False:
