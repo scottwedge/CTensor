@@ -228,7 +228,7 @@ class Autoencoder:
             sess.run(tf.global_variables_initializer())
             start_time = datetime.datetime.now()
             # temporary
-            train_hours = 2000
+            train_hours = 200
             # train_hours: train_start_time = '2014-02-01',train_end_time = '2018-10-31',
             if train_hours%batch_size ==0:
                 iterations = int(train_hours/batch_size)
@@ -265,7 +265,7 @@ class Autoencoder:
                 # report loss per epoch
                 epoch_loss = epoch_loss/ iterations
                 print('epoch: ', epoch, 'Trainig Set Epoch total Cost: ',epoch_loss)
-                save_path = saver.save(sess, save_folder_path +'autoencoder_' + str(lamda)+'_'+str(epoch)+'.ckpt', global_step=self.global_step)
+                save_path = saver.save(sess, save_folder_path +'autoencoder_' +str(epoch)+'.ckpt', global_step=self.global_step)
                 # save_path = saver.save(sess, './autoencoder.ckpt')
                 print('Model saved to {}'.format(save_path))
 
@@ -273,19 +273,19 @@ class Autoencoder:
                 ecoch_res_df = pd.DataFrame([[epoch_loss]],
                     columns=[ 'train_loss'])
 
-                res_csv_path = save_folder_path + 'autoencoder_ecoch_res_df_' + str(lamda)+'.csv'
+                res_csv_path = save_folder_path + 'autoencoder_ecoch_res_df' +'.csv'
 
                 with open(res_csv_path, 'a') as f:
                     # Add header if file is being created, otherwise skip it
                     ecoch_res_df.to_csv(f, header=f.tell()==0)
 
                 # save results to txt
-                txt_name = save_folder_path + 'AE_df_' +str(lamda)+  '.txt'
+                txt_name = save_folder_path + 'AE_df_' +  '.txt'
                 with open(txt_name, 'w') as the_file:
                     #the_file.write('Only account for grids that intersect with city boundary \n')
                     the_file.write('epoch\n')
                     the_file.write(str(epoch)+'\n')
-                    the_file.write('lamda\n')
+                    # the_file.write('lamda\n')
                     the_file.write(str(lamda) + '\n')
                     the_file.write(' epoch_loss:\n')
                     the_file.write(str(epoch_loss) + '\n')
@@ -294,7 +294,7 @@ class Autoencoder:
 
                 # plot results
                 print('saving train_test plots')
-                train_test = pd.read_csv(save_folder_path  + 'autoencoder_ecoch_res_df_' + str(lamda)+'.csv')
+                train_test = pd.read_csv(save_folder_path  + 'autoencoder_ecoch_res_df' +'.csv')
                 # train_test = train_test.loc[:, ~train_test.columns.str.contains('^Unnamed')]
                 train_test[['train_loss']].plot()
                 plt.savefig(save_folder_path + 'total_loss_inprogress.png')
@@ -431,7 +431,7 @@ class Autoencoder:
                 # report loss per epoch
                 epoch_loss = epoch_loss/ iterations
                 print('epoch: ', epoch, 'Trainig Set Epoch total Cost: ',epoch_loss)
-                save_path = saver.save(sess, save_folder_path +'autoencoder_v1_' + str(lamda)+'_'+str(epoch)+'.ckpt', global_step=self.global_step)
+                save_path = saver.save(sess, save_folder_path +'autoencoder_v1_' +'_'+str(epoch)+'.ckpt', global_step=self.global_step)
                 # save_path = saver.save(sess, './autoencoder.ckpt')
                 print('Model saved to {}'.format(save_path))
 
@@ -440,20 +440,20 @@ class Autoencoder:
                 ecoch_res_df = pd.DataFrame([[epoch_loss]],
                     columns=[ 'train_loss'])
 
-                res_csv_path = save_folder_path + 'autoencoder_v1_ecoch_res_df_' + str(lamda)+'.csv'
+                res_csv_path = save_folder_path + 'autoencoder_v1_ecoch_res_df_' +'.csv'
 
                 with open(res_csv_path, 'a') as f:
                     # Add header if file is being created, otherwise skip it
                     ecoch_res_df.to_csv(f, header=f.tell()==0)
 
                 # save results to txt
-                txt_name = save_folder_path + 'AE_df_' +str(lamda)+  '.txt'
+                txt_name = save_folder_path + 'AE_df_' +  '.txt'
                 with open(txt_name, 'w') as the_file:
                     #the_file.write('Only account for grids that intersect with city boundary \n')
                     the_file.write('epoch\n')
                     the_file.write(str(epoch)+'\n')
-                    the_file.write('lamda\n')
-                    the_file.write(str(lamda) + '\n')
+                    # the_file.write('lamda\n')
+                    # the_file.write(str(lamda) + '\n')
                     the_file.write(' epoch_loss:\n')
                     the_file.write(str(epoch_loss) + '\n')
                     # the_file.write('Testing Set Fair Cost\n')
@@ -466,7 +466,7 @@ class Autoencoder:
 
                 # plot results
                 print('saving train_test plots')
-                train_test = pd.read_csv(save_folder_path  + 'autoencoder_ecoch_res_df_' + str(lamda)+'.csv')
+                train_test = pd.read_csv(save_folder_path  + 'autoencoder_ecoch_res_df_' +'.csv')
                 # train_test = train_test.loc[:, ~train_test.columns.str.contains('^Unnamed')]
                 train_test[['train_loss']].plot()
                 plt.savefig(save_folder_path + 'total_loss_inprogress.png')
