@@ -227,6 +227,8 @@ class Autoencoder:
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
             start_time = datetime.datetime.now()
+            # temporary
+            train_hours = 2000
             # train_hours: train_start_time = '2014-02-01',train_end_time = '2018-10-31',
             if train_hours%batch_size ==0:
                 iterations = int(train_hours/batch_size)
