@@ -574,6 +574,8 @@ def main():
         print('seattle911calls_arr.shape: ', seattle911calls_arr.shape)
 
         print('stack 3d')
+        building_permit_extend_arr = np.repeat(building_permit_arr, 24, axis =0)
+        collisions_extend_arr = np.repeat(collisions_arr, 24, axis =0)
         building_permit_extend_arr = np.expand_dims(building_permit_extend_arr, axis=3)
         collisions_extend_arr = np.expand_dims(collisions_extend_arr, axis=3)
         datalist_3d = [seattle911calls_arr, building_permit_extend_arr, collisions_extend_arr]
