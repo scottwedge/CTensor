@@ -286,7 +286,7 @@ class Autoencoder:
                     the_file.write('epoch\n')
                     the_file.write(str(epoch)+'\n')
                     # the_file.write('lamda\n')
-                    the_file.write(str(lamda) + '\n')
+                    # the_file.write(str(lamda) + '\n')
                     the_file.write(' epoch_loss:\n')
                     the_file.write(str(epoch_loss) + '\n')
                     the_file.write('\n')
