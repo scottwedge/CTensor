@@ -84,10 +84,10 @@ test_start_time = '2018-09-01 00:00:00', test_end_time = '2018-10-31 23:00:00'
 '''
 class train:
     # 63 months in total , 57 months for training, 6 months for testing
-    def __init__(self, raw_df, demo_raw,
+    def __init__(self,  demo_raw,
                 train_start_time = '2014-02-01',train_end_time = '2018-10-31',
                 test_start_time = '2018-11-01 00:00:00', test_end_time = '2019-05-01 23:00:00' ):
-        self.raw_df = raw_df
+        # self.raw_df = raw_df
         # demongraphic data [32, 32, 14]
         self.demo_raw = demo_raw
         self.train_start_time = train_start_time
@@ -111,11 +111,9 @@ class train:
         # if window = 7 days, test_end_time  = '2018-04-30 23:00:00', actual_end_time =  04/23 - 23:00
         self.actual_end_time = self.predict_end_time - self.window
 
-        self.train_df = raw_df[self.train_start_time: self.train_end_time]
-        self.test_df = raw_df[self.test_start_time: self.test_end_time]
+        # self.train_df = raw_df[self.train_start_time: self.train_end_time]
+        # self.test_df = raw_df[self.test_start_time: self.test_end_time]
         self.grid_list = list(raw_df)
-
-        #
         #self.test_df_cut = self.test_df.loc[:,self.test_df.columns.isin(list(self.intersect_pos_set))]
 
 
@@ -449,16 +447,6 @@ class train:
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    # parser.add_argument('lamda', nargs='?', type = float, help = 'lambda for fairness', default = 0)
-    # parser.add_argument('beta', nargs='?', type = float, help = 'beta for weighted MAE; gamma for differential weighted MAE;and for binary weight', default = 1.0)
-    # parser.add_argument('-use_1d_fea',   type=bool, default=False,
-    #                 action="store", help = 'whether to use 1d features. If use this option, set to True. Otherwise, default False')
-    # parser.add_argument('-use_2d_fea',    type=bool, default=False,
-    #                 action="store", help = 'whether to use 2d features')
-    # parser.add_argument('-fairloss',    type=str, default='IFG',
-    #                 action="store", help = 'whether to fairloss: IFG, RFG, equalmean, pairwise')
-    # parser.add_argument('-multivar',    type=bool, default=False,
-    #                 action="store", help = 'whether to multi-var fairloss. If True, include aga, race, and edu. Otherwise, use race')
     parser.add_argument('-s',   '--suffix',
                      action="store", help = 'save path suffix', default = '')
     parser.add_argument("-r","--resume_training", type=bool, default=False,
@@ -475,11 +463,6 @@ def parse_args():
                      action="store", help = 'epochs to train', default = 0.001)
 
 
-    #parser.add_argument('-a','--use_1d_fea', type=bool, default=True,
-     #                action="store", help = 'whether to use 1d features')
-    #parser.add_argument('-b','--use_2d_fea', type=bool, default=True,
-     #                 action="store", help = 'whether to use 2d features')
-    # parser.add_argument('city_stat', help = 'city-wide demographic data in csv format')
     return parser.parse_args()
 
 
@@ -487,7 +470,6 @@ def parse_args():
 def main():
     args = parse_args()
     suffix = args.suffix
-
     # the following arguments for resuming training
     resume_training = args.resume_training
     train_dir = args.train_dir
@@ -516,15 +498,15 @@ def main():
 
         # hourly_grid_timeseries = pd.read_csv('./hourly_grid_1000_timeseries_trail.csv', index_col = 0)
         # hourly_grid_timeseries.index = pd.to_datetime(hourly_grid_timeseries.index)
-        rawdata = pd.read_csv('lime_whole_grid_32_20_hourly_1000_171001-181031.csv', index_col = 0)
-        rawdata.index = pd.to_datetime(rawdata.index)
+        # rawdata = pd.read_csv('lime_whole_grid_32_20_hourly_1000_171001-181031.csv', index_col = 0)
+        # rawdata.index = pd.to_datetime(rawdata.index)
         # a set of region codes (e.g.: 10_10) that intersect with the city
         intersect_pos = pd.read_csv('../auxillary_data/intersect_pos_32_20.csv')
         intersect_pos_set = set(intersect_pos['0'].tolist())
         # demographic data
         # should use 2018 data
         demo_raw = pd.read_csv('../auxillary_data/whole_grid_32_20_demo_1000_intersect_geodf_2018_corrected.csv', index_col = 0)
-        train_obj = train(rawdata, demo_raw)
+        train_obj = train(demo_raw)
         #ignore non-intersection cells in test_df
         # this is for evaluation
         # test_df_cut = train_obj.test_df.loc[:,train_obj.test_df.columns.isin(list(intersect_pos_set))]
@@ -600,7 +582,7 @@ def main():
         print('data_3d.shape: ', data_3d.shape)
 
         self.train_hours = datetime_utils.get_total_hour_range(self.train_start_time, self.train_end_time)
-
+        print('train_hours: ', train_hours)
 
         # -----  load bike data ------ #
         # if os.path.isfile('bikedata_32_20_171001-181031.npy'):
@@ -673,10 +655,6 @@ def main():
         the_file.write('learning rate\n')
         the_file.write(str(LEARNING_RATE) + '\n')
 
-        # the_file.write('rmse for conv3d\n')
-        # the_file.write(str(eval_obj4.rmse_val) + '\n')
-        # the_file.write('mae for conv3d\n')
-        # the_file.write(str(eval_obj4.mae_val)+ '\n')
 
         the_file.close()
 
