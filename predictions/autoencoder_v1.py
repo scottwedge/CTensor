@@ -227,7 +227,7 @@ class Autoencoder:
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
             start_time = datetime.datetime.now()
-
+            # train_hours: train_start_time = '2014-02-01',train_end_time = '2018-10-31',
             if train_hours%batch_size ==0:
                 iterations = int(train_hours/batch_size)
             else:
@@ -240,8 +240,8 @@ class Autoencoder:
                             # mini batch
                 for itr in range(iterations):
                     start_idx = itr*batch_size
-                    if sample_size < (itr+1)*batch_size:
-                        end_idx = sample_size
+                    if train_hours < (itr+1)*batch_size:
+                        end_idx = train_hours
                     else:
                         end_idx = (itr+1)*batch_size
                     print('start_idx, end_idx', start_idx, end_idx)
