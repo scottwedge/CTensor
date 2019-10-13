@@ -112,7 +112,7 @@ class train:
 
         # self.train_df = raw_df[self.train_start_time: self.train_end_time]
         # self.test_df = raw_df[self.test_start_time: self.test_end_time]
-        self.grid_list = list(raw_df)
+        # self.grid_list = list(raw_df)
         #self.test_df_cut = self.test_df.loc[:,self.test_df.columns.isin(list(self.intersect_pos_set))]
 
 
