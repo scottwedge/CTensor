@@ -57,9 +57,7 @@ def my_leaky_relu(x):
 class Autoencoder:
     # input_dim = 1, seq_size = 168,
     def __init__(self, intersect_pos_set,
-                        #demo_sensitive, demo_pop, pop_g1, pop_g2,
-                              #  grid_g1, grid_g2, fairloss,
-                                     lamda, demo_mask_arr, channel, time_steps, height, width):
+                    demo_mask_arr, channel, time_steps, height, width):
 
         self.time_steps = time_steps
         self.width = width
