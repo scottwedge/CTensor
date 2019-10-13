@@ -228,10 +228,10 @@ class Autoencoder:
             sess.run(tf.global_variables_initializer())
             start_time = datetime.datetime.now()
 
-            if len(train_hours)%batch_size ==0:
-                iterations = int(len(train_hours)/batch_size)
+            if train_hours%batch_size ==0:
+                iterations = int(train_hours/batch_size)
             else:
-                iterations = int(len(train_hours)/batch_size) + 1
+                iterations = int(train_hours/batch_size) + 1
 
             for epoch in range(epochs):
                 print('Epoch', epoch, 'started', end='')
