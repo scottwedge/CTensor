@@ -44,8 +44,8 @@ CHANNEL = 27
 
 BATCH_SIZE = 32
 # actually epochs
-# TRAINING_STEPS = 500
-TRAINING_STEPS = 1
+TRAINING_STEPS = 50
+# TRAINING_STEPS = 1
 LEARNING_RATE = 0.003
 
 
@@ -196,7 +196,7 @@ class Autoencoder:
 
     def train_autoencoder(self, data_1d, data_2d, data_3d, train_hours,
                      demo_mask_arr, save_folder_path,
-                       epochs=10, batch_size=32):
+                       epochs=1, batch_size=32):
         starter_learning_rate = LEARNING_RATE
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
                                        5000, 0.96, staircase=True)
@@ -228,7 +228,7 @@ class Autoencoder:
             sess.run(tf.global_variables_initializer())
             start_time = datetime.datetime.now()
             # temporary
-            train_hours = 200
+            # train_hours = 200
             # train_hours: train_start_time = '2014-02-01',train_end_time = '2018-10-31',
             if train_hours%batch_size ==0:
                 iterations = int(train_hours/batch_size)

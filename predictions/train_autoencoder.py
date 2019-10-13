@@ -63,7 +63,7 @@ CHANNEL = 27  # number of all features
 BATCH_SIZE = 32
 # actually epochs
 # TRAINING_STEPS = 200
-TRAINING_STEPS = 1
+TRAINING_STEPS = 50
 
 LEARNING_RATE = 0.001
 
@@ -459,7 +459,7 @@ def parse_args():
     parser.add_argument('-p',   '--place',
                      action="store", help = 'city to train on: Seattle or Austin', default = 'Seattle')
     parser.add_argument('-e',   '--epoch',  type=int,
-                     action="store", help = 'epochs to train', default = 200)
+                     action="store", help = 'epochs to train', default = 50)
     parser.add_argument('-l',   '--learning_rate',  type=float,
                      action="store", help = 'epochs to train', default = 0.001)
 
