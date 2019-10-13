@@ -32,20 +32,19 @@ from datetime import timedelta
 import datetime_utils
 #import lstm
 import evaluation
-import convLSTM
-import convLSTM_earlyfusion
-import convLSTM_latefusion
-import conv_3d
-import conv_3d_latefusion
-import conv_3d_baseline
-import conv_3d_mean_diff
-import conv_3d_metric2
-import conv_3d_pairwise
-import fused_model
-import fused_model_augment
+# import convLSTM
+# import convLSTM_earlyfusion
+# import convLSTM_latefusion
+# import conv_3d
+# import conv_3d_latefusion
+# import conv_3d_baseline
+# import conv_3d_mean_diff
+# import conv_3d_metric2
+# import conv_3d_pairwise
+# import fused_model
+# import fused_model_augment
 
 import autoencoder_v1
-
 from matplotlib import pyplot as plt
 import random
 
