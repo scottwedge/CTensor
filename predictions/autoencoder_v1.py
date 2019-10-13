@@ -321,7 +321,7 @@ class Autoencoder:
 
 
     def train_autoencoder_from_checkpoint(self, weather_seq_arr, crime_seq_arr, data_2d,
-                    lamda, demo_mask_arr, save_folder_path, beta = math.e, checkpoint_path,
+                    lamda, demo_mask_arr, save_folder_path, checkpoint_path,
                       keep_rate=0.7, epochs=10, batch_size=64):
         starter_learning_rate = LEARNING_RATE
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
