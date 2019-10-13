@@ -62,8 +62,8 @@ CHANNEL = 27  # number of all features
 
 BATCH_SIZE = 32
 # actually epochs
-TRAINING_STEPS = 200
-#TRAINING_STEPS = 10
+# TRAINING_STEPS = 200
+TRAINING_STEPS = 1
 
 LEARNING_RATE = 0.001
 
