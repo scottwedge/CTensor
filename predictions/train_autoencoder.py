@@ -109,7 +109,7 @@ class train:
         self.predict_end_time = datetime_utils.str_to_datetime(self.test_end_time)
         # if window = 7 days, test_end_time  = '2018-04-30 23:00:00', actual_end_time =  04/23 - 23:00
         self.actual_end_time = self.predict_end_time - self.window
-
+        # 41616
         self.train_hours = datetime_utils.get_total_hour_range(self.train_start_time, self.train_end_time)
 
         # self.train_df = raw_df[self.train_start_time: self.train_end_time]
@@ -410,26 +410,6 @@ class train:
         test_arr = raw_seq_arr[:, train_hours:]
         return train_arr, test_arr
 
-
-    # for each image randomly sample pixels
-    def add_noise_to_one_image(self,img):
-        height = img.shape[1] # 20
-        width = img.shape[0] # 32
-        # num of pixels to add noise, range from 5% to 10 % of total pixel num (32 - 64 pixels)
-        num_pixel = random.choice(range(int(height * width * 0.05)+1,  int(height * width * 0.1)+1))
-        # generate a sequence of random numbers from 0 to 640.
-        pixel_to_use = set(random.sample(range(0, height * width), num_pixel))
-        index = 0
-        # apply gaussian noise to sampled pixel,
-        for p in pixel_to_use:
-            c = int(p / width)-1  # 0 -20  -> height
-            r = int(p % width)-1  # 0 -32
-            # generate a random noise
-            noise = int(random.gauss(0, 2))
-            img[r, c] = noise + img[r, c]
-            if img[r, c]< 0:
-                img[r, c] = 0
-        return img
 
 
     # rawdata shape: (9504, 32, 20)

@@ -490,12 +490,9 @@ class Autoencoder:
         return output_arr
 
 
-
-
-    def inference_autoencoder(self, weather_seq_arr, crime_seq_arr, data_2d,
-                checkpoint_path,
-                    lamda, demo_mask_arr, save_folder_path, beta = math.e,
-                      keep_rate=0.7, epochs=10, batch_size=64):
+    def inference_autoencoder(self, data_1d, data_2d, data_3d, train_hours,
+                     demo_mask_arr, save_folder_path,
+                       epochs=1, batch_size=32):
         # starter_learning_rate = LEARNING_RATE
         # learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
         #                                5000, 0.96, staircase=True)
@@ -511,11 +508,6 @@ class Autoencoder:
         weight = tf.cast(tf.greater(demo_mask_arr_expanded, 0), tf.float32)
         acc_loss = tf.losses.absolute_difference(reconstructed, self.y, weight)
         cost = acc_loss
-
-        # with tf.name_scope("training"):
-        # # with tf.control_dependencies(update_ops):
-        #     optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost, global_step = self.global_step)
-
 
         saver = tf.train.Saver()
         test_result = list()
@@ -534,45 +526,22 @@ class Autoencoder:
 
             start_time = datetime.datetime.now()
 
-            if len(crime_seq_arr)%batch_size ==0:
-                iterations = int(len(crime_seq_arr)/batch_size)
+            if train_hours%batch_size ==0:
+                iterations = int(train_hours/batch_size)
             else:
-                iterations = int(len(crime_seq_arr)/batch_size) + 1
-                        # run epochs
-                        # global step = epoch * len(x_train_data) + itr
-            # for epoch in range(epochs):
-            #     print('Epoch', epoch, 'started', end='')
+                iterations = int(train_hours/batch_size) + 1
 
                             # mini batch
             for itr in range(iterations):
-                    # (None, 168, 3)
-                mini_batch_weather = weather_seq_arr[itr*batch_size: (itr+1)*batch_size]
-                    # (None,  168, 1,3)
-                mini_batch_weather = np.expand_dims(mini_batch_weather, axis=2)
-                    # (None,  168, 1,1,3)
-                mini_batch_weather = np.expand_dims(mini_batch_weather, axis=3)
-                    # (None, 168, 32,20, 3)
-                mini_batch_weather = np.tile(mini_batch_weather,(1,1, 32,20,1))
-                    # (None, 168, 32, 20)
-                mini_batch_crime = crime_seq_arr[itr*batch_size: (itr+1)*batch_size]
-                    # None, 168, 32, 20, 1
-                mini_batch_crime = np.expand_dims(mini_batch_crime, axis=4)
-                    # (32, 20, 5) => None, 168, 32, 20, 5
-                    # (1, 32, 20, 5)
-                mini_batch_data_2d = np.expand_dims(data_2d, axis=0)
-                    # # (1, 1, 32, 20, 5)
-                mini_batch_data_2d = np.expand_dims(mini_batch_data_2d, axis=0)
-                mini_batch_data_2d = np.tile(mini_batch_data_2d,(mini_batch_weather.shape[0],TIMESTEPS, 1,1,1))
 
-                    # print('mini_batch_weather.shape: ', mini_batch_weather.shape)
-                    # print('mini_batch_crime.shape: ', mini_batch_crime.shape)
+                start_idx = itr*batch_size
+                if train_hours < (itr+1)*batch_size:
+                    end_idx = train_hours
+                else:
+                    end_idx = (itr+1)*batch_size
+                print('start_idx, end_idx', start_idx, end_idx)
+                mini_batch_x = self.create_mini_batch(start_idx, end_idx, data_1d, data_2d, data_3d)
 
-                mini_batch_x = np.concatenate([mini_batch_weather,mini_batch_crime], axis=4)
-                mini_batch_x = np.concatenate([mini_batch_x,mini_batch_data_2d], axis=4)
-            #         print('mini_batch_x.shape: ', mini_batch_x.shape)
-
-
-            #         mini_batch_y = y_train_data[itr*batch_size: (itr+1)*batch_size]
                 batch_cost = sess.run([cost], feed_dict={self.x: mini_batch_x,
                                                                     self.y: mini_batch_x})
                     # get encoded representation
@@ -590,9 +559,6 @@ class Autoencoder:
                 # report loss per epoch
             test_cost = test_cost/ iterations
             print('Trainig Set total Cost: ',test_cost)
-            # save_path = saver.save(sess, save_folder_path +'autoencoder_' + str(lamda)+'_'+str(epoch)+'.ckpt', global_step=self.global_step)
-                # save_path = saver.save(sess, './autoencoder.ckpt')
-            # print('Model saved to {}'.format(save_path))
 
             final_output = np.array(final_output)
             test_result.extend(final_output)
@@ -754,23 +720,12 @@ class Autoencoder_entry:
     def run_inference_autoencoder(self):
         tf.reset_default_graph()
         predictor = Autoencoder(self.intersect_pos_set,
-                                    #  self.weather_seq_arr, self.crime_seq_arr, self.data_2d,
-                                    # self.demo_sensitive, self.demo_pop,
-                                    # self.pop_g1, self.pop_g2,self.grid_g1, self.grid_g2, self.fairloss,
-                                    # self.data_2d, self.data_1d.X, self.data_2d, self.data_1d_test.X,
-                                     self.lamda, self.demo_mask_arr, channel=CHANNEL,
-                                     time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
+                     self.demo_mask_arr, channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
         # (9337, 1, 32, 20, 1)
         latent_representation = predictor.inference_autoencoder(
-                        self.weather_seq_arr, self.crime_seq_arr, self.data_2d,
-                         self.checkpoint_path,
-                        # self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
-                        #  self.grid_g1, self.grid_g2, self.fairloss,
-                        self.lamda, self.demo_mask_arr,
-                        # self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
-                          self.save_path,
-                          self.beta,
+                        data_1d, data_2d, data_3d, train_hours,
+                                         demo_mask_arr, save_folder_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
         return latent_representation
