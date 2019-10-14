@@ -81,8 +81,8 @@ class train:
         # if window = 7 days, test_end_time  = '2018-04-30 23:00:00', actual_end_time =  04/23 - 23:00
         self.actual_end_time = self.predict_end_time - self.window
 
-        self.train_df = raw_df[self.train_start_time: self.train_end_time]
-        self.test_df = raw_df[self.test_start_time: self.test_end_time]
+        # self.train_df = raw_df[self.train_start_time: self.train_end_time]
+        # self.test_df = raw_df[self.test_start_time: self.test_end_time]
         self.train_hours = datetime_utils.get_total_hour_range(self.train_start_time, self.train_end_time)
 
 
