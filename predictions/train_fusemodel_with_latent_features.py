@@ -818,8 +818,8 @@ def main():
     plt.savefig(save_path + 'total_loss_finish.png')
     acc_loss = train_test[['train_acc', 'test_acc']].plot()
     plt.savefig(save_path + 'acc_loss_finish.png')
-    fair_loss = train_test[['train_fair', 'test_fair']].plot()
-    plt.savefig(save_path + 'fair_loss_finish.png')
+    # fair_loss = train_test[['train_fair', 'test_fair']].plot()
+    # plt.savefig(save_path + 'fair_loss_finish.png')
     plt.close()
 
 
