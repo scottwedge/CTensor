@@ -601,6 +601,7 @@ def main():
     save_path = train_dir + 'inference/'
     print('inference dir: ', save_path)
     if not os.path.exists(save_path):
+        os.makedirs(save_path)
 
 
     # generate mask arr for city boundary
