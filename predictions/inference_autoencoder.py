@@ -613,16 +613,11 @@ def main():
     if not os.path.isfile(save_path +  str(place) + '_demo_arr_' + str(HEIGHT) + '.npy'):
         np.save(save_path + str(place)+ '_demo_arr_'+ str(HEIGHT) + '.npy', demo_arr)
 
-    print('generating fixed window length training and testing sequences...')
-    raw_seq_arr = train_obj.generate_fixlen_timeseries(rawdata_arr)
-    train_arr, test_arr = train_obj.train_test_split(raw_seq_arr)
-    print('input train_arr shape: ',train_arr.shape )
+    # print('generating fixed window length training and testing sequences...')
+    # raw_seq_arr = train_obj.generate_fixlen_timeseries(rawdata_arr)
+    # train_arr, test_arr = train_obj.train_test_split(raw_seq_arr)
+    # print('input train_arr shape: ',train_arr.shape )
 
-
-    # calculate statistics for demo
-    pop_df, pop_ratio_df = train_obj.generate_pop_df()
-    pop_df.to_csv(save_path + 'pop_df.csv')
-    pop_ratio_df.to_csv(save_path + 'pop_ratio_df.csv')
 
 
 
