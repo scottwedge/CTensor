@@ -542,7 +542,7 @@ class Autoencoder:
                 print('start_idx, end_idx', start_idx, end_idx)
                 mini_batch_x = self.create_mini_batch(start_idx, end_idx, data_1d, data_2d, data_3d)
 
-                batch_cost = sess.run([cost], feed_dict={self.x: mini_batch_x,
+                batch_cost = sess.run(cost, feed_dict={self.x: mini_batch_x,
                                                                     self.y: mini_batch_x})
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
