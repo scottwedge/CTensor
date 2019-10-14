@@ -812,7 +812,7 @@ def main():
     print('mae for conv3d: ', eval_obj4.mae_val)
 
     # plot train test accuracy
-    train_test = pd.read_csv(save_path  + 'ecoch_res_df_' + str(lamda)+'.csv')
+    train_test = pd.read_csv(save_path  + 'ecoch_res_df_' +'.csv')
     train_test = train_test.loc[:, ~train_test.columns.str.contains('^Unnamed')]
     total_loss = train_test[['train_loss', 'test_loss']].plot()
     plt.savefig(save_path + 'total_loss_finish.png')
