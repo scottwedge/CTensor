@@ -491,7 +491,7 @@ class Autoencoder:
 
 
     def inference_autoencoder(self, data_1d, data_2d, data_3d, train_hours,
-                     demo_mask_arr, save_folder_path,
+                     demo_mask_arr, save_folder_path,checkpoint_path,
                        epochs=1, batch_size=32):
         # starter_learning_rate = LEARNING_RATE
         # learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
@@ -725,7 +725,7 @@ class Autoencoder_entry:
         # (9337, 1, 32, 20, 1)
         latent_representation = predictor.inference_autoencoder(
                         self.data_1d, self.data_2d, self.data_3d, self.train_hours,
-                         self.demo_mask_arr, self.save_path,
+                         self.demo_mask_arr, self.save_path, self.checkpoint_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
         return latent_representation
