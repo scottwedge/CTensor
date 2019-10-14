@@ -724,8 +724,8 @@ class Autoencoder_entry:
 
         # (9337, 1, 32, 20, 1)
         latent_representation = predictor.inference_autoencoder(
-                        data_1d, data_2d, data_3d, train_hours,
-                                         demo_mask_arr, save_folder_path,
+                        self.data_1d, self.data_2d, self.data_3d, self.train_hours,
+                         self.demo_mask_arr, self.save_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
         return latent_representation
