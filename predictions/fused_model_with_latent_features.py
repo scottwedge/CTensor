@@ -735,19 +735,12 @@ class Conv3DPredictor:
 
                     final_output.extend(batch_output)
 
-
-    #             output = np.array(final_output)
-
                 end_time_epoch = datetime.datetime.now()
                 #print(' Testing Set Accuracy:',test_cost/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
                 print(' Testing Set Cost:',test_cost/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
                 # print(' Testing Set Fair Cost:',test_fair_loss/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
                 print(' Testing Set Accuracy Cost:',test_acc_loss/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
-                # test_acc_loss.append(test_acc_loss/itrs)
 
-
-                #save_folder_path  = './fusion_model_'+ str(lamda)+'/'
-                # save globel step for resuming training later
                 save_path = saver.save(sess, save_folder_path +'latent_fea_model_' +str(epoch)+'.ckpt', global_step=self.global_step)
                 print('Model saved to {}'.format(save_path))
 
@@ -755,7 +748,7 @@ class Conv3DPredictor:
                 ecoch_res_df = pd.DataFrame([[epoch_loss, test_cost/itrs, epoch_accloss, test_acc_loss/itrs]],
                     columns=[ 'train_loss','test_loss', 'train_acc', 'test_acc'])
 
-                res_csv_path = save_folder_path + 'ecoch_res_df_' + str(lamda)+'.csv'
+                res_csv_path = save_folder_path + 'ecoch_res_df_' +'.csv'
 
                 with open(res_csv_path, 'a') as f:
                     # Add header if file is being created, otherwise skip it
@@ -767,12 +760,8 @@ class Conv3DPredictor:
                     #the_file.write('Only account for grids that intersect with city boundary \n')
                     the_file.write('epoch\n')
                     the_file.write(str(epoch)+'\n')
-                    # the_file.write('lamda\n')
-                    # the_file.write(str(lamda) + '\n')
                     the_file.write(' Testing Set Cost:\n')
                     the_file.write(str(test_cost/itrs) + '\n')
-                    # the_file.write('Testing Set Fair Cost\n')
-                    # the_file.write(str(test_fair_loss/itrs)+ '\n')
                     the_file.write('Testing Set Accuracy Cost\n')
                     the_file.write(str(test_acc_loss/itrs)+ '\n')
                     the_file.write('\n')
@@ -1110,7 +1099,7 @@ class Conv3DPredictor:
                               epoch_fairloss, test_fair_loss/itrs]],
                     columns=[ 'train_loss','test_loss', 'train_acc', 'test_acc', 'train_fair', 'test_fair'])
 
-                res_csv_path = save_folder_path + 'ecoch_res_df_' + str(lamda)+'.csv'
+                res_csv_path = save_folder_path + 'ecoch_res_df_' +'.csv'
 
                 with open(res_csv_path, 'a') as f:
                     # Add header if file is being created, otherwise skip it
