@@ -57,7 +57,7 @@ class train:
     def __init__(self, demo_raw,
                 train_start_time = '2014-02-01',train_end_time = '2018-10-31',
                 test_start_time = '2018-11-01 00:00:00', test_end_time = '2019-05-01 23:00:00'  ):
-        self.raw_df = raw_df
+        # self.raw_df = raw_df
         # demongraphic data [32, 32, 14]
         self.demo_raw = demo_raw
         self.train_start_time = train_start_time
