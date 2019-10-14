@@ -520,7 +520,7 @@ def main():
         rawdata = pd.read_csv('lime_whole_grid_32_20_hourly_1000_171001-181031.csv', index_col = 0)
         rawdata.index = pd.to_datetime(rawdata.index)
         # a set of region codes (e.g.: 10_10) that intersect with the city
-        intersect_pos = pd.read_csv('intersect_pos_32_20.csv')
+        intersect_pos = pd.read_csv('../auxillary_data/intersect_pos_32_20.csv')
         intersect_pos_set = set(intersect_pos['0'].tolist())
         # demographic data
         # should use 2018 data
@@ -788,7 +788,7 @@ def main():
                                             # train_arr_1d, test_arr_1d, data_2d,
                                             latent_train_series, latent_test_series,
                                          demo_mask_arr,
-                            train_dir, 
+                            train_dir,
                             HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
                      NUM_2D_FEA, NUM_1D_FEA, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                             False, checkpoint, True, train_dir).conv3d_predicted
