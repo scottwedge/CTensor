@@ -532,6 +532,14 @@ def main():
         # generate binary demo feature according to 2018 city mean
         train_obj.generate_binary_demo_attr(intersect_pos_set)
 
+        if os.path.isfile('bikedata_32_20_171001-181031.npy'):
+            print('loading raw data array...')
+            rawdata_arr = np.load('bikedata_32_20_171001-181031.npy')
+        else:
+            print('generating raw data array')
+            rawdata_arr = train_obj.df_to_tensor()
+            np.save('bikedata_32_20_171001-181031.npy', rawdata_arr)
+
         print('generating fixed window length training and testing sequences...')
         # raw_seq_arr.shape (169, 9336, 32, 20)
         raw_seq_arr = train_obj.generate_fixlen_timeseries(rawdata_arr)
@@ -562,13 +570,7 @@ def main():
         print('latent_test_series.shape: ',latent_test_series.shape)
 
 
-        if os.path.isfile('bikedata_32_20_171001-181031.npy'):
-            print('loading raw data array...')
-            rawdata_arr = np.load('bikedata_32_20_171001-181031.npy')
-        else:
-            print('generating raw data array')
-            rawdata_arr = train_obj.df_to_tensor()
-            np.save('bikedata_32_20_171001-181031.npy', rawdata_arr)
+
 
     elif place == "Austin":
         print('load data for Austin...')
