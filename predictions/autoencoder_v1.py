@@ -549,7 +549,7 @@ class Autoencoder:
                 batch_output = sess.run([encoded], feed_dict={self.x: mini_batch_x,
                                                                     self.y: mini_batch_x})
                 final_output.extend(batch_output)
-                test_cost += batch_output
+                test_cost += batch_cost
 
                 # epoch_loss += batch_cost
                 if itr%10 == 0:
