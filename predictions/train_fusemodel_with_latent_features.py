@@ -561,7 +561,7 @@ def main():
         # 32112
         start_train_hour =datetime_utils.get_total_hour_range('2014-02-01', '2017-09-30')
         # 40152
-        end_train_hour = get_total_hour_range('2014-02-01', '2018-08-31')
+        end_train_hour = datetime_utils.get_total_hour_range('2014-02-01', '2018-08-31')
 
         latent_train_series = latent_rep[start_train_hour:end_train_hour, :, :,:,:]
         latent_test_series = latent_rep[end_train_hour:end_train_hour + test_len, :, :,:,:]
