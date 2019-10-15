@@ -654,19 +654,19 @@ class Conv3DPredictor:
                     # 1d, 2d, and 3d
                     if data_1d_train is not None and data_2d_train is not None:
 
-                        _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
+                        _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             self.input_1d_feature:mini_batch_data_1d,  self.input_2d_feature: mini_batch_data_2d,
                                                             self.is_training: True   })
                     elif data_1d_train is not None:  # 1d and 3d
-                        _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
+                        _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             self.input_1d_feature:mini_batch_data_1d,
                                                             self.is_training: True   })
                     elif data_2d_train is not None:
-                        _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
+                        _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             self.input_2d_feature: mini_batch_data_2d,
                                                             self.is_training: True   })
                     else: # only 3d
-                        _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
+                        _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             self.is_training: True   })
 
                     epoch_loss += _cost
@@ -983,19 +983,19 @@ class Conv3DPredictor:
                     # 1d, 2d, and 3d
                     if data_1d_train is not None and data_2d_train is not None:
 
-                        _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
+                        _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             self.input_1d_feature:mini_batch_data_1d,  self.input_2d_feature: mini_batch_data_2d,
                                                             self.is_training: True   })
                     elif data_1d_train is not None:  # 1d and 3d
-                        _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
+                        _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             self.input_1d_feature:mini_batch_data_1d,
                                                             self.is_training: True   })
                     elif data_2d_train is not None:
-                        _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
+                        _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             self.input_2d_feature: mini_batch_data_2d,
                                                             self.is_training: True   })
                     else: # only 3d
-                        _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
+                        _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             self.is_training: True   })
 
 
@@ -1005,7 +1005,7 @@ class Conv3DPredictor:
                     #                                      self.input_1d_feature:mini_batch_data_1d,  self.input_2d_feature: mini_batch_data_2d,
                     #                                      self.is_training: True   })
                     epoch_loss += _cost
-                    epoch_fairloss += _fair_loss
+                    # epoch_fairloss += _fair_loss
                     epoch_accloss += _acc_loss
 
                     if itr % 10 == 0:
