@@ -98,7 +98,7 @@ class train:
         self.test_start_time = test_start_time
         self.test_end_time = test_end_time
         # prediction window: use one week's data to predict next hour
-        self.window = datetime.timedelta(hours=8 * 7)
+        self.window = datetime.timedelta(hours=24 * 7)
         self.step = datetime.timedelta(hours=3)
         # predict_start_time should be '2018-04-08 00:00:00'
         # e.g. use '2018-04-01 00:00:00' -> '2018-04-07 23:00:00', in total 168 time stamps
