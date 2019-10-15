@@ -1761,7 +1761,6 @@ class Conv3D:
                                 columns=list(self.test_df_cut))
 
         sample_pred_squeeze = np.squeeze(self.predicted_vals)
-        # test_squeeze = np.squeeze(self.test_data.y)
         pred_shape = self.predicted_vals.shape
 
         # loop through time stamps
@@ -1772,7 +1771,7 @@ class Conv3D:
             temp_rot = np.rot90(temp_image, axes=(1,0))
         #     test_rot= np.rot90(test_image, axes=(1,0))
 
-            dt = datetime_utils.str_to_datetime(self.train_obj.test_start_time) + datetime.timedelta(hours=i)
+            dt = datetime_utils.str_to_datetime(self.train_obj.test_start_time) + datetime.timedelta(hours=i * 3)
             # dt_str = pd.to_datetime(datetime_utils.datetime_to_str(dt))
             predicted_timestamp = dt+self.train_obj.window
             predicted_timestamp_str = pd.to_datetime(datetime_utils.datetime_to_str(predicted_timestamp))
