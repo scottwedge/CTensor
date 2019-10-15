@@ -1,16 +1,9 @@
 # train fused model for fair / unfair models
-# fused model consists of 3d, 2d, and 1d models that
-# take 3d, 2d, and 1d features. Fused model is trained
-# jointly using MAE (with fairness loss)
+# The model consists of a 3d cnn network that uses
+# historical ST data to predict next 3-hour crime prediction
+# as well as taking a latent feature map trained from
+# an autoencoder that includes multiple urban features
 
-# v2:  optional data agumentation and permutation
-# # doubling the training data size by adding Gaussian noise
-# to every training sample.
-# Permutate the expanded training set  (Optional)
-# copy the weather data and permutate to match the bikeshare data
-# note: may adjust start learning rate to accelerate training
-
-# add resume training from latest checkpoint
 
 import pandas as pd
 import numpy as np
@@ -34,7 +27,7 @@ from datetime import timedelta
 import datetime_utils
 #import lstm
 import evaluation
-import fused_model_crime
+import fused_model_with_latent_features_crime
 
 from matplotlib import pyplot as plt
 import random
@@ -52,7 +45,7 @@ NUM_1D_FEA = 3  # temp/slp/prec
 
 BATCH_SIZE = 32
 # actually epochs
-TRAINING_STEPS = 200
+TRAINING_STEPS = 150
 #TRAINING_STEPS = 10
 
 LEARNING_RATE = 0.005
@@ -76,8 +69,8 @@ fea_list = ['pop','normalized_pop', 'bi_caucasian','bi_age', 'bi_high_incm','bi_
 class train:
     # TODO: increase window size to 4 weeks
     def __init__(self, raw_df, demo_raw,
-                train_start_time = '2014-02-01',train_end_time = '2018-10-31',
-                test_start_time = '2018-11-01 00:00:00', test_end_time = '2019-05-01 23:00:00' ):
+            train_start_time = '2014-02-01',train_end_time = '2018-10-31',
+            test_start_time = '2018-11-01 00:00:00', test_end_time = '2019-05-01 23:00:00' ):
         self.raw_df = raw_df
         # demongraphic data [32, 32, 14]
         self.demo_raw = demo_raw
@@ -397,17 +390,42 @@ class train:
         return train_arr, test_arr
 
 
+    # for each image randomly sample pixels
+    def add_noise_to_one_image(self,img):
+        height = img.shape[1] # 20
+        width = img.shape[0] # 32
+        # num of pixels to add noise, range from 5% to 10 % of total pixel num (32 - 64 pixels)
+        num_pixel = random.choice(range(int(height * width * 0.05)+1,  int(height * width * 0.1)+1))
+        # generate a sequence of random numbers from 0 to 640.
+        pixel_to_use = set(random.sample(range(0, height * width), num_pixel))
+        index = 0
+        # apply gaussian noise to sampled pixel,
+        for p in pixel_to_use:
+            c = int(p / width)-1  # 0 -20  -> height
+            r = int(p % width)-1  # 0 -32
+            # generate a random noise
+            noise = int(random.gauss(0, 2))
+            img[r, c] = noise + img[r, c]
+            if img[r, c]< 0:
+                img[r, c] = 0
+        return img
+
+
+    # rawdata shape: (9504, 32, 20)
+    # note: make changes in place
+    def generate_noise_data(self, rawdata_arr):
+        noisy_data_list = []
+        for i in range(rawdata_arr.shape[0]):
+            #print('adding noise to ith data: ', i)
+            noisy_data_list.append(self.add_noise_to_one_image(rawdata_arr[i,:,:]))
+        noisy_data_arr = np.array(noisy_data_list)
+        return noisy_data_arr
 
 
 
 def parse_args():
     parser = argparse.ArgumentParser()
-
-    parser.add_argument('-use_1d_fea',   type=bool, default=False,
-                    action="store", help = 'whether to use 1d features. If use this option, set to True. Otherwise, default False')
-    parser.add_argument('-use_2d_fea',    type=bool, default=False,
-                    action="store", help = 'whether to use 2d features')
-
+    #                 action="store", help = 'whether to multi-var fairloss. If True, include aga, race, and edu. Otherwise, use race')
     parser.add_argument('-s',   '--suffix',
                      action="store", help = 'save path suffix', default = '')
     parser.add_argument("-r","--resume_training", type=bool, default=False,
@@ -423,16 +441,12 @@ def parse_args():
     parser.add_argument('-l',   '--learning_rate',  type=float,
                      action="store", help = 'epochs to train', default = 0.005)
 
-
     return parser.parse_args()
 
 
 
 def main():
     args = parse_args()
-
-    use_1d_fea = bool(args.use_1d_fea)
-    use_2d_fea = bool(args.use_2d_fea)
     suffix = args.suffix
 
     # the following arguments for resuming training
@@ -443,9 +457,6 @@ def main():
     epoch = args.epoch
     learning_rate= args.learning_rate
 
-
-    print("use_1d_fea: ", use_1d_fea)
-    print("use_2d_fea: ", use_2d_fea)
     print("resume_training: ", resume_training)
     print("training dir path: ", train_dir)
     print("checkpoint: ", checkpoint)
@@ -478,75 +489,8 @@ def main():
         #ignore non-intersection cells in test_df
         # this is for evaluation
         test_df_cut = train_obj.test_df.loc[:,train_obj.test_df.columns.isin(list(intersect_pos_set))]
-        print('test_df_cut.head(): ', test_df_cut.head())
-        print('len(test_df_cut): ', (len(list(test_df_cut)) * len(test_df_cut)))
-
-
         # generate binary demo feature according to 2018 city mean
         train_obj.generate_binary_demo_attr(intersect_pos_set)
-        path_1d = '../data_processing/1d_source_data/'
-        path_2d = '../data_processing/2d_source_data/'
-        path_3d = '../data_processing/3d_source_data/'
-
-        # load 2d and 1d features
-        if use_2d_fea:
-            print("use 2d feature")
-            house_price_arr = np.load(path_2d + 'house_price.npy')
-            POI_business_arr = np.load(path_2d + 'POI_business.npy')
-            POI_food_arr = np.load(path_2d + 'POI_food.npy')
-            POI_government_arr = np.load(path_2d + 'POI_government.npy')
-            POI_hospitals_arr = np.load(path_2d + 'POI_hospitals.npy')
-            POI_publicservices_arr = np.load(path_2d + 'POI_publicservices.npy')
-
-            POI_recreation_arr = np.load(path_2d + 'POI_recreation.npy')
-            POI_school_arr = np.load(path_2d + 'POI_school.npy')
-            POI_transportation_arr = np.load(path_2d + 'POI_transportation.npy')
-            seattle_street_arr = np.load(path_2d + 'seattle_street.npy')
-            total_flow_count_arr = np.load(path_2d + 'total_flow_count.npy')
-            transit_routes_arr = np.load(path_2d + 'transit_routes.npy')
-            transit_signals_arr = np.load(path_2d + 'transit_signals.npy')
-            # transit_stop_arr = np.load(path_2d + 'transit_stop.npy')
-
-            # bikelane_arr = np.load('../feature_transform/bikelane_arr.npy')
-            # slope_arr = np.load('../feature_transform/slope_arr.npy')
-            # transitstop_arr = np.load('../feature_transform/transitstop_arr.npy')
-
-            # concatenate 2d data
-            datalist_2d = [house_price_arr,POI_business_arr, POI_food_arr, POI_government_arr,
-              POI_hospitals_arr, POI_publicservices_arr, POI_recreation_arr, POI_school_arr,
-              POI_transportation_arr, seattle_street_arr, total_flow_count_arr, transit_routes_arr,
-              transit_signals_arr]
-            data_2d = np.concatenate(datalist_2d, axis=2)
-
-            # data_2d = np.concatenate([slope_arr,bikelane_arr], axis=2)
-            # data_2d = np.concatenate([data_2d,transitstop_arr], axis=2)
-        else:
-            print('ignore 2d data')
-            data_2d = None
-
-
-        if use_1d_fea:
-            # 1d
-            weather_arr = np.load(path_1d + 'weather_arr_20140201_20190501.npy')
-            print('weather_arr.shape: ', weather_arr.shape)
-            weather_arr_3hour = np.mean(weather_arr.reshape(1,1, -1, 3, 3), axis=3)
-            weather_arr_3hour = weather_arr_3hour[0,0,:,:]
-
-            # weather: (1,1,9504,3) or (9504, 3)
-            # weather_arr = np.load('../feature_transform/weather_arr_1by1by9504.npy')
-            # weather_arr = weather_arr[0,0,:,:]  # [9504, 3]
-            # construct training / testing data for 1d data
-            print('generating fixed window length training and testing sequences for 1d data')
-            raw_seq_arr_1d = train_obj.generate_fixlen_timeseries(weather_arr)
-            # test_series_1d.shape -> (169, 1296, 3)
-            train_arr_1d, test_arr_1d = train_obj.train_test_split(raw_seq_arr_1d)
-            print('train_arr_1d: ', train_arr_1d.shape)
-            print('test_arr_1d: ', test_arr_1d.shape)
-            #
-        else:
-            print('ignore 1d data')
-            train_arr_1d = None
-            test_arr_1d = None
 
         if os.path.isfile(path_3d + 'crime_arr_20140201_20190501_python3.npy'):
             print('loading raw data array...')
@@ -557,6 +501,37 @@ def main():
             rawdata_arr = train_obj.df_to_tensor()
             np.save('crime_arr_20140201_20190501_python3.npy', rawdata_arr)
 
+        print('generating fixed window length training and testing sequences...')
+        # raw_seq_arr.shape (169, 9336, 32, 20)
+        raw_seq_arr = train_obj.generate_fixlen_timeseries(rawdata_arr)
+        train_arr, test_arr = train_obj.train_test_split(raw_seq_arr)
+        print('input train_arr shape: ',train_arr.shape )
+
+
+        print('loading latent representation')
+        # TODO: change file path
+        latent_rep_path = '/home/ubuntu/CTensor/predictions/autoencoder_v1_Seattle/inference/infer_latent_representation.npy'
+        latent_rep = np.load(latent_rep_path)
+        #  (41616, 1, 32, 20, 1)
+        print('latent_rep.shape: ', latent_rep.shape)
+        # train_hours: 8084
+        train_hours = datetime_utils.get_total_3hour_range(train_obj.train_start_time, train_obj.train_end_time)
+        print('train_hours: ', train_hours)
+        total_length = raw_seq_arr.shape[1]  # 9336
+        print('total_length: ', total_length)
+        test_len = total_length - train_hours  # should be 1400
+        print('test_len: ', test_len)
+
+        start_train_hour =0
+        # 40152
+        end_train_hour = train_hours
+
+        latent_train_series = latent_rep[start_train_hour:end_train_hour, :, :,:,:]
+        latent_test_series = latent_rep[end_train_hour:end_train_hour + test_len, :, :,:,:]
+        latent_train_series = np.squeeze(latent_train_series, axis=1)
+        latent_test_series = np.squeeze(latent_test_series, axis=1)
+        print('latent_test_series.shape: ',latent_test_series.shape)
+
 
 
 ####################### city ignorant treatment ################
@@ -565,9 +540,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './crime_fusion_model_'+ str(place) + '_'  +str(use_1d_fea) +'_'+str(use_2d_fea)  + '/'
+        save_path =  './crime_latentfea_model_'+ str(place) + '/'
     else:
-        save_path = './crime_fusion_model_'+ str(place) + '_' +str(use_1d_fea) +'_'+str(use_2d_fea) + '_'+ suffix  +'/'
+        save_path = './crime_latentfea_model_'+ str(place) + '_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir
@@ -578,12 +553,6 @@ def main():
         os.makedirs(save_path)
 
 
-    # save demongraphic array
-    #if os.path.isfile(save_path + 'demo_arr_32_20.npy'):
-     #   print('loading demopgraphic data array...')
-      #  demo_arr = np.load(save_path + 'demo_arr_32_20.npy')
-    #else:
-
     # generate mask arr for city boundary
     demo_mask_arr = train_obj.demo_mask()
 
@@ -593,30 +562,26 @@ def main():
     if not os.path.isfile(save_path +  str(place) + '_demo_arr_' + str(HEIGHT) + '.npy'):
         np.save(save_path + str(place)+ '_demo_arr_'+ str(HEIGHT) + '.npy', demo_arr)
 
-    print('generating fixed window length training and testing sequences...')
-    raw_seq_arr = train_obj.generate_fixlen_timeseries(rawdata_arr)
-    train_arr, test_arr = train_obj.train_test_split(raw_seq_arr)
-    print('input train_arr shape: ',train_arr.shape )
-    print('input test_arr shape: ',test_arr.shape )
-
 
     timer = str(time.time())
     if resume_training == False:
     # Model fusion without fairness
         print('Train Model fusion without fairness')
-        conv3d_predicted = fused_model_crime.Conv3D(train_obj, train_arr, test_arr, intersect_pos_set,
+        conv3d_predicted = fused_model_with_latent_features_crime.Conv3D(train_obj, train_arr, test_arr, intersect_pos_set,
                                             # multi_demo_sensitive, demo_pop, multi_pop_g1, multi_pop_g2,
                                             # multi_grid_g1, multi_grid_g2, fairloss,
-                                            train_arr_1d, test_arr_1d, data_2d,
-                                         demo_mask_arr,
+                                            # train_arr_1d, test_arr_1d, data_2d,
+                                            latent_train_series, latent_test_series,
+                                    demo_mask_arr,
                             save_path,
                             HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
                      NUM_2D_FEA, NUM_1D_FEA, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE).conv3d_predicted
     else:
          # resume training
         print('resume trainging from : ', train_dir)
-        conv3d_predicted = fused_model_crime.Conv3D(train_obj, train_arr, test_arr, intersect_pos_set,
-                                            train_arr_1d, test_arr_1d, data_2d,
+        conv3d_predicted = fused_model_with_latent_features_crime.Conv3D(train_obj, train_arr, test_arr, intersect_pos_set,
+                                            # train_arr_1d, test_arr_1d, data_2d,
+                                            latent_train_series, latent_test_series,
                                          demo_mask_arr,
                             train_dir,
                             HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
@@ -630,7 +595,11 @@ def main():
         #convlstm_predicted = pd.read_csv(save_path + 'convlstm_predicted.csv', index_col=0)
         #convlstm_predicted.index = pd.to_datetime(convlstm_predicted.index)
     eval_obj4 = evaluation.evaluation(test_df_cut, conv3d_predicted, train_obj.demo_raw)
-
+    # diff_df = eval_obj4.group_difference()
+    # diff_df.to_csv(save_path+ str(place) +'_evaluation.csv')
+    #
+    # finegrain_diff_df = eval_obj4.individual_difference()
+    # finegrain_diff_df.to_csv(save_path+'IFG_eval.csv')
 
     print('rmse for conv3d: ',eval_obj4.rmse_val)
     print('mae for conv3d: ', eval_obj4.mae_val)
@@ -648,17 +617,12 @@ def main():
 
 
 
-    txt_name = save_path + 'crime_fused_model_df_' +   timer + '.txt'
+    txt_name = save_path + 'crime_latent_fea_df_' +   timer + '.txt'
     with open(txt_name, 'w') as the_file:
         the_file.write('Only account for grids that intersect with city boundary \n')
 
-
         the_file.write('place\n')
         the_file.write(str(place) + '\n')
-        the_file.write('use_1d_fea\n')
-        the_file.write(str(use_1d_fea) + '\n')
-        the_file.write('use_2d_fea\n')
-        the_file.write(str(use_2d_fea) + '\n')
         the_file.write('learning rate\n')
         the_file.write(str(LEARNING_RATE) + '\n')
 
