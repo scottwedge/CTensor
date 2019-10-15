@@ -491,6 +491,8 @@ def main():
         test_df_cut = train_obj.test_df.loc[:,train_obj.test_df.columns.isin(list(intersect_pos_set))]
         # generate binary demo feature according to 2018 city mean
         train_obj.generate_binary_demo_attr(intersect_pos_set)
+        
+        path_3d = '../data_processing/3d_source_data/'
 
         if os.path.isfile(path_3d + 'crime_arr_20140201_20190501_python3.npy'):
             print('loading raw data array...')
