@@ -537,7 +537,7 @@ def main():
             # weather_arr = weather_arr[0,0,:,:]  # [9504, 3]
             # construct training / testing data for 1d data
             print('generating fixed window length training and testing sequences for 1d data')
-            raw_seq_arr_1d = train_obj.generate_fixlen_timeseries(weather_arr)
+            raw_seq_arr_1d = train_obj.generate_fixlen_timeseries(weather_arr_3hour)
             # test_series_1d.shape -> (169, 1296, 3)
             train_arr_1d, test_arr_1d = train_obj.train_test_split(raw_seq_arr_1d)
             print('train_arr_1d: ', train_arr_1d.shape)
