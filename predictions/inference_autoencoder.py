@@ -601,7 +601,7 @@ def main():
         #     np.save('bikedata_32_20_171001-181031.npy', rawdata_arr)
 
 
-    save_path = train_dir + 'inference/'
+    save_path = train_dir + 'inference_' + suffix + '/'
     print('inference dir: ', save_path)
     if not os.path.exists(save_path):
         os.makedirs(save_path)
