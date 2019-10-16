@@ -84,7 +84,7 @@ class train:
 
         # if training
         # self.train_hours = datetime_utils.get_total_hour_range(self.train_start_time, self.train_end_time)
-        self.train_hours = datetime_utils.get_total_hour_range(self.test_start_time, datetime_utils.str_to_datetime(self.actual_end_time))
+        self.train_hours = datetime_utils.get_total_hour_range(self.test_start_time, datetime_utils.datetime_to_str(self.actual_end_time))
 
 
 
