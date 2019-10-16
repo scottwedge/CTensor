@@ -516,6 +516,13 @@ def main():
         latent_rep = np.load(latent_rep_path)
         #  (41616, 1, 32, 20, 1)
         print('latent_rep.shape: ', latent_rep.shape)
+
+        # load test inference
+        latent_rep_test_path = '/home/ubuntu/CTensor/results/AE_v1/infer_latent_representation_test.npy'
+        latent_rep_test = np.load(latent_rep_test_path)
+        print('latent_rep_test.shape: ', latent_rep_test.shape)
+
+
         # train_hours: 8084
         train_hours = datetime_utils.get_total_3hour_range(train_obj.train_start_time, train_obj.train_end_time)
         print('train_hours: ', train_hours)
@@ -523,6 +530,7 @@ def main():
         print('total_length: ', total_length)
         test_len = total_length - train_hours  # should be 1400
         print('test_len: ', test_len)
+
 
         start_train_hour =0
         # 40152
@@ -532,8 +540,12 @@ def main():
         # (4580, 1, 32, 20, 1)
         latent_rep_3hour = np.mean(latent_rep.reshape(-1, 3, 1, 32, 20, 1), axis=1)
         print('latent_rep_3hour: ', latent_rep_3hour.shape)
+        latent_rep_test_3hour = np.mean(latent_rep_test.reshape(-1, 3, 1, 32, 20, 1), axis=1)
+        print('latent_rep_test_3hour: ', latent_rep_test_3hour.shape)
+
+
         latent_train_series = latent_rep_3hour[start_train_hour:end_train_hour, :, :,:,:]
-        latent_test_series = latent_rep_3hour[end_train_hour:end_train_hour + test_len, :, :,:,:]
+        latent_test_series = latent_rep_test_3hour
         latent_train_series = np.squeeze(latent_train_series, axis=1)
         latent_test_series = np.squeeze(latent_test_series, axis=1)
         print('latent_test_series.shape: ',latent_test_series.shape)
