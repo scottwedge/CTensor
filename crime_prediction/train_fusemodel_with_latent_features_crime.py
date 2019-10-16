@@ -531,7 +531,7 @@ def main():
         # average the 3-hour
         # (4580, 1, 32, 20, 1)
         latent_rep_3hour = np.mean(latent_rep.reshape(-1, 3, 1, 32, 20, 1), axis=1)
-
+        print('latent_rep_3hour: ', latent_rep_3hour.shape)
         latent_train_series = latent_rep_3hour[start_train_hour:end_train_hour, :, :,:,:]
         latent_test_series = latent_rep_3hour[end_train_hour:end_train_hour + test_len, :, :,:,:]
         latent_train_series = np.squeeze(latent_train_series, axis=1)
