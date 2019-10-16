@@ -677,7 +677,6 @@ def main():
     txt_name = save_path + 'autoencoder_v1_' +  timer + '.txt'
     with open(txt_name, 'w') as the_file:
         the_file.write('Only account for grids that intersect with city boundary \n')
-        the_file.write(str(beta) + '\n')
         the_file.write('place\n')
         the_file.write(str(place) + '\n')
         # the_file.write('use_1d_fea\n')
