@@ -491,7 +491,7 @@ def main():
         test_df_cut = train_obj.test_df.loc[:,train_obj.test_df.columns.isin(list(intersect_pos_set))]
         # generate binary demo feature according to 2018 city mean
         train_obj.generate_binary_demo_attr(intersect_pos_set)
-        
+
         path_3d = '../data_processing/3d_source_data/'
 
         if os.path.isfile(path_3d + 'crime_arr_20140201_20190501_python3.npy'):
@@ -527,9 +527,13 @@ def main():
         start_train_hour =0
         # 40152
         end_train_hour = train_hours
+        # note: the latent representation is at hourly pace, but crime prediciton at 3-hour pace
+        # average the 3-hour
+        # (4580, 1, 32, 20, 1)
+        latent_rep_3hour = np.mean(latent_rep.reshape(-1, 3, 1, 32, 20, 1), axis=1)
 
-        latent_train_series = latent_rep[start_train_hour:end_train_hour, :, :,:,:]
-        latent_test_series = latent_rep[end_train_hour:end_train_hour + test_len, :, :,:,:]
+        latent_train_series = latent_rep_3hour[start_train_hour:end_train_hour, :, :,:,:]
+        latent_test_series = latent_rep_3hour[end_train_hour:end_train_hour + test_len, :, :,:,:]
         latent_train_series = np.squeeze(latent_train_series, axis=1)
         latent_test_series = np.squeeze(latent_test_series, axis=1)
         print('latent_test_series.shape: ',latent_test_series.shape)
