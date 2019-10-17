@@ -480,7 +480,6 @@ def main():
         #ignore non-intersection cells in test_df
         # this is for evaluation
         test_df_cut = train_obj.test_df.loc[:,train_obj.test_df.columns.isin(list(intersect_pos_set))]
-        print('test_df_cut.head(): ', test_df_cut.head())
         print('len(test_df_cut): ', (len(list(test_df_cut)) * len(test_df_cut)))
 
 

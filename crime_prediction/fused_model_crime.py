@@ -239,8 +239,7 @@ class Conv3DPredictor:
         # [batchsize, depth, height, width, channel]
         self.x = tf.placeholder(tf.float32, shape=[None,time_steps, height, width, channel], name = 'x_input')
         #
-        #y_input = tf.placeholder(tf.float32, shape=[None, n_classes])
-        self.y = tf.placeholder(tf.float32, shape= [None, height, width, channel], name = 'y_input')
+        self.y = tf.placeholder(tf.float32, shape= [None, height, width, 1], name = 'y_input')
         # [batchsize, 32, 20, 4]
         self.input_2d_feature = tf.placeholder(tf.float32, shape=[None, height, width, NUM_2D_FEA], name = "input_2d_feature")
         # (168, 9336,  3)
