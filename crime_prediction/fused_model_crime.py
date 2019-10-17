@@ -28,7 +28,7 @@ HEIGHT = 32
 WIDTH = 20
 TIMESTEPS = 56
 # without exogenous data, the only channel is the # of trip starts
-BIKE_CHANNEL = 1
+BIKE_CHANNEL = 2
 NUM_2D_FEA = 15 # slope = 2, bikelane = 2
 NUM_1D_FEA = 3  # temp/slp/prec
 
@@ -44,6 +44,60 @@ LEARNING_RATE = 0.003
 
 def my_leaky_relu(x):
     return tf.nn.leaky_relu(x, alpha=0.2)
+
+
+class generateData_3d_feature(object):
+    def __init__(self, input_data, timesteps, batchsize):
+        self.timesteps = timesteps
+        self.batchsize = batchsize
+        self.rawdata = input_data
+        self.train_batch_id = 0
+
+        X, y = self.load_data()
+        # x should be [batchsize, time_steps, height, width,channel]
+        self.X = X['train']
+        # y should be [batchsize, height, width, channel]
+        self.y = y['train']
+
+
+    # load raw data
+    # raw_data.shape for mnist: (20, 10000, 64, 64)
+    def load_data(self):
+        data = self.rawdata
+        train_x = data[:self.timesteps, :, :, :, :]
+        train_y = data[self.timesteps:,:, :, :, 0]
+
+        # reshape x to [None, time_steps, height, width,channel]
+        # train_x = np.expand_dims(train_x, axis=4)
+        # transpose
+        train_x = np.swapaxes(train_x,0,1)
+        #sample_train_x = np.reshape(sample_train_x, [-1, time_steps, height, width, 1])
+        # transpose y to [batch_size, height, width, channel]
+        #sample_train_y = np.reshape(sample_train_y, [-1,  height, width, 1])
+        train_y = np.expand_dims(train_y, axis=4)
+        # transpose
+        train_y = np.swapaxes(train_y,0,1)
+        # sqeeze to [batch_size, height, width, channel]
+        train_y = np.squeeze(train_y, axis = 1)
+
+        return dict(train=train_x), dict(train = train_y)
+
+
+    # input train_x, train_y or test_x or test_y
+    def train_next(self):
+        """ Return a batch of data. When dataset end is reached, start over.
+        """
+        if self.train_batch_id == len(self.X):
+            self.train_batch_id = 0
+        batch_data = (self.X[self.train_batch_id:min(self.train_batch_id +
+                                                  self.batchsize, len(self.X))])
+        batch_labels = (self.y[self.train_batch_id:min(self.train_batch_id +
+                                                  self.batchsize, len(self.y))])
+
+        self.train_batch_id = min(self.train_batch_id + self.batchsize, len(self.X))
+        return batch_data, batch_labels
+
+
 
 class generateData(object):
     def __init__(self, input_data, timesteps, batchsize):
@@ -1518,7 +1572,7 @@ class Conv3D:
                                     )
         #data = data_loader.load_series('international-airline-passengers.csv')
         # rawdata, timesteps, batchsize
-        self.train_data = generateData(self.train_arr, TIMESTEPS, BATCH_SIZE)
+        self.train_data = generateData_3d_feature(self.train_arr, TIMESTEPS, BATCH_SIZE)
         # train_x shape should be : [num_examples (batch size), time_step (168), feature_dim (1)]
 
         # create batches, feed batches into predictor
@@ -1526,7 +1580,7 @@ class Conv3D:
         # print('finished training')
 
         # prep test data, split test_arr into test_x and test_y
-        self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
+        self.test_data = generateData_3d_feature(self.test_arr, TIMESTEPS, BATCH_SIZE)
         print('test_data.y.shape', self.test_data.y.shape)
 
         if self.train_arr_1d is not None:
@@ -1596,10 +1650,10 @@ class Conv3D:
                                     )
         #data = data_loader.load_series('international-airline-passengers.csv')
         # rawdata, timesteps, batchsize
-        self.train_data = generateData(self.train_arr, TIMESTEPS, BATCH_SIZE)
+        self.train_data = generateData_3d_feature(self.train_arr, TIMESTEPS, BATCH_SIZE)
         # train_x shape should be : [num_examples (batch size), time_step (168), feature_dim (1)]
         # prep test data, split test_arr into test_x and test_y
-        self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
+        self.test_data = generateData_3d_feature(self.test_arr, TIMESTEPS, BATCH_SIZE)
         print('test_data.y.shape', self.test_data.y.shape)
 
         if self.train_arr_1d is not None:
@@ -1659,7 +1713,7 @@ class Conv3D:
         # print('finished training')
 
         # prep test data, split test_arr into test_x and test_y
-        self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
+        self.test_data = generateData_3d_feature(self.test_arr, TIMESTEPS, BATCH_SIZE)
         print('test_data.y.shape', self.test_data.y.shape)
 
         if self.test_arr_1d is not None:

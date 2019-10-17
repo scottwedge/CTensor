@@ -48,7 +48,7 @@ WIDTH = 20
 TIMESTEPS = 56
 
 # without exogenous data, the only channel is the # of trip starts
-BIKE_CHANNEL = 1
+BIKE_CHANNEL = 2
 NUM_2D_FEA = 15
 NUM_1D_FEA = 3  # temp/slp/prec
 
@@ -600,6 +600,23 @@ def main():
     train_arr, test_arr = train_obj.train_test_split(raw_seq_arr)
     print('input train_arr shape: ',train_arr.shape )
     print('input test_arr shape: ',test_arr.shape )
+
+    # add 3d 911 data: (45984, 32, 20)
+    seattle911calls_arr = np.load(path_3d + 'seattle911calls_arr_20140201_20190501.npy')
+    seattle911calls_arr_3hour = np.mean(seattle911calls_arr.reshape(-1, 3, 32, 20), axis=1)
+    seattle911calls_arr_3hour_seq = train_obj.generate_fixlen_timeseries(seattle911calls_arr_3hour)
+    seattle911calls_train_arr, seattle911calls_test_arr = train_obj.train_test_split(seattle911calls_arr_3hour_seq)
+
+    # compose bikeshare and crime data
+    train_arr = np.expand_dims(train_arr, axis=4)
+    seattle911calls_train_arr = np.expand_dims(seattle911calls_train_arr, axis=4)
+    test_arr = np.expand_dims(test_arr, axis=4)
+    seattle911calls_test_arr = np.expand_dims(seattle911calls_test_arr, axis=4)
+
+    train_arr = np.concatenate([train_arr,seattle911calls_train_arr], axis=4)
+    test_arr = np.concatenate([test_arr,seattle911calls_test_arr], axis=4)
+    print('train_arr.shape: ', train_arr.shape)
+
 
 
     timer = str(time.time())
