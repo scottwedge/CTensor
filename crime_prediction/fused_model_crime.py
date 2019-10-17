@@ -4,6 +4,8 @@
 
 # v2: optional data agumentation and permutation, usually turned off
 
+# TODO: add 3d 911 calls data
+
 
 import numpy as np
 import tensorflow as tf

@@ -12,6 +12,8 @@
 
 # add resume training from latest checkpoint
 
+# TODO: add 3d 911 call data
+
 import pandas as pd
 import numpy as np
 import json
