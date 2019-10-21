@@ -32,18 +32,6 @@ from datetime import timedelta
 import datetime_utils
 #import lstm
 import evaluation
-# import convLSTM
-# import convLSTM_earlyfusion
-# import convLSTM_latefusion
-# import conv_3d
-# import conv_3d_latefusion
-# import conv_3d_baseline
-# import conv_3d_mean_diff
-# import conv_3d_metric2
-# import conv_3d_pairwise
-# import fused_model
-# import fused_model_augment
-
 import autoencoder_v1
 from matplotlib import pyplot as plt
 import random
@@ -430,6 +418,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s',   '--suffix',
                      action="store", help = 'save path suffix', default = '')
+    parser.add_argument('-d',   '--dim',  type=int,
+                     action="store", help = 'dims of latent rep', default = 1)
     parser.add_argument("-r","--resume_training", type=bool, default=False,
     				help="A boolean value whether or not to resume training from checkpoint")
     parser.add_argument('-t',   '--train_dir',
@@ -458,6 +448,7 @@ def main():
     place = args.place
     epoch = args.epoch
     learning_rate= args.learning_rate
+    dim = args.dim
 
     print("resume_training: ", resume_training)
     print("training dir path: ", train_dir)
@@ -465,6 +456,7 @@ def main():
     print("place: ", place)
     print("epochs to train: ", epoch)
     print("start learning rate: ", learning_rate)
+    print("dimension of latent representation: ", dim)
 
     if checkpoint is not None:
         checkpoint = train_dir + checkpoint
@@ -583,9 +575,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './autoencoder_v1_'+ str(place) +'/'
+        save_path =  './autoencoder_v1_'+ 'dim'+ str(dim)  +'/'
     else:
-        save_path = './autoencoder_v1_'+ str(place) + suffix  +'/'
+        save_path = './autoencoder_v1_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir
@@ -610,7 +602,7 @@ def main():
     # Model fusion without fairness
         print('Train Model')
         latent_representation = autoencoder_v1.Autoencoder_entry(train_obj, data_1d, data_2d, data_3d, intersect_pos_set,
-                                 demo_mask_arr,  save_path,
+                                 demo_mask_arr,  save_path, dim,
                             HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE
                     ).latent_representation
     else:
@@ -631,11 +623,13 @@ def main():
     np.save(save_path +'latent_representation.npy', latent_representation)
 
 
-    txt_name = save_path + 'autoencoder_v1_' +  timer + '.txt'
+    txt_name = save_path + 'autoencoder_v1_' + 'dim_' + str(dim) +'_' timer + '.txt'
     with open(txt_name, 'w') as the_file:
         the_file.write('Only account for grids that intersect with city boundary \n')
         the_file.write('place\n')
         the_file.write(str(place) + '\n')
+        the_file.write('dim\n')
+        the_file.write(str(dim) + '\n')
         the_file.write('learning rate\n')
         the_file.write(str(LEARNING_RATE) + '\n')
 

@@ -419,6 +419,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s',   '--suffix',
                      action="store", help = 'save path suffix', default = '')
+    parser.add_argument('-d',   '--dim',  type=int,
+                     action="store", help = 'dims of latent rep', default = 1)
     parser.add_argument("-r","--resume_training", type=bool, default=False,
     				help="A boolean value whether or not to resume training from checkpoint")
     parser.add_argument('-t',   '--train_dir',
@@ -448,7 +450,7 @@ def main():
     place = args.place
     epoch = args.epoch
     learning_rate= args.learning_rate
-
+    dim = args.dim
 
     print("resume_training: ", resume_training)
     print("training dir path: ", train_dir)
@@ -456,6 +458,7 @@ def main():
     print("place: ", place)
     print("epochs to train: ", epoch)
     print("start learning rate: ", learning_rate)
+    print("dimension of latent representation: ", dim)
 
         # get checkpoint
     # if provided, use the checkpoint, otherwise, get most recent checkpoint
@@ -640,7 +643,7 @@ def main():
     # Model fusion without fairness
     print('Test Model fusion without fairness')
     latent_representation = autoencoder_v1.Autoencoder_entry(train_obj, data_1d, data_2d, data_3d, intersect_pos_set,
-                             demo_mask_arr,  save_path,
+                             demo_mask_arr,  save_path, dim,
                         HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                         True, checkpoint).latent_representation
 
@@ -681,6 +684,8 @@ def main():
         the_file.write('Only account for grids that intersect with city boundary \n')
         the_file.write('place\n')
         the_file.write(str(place) + '\n')
+        the_file.write('dim\n')
+        the_file.write(str(dim) + '\n')
         # the_file.write('use_1d_fea\n')
         # the_file.write(str(use_1d_fea) + '\n')
         # the_file.write('use_2d_fea\n')

@@ -3,6 +3,7 @@
 # first, stack features to form a 3D tensor [H, W, time, channels]
 # train autoencoder to learn laten representation as [H, W, 1, 1]
 # the latent represetnation is learned from a sequece of 168 hours
+# the dimension of latent representation could be customized
 # last updated: October, 2019
 
 
@@ -34,10 +35,6 @@ from tensorflow.python.keras import backend as K
 HEIGHT = 32
 WIDTH = 20
 TIMESTEPS = 168
-# without exogenous data, the only channel is the # of trip starts
-BIKE_CHANNEL = 1
-NUM_2D_FEA = 4 # slope = 2, bikelane = 2
-NUM_1D_FEA = 3  # temp/slp/prec
 
 CHANNEL = 27
 
@@ -57,12 +54,14 @@ def my_leaky_relu(x):
 class Autoencoder:
     # input_dim = 1, seq_size = 168,
     def __init__(self, intersect_pos_set,
-                    demo_mask_arr, channel, time_steps, height, width):
+                    demo_mask_arr, dim,
+                    channel, time_steps, height, width, dim):
 
         self.time_steps = time_steps
         self.width = width
         self.height = height
         self.channel = channel  # 27
+        self.dim  = dim # default = 1, it is the dimension of latent representation
 
         self.x = tf.placeholder(tf.float32, (None, time_steps, height,width,channel), name="input")
         self.y = tf.placeholder(tf.float32, (None, time_steps, height,width,channel), name="target")
@@ -82,7 +81,7 @@ class Autoencoder:
     '''
     inputs_: feature tensor: input shape: [None, timestep, height, width, channels]
              e.g. [None, 168, 32, 20, 9]
-    to get the latent representation, obtain: encoded [None, 1, 32, 20, 1]
+    to get the latent representation, obtain: encoded [None, 1, 32, 20, dims = 1]
     '''
     def vanilla_autoencoder(self, inputs_):
         padding = 'SAME'
@@ -107,7 +106,7 @@ class Autoencoder:
             maxpool4 = tf.layers.max_pooling3d(conv4, pool_size=(7,1,1), strides=(7,1,1), padding= padding)
             # [1, 32, 20, 32]
 
-            encoded = tf.layers.conv3d(inputs=maxpool4, filters=1, kernel_size=[3,3,3], padding='same', activation=my_leaky_relu)
+            encoded = tf.layers.conv3d(inputs=maxpool4, filters= self.dim, kernel_size=[3,3,3], padding='same', activation=my_leaky_relu)
             # [1, 32, 20, 1]
             print('encoded.shape', encoded)
 
@@ -285,8 +284,8 @@ class Autoencoder:
                     #the_file.write('Only account for grids that intersect with city boundary \n')
                     the_file.write('epoch\n')
                     the_file.write(str(epoch)+'\n')
-                    # the_file.write('lamda\n')
-                    # the_file.write(str(lamda) + '\n')
+                    the_file.write('dim\n')
+                    the_file.write(str(self.dim) + '\n')
                     the_file.write(' epoch_loss:\n')
                     the_file.write(str(epoch_loss) + '\n')
                     the_file.write('\n')
@@ -580,7 +579,7 @@ fixed lenght time window: 168 hours
 '''
 class Autoencoder_entry:
     def __init__(self, train_obj, data_1d, data_2d, data_3d, intersect_pos_set,
-                    demo_mask_arr, save_path,
+                    demo_mask_arr, save_path, dim,
                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                      is_inference = False, checkpoint_path = None,
                      resume_training = False, train_dir = None
@@ -595,6 +594,7 @@ class Autoencoder_entry:
         self.intersect_pos_set = intersect_pos_set
         self.demo_mask_arr = demo_mask_arr
         self.save_path = save_path
+        self.dim = dim
 
         globals()['HEIGHT']  = HEIGHT
         globals()['WIDTH']  = WIDTH
@@ -648,7 +648,8 @@ class Autoencoder_entry:
         tf.reset_default_graph()
         # self, channel, time_steps, height, width
         predictor = Autoencoder(self.intersect_pos_set,
-                     self.demo_mask_arr, channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
+                     self.demo_mask_arr, self.dim,
+                     channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
         # (9337, 1, 32, 20, 1)
         latent_representation = predictor.train_autoencoder(
