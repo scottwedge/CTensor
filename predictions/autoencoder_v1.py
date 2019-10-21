@@ -261,6 +261,11 @@ class Autoencoder:
                         print("Iter/Epoch: {}/{}...".format(itr, epoch),
                             "Training loss: {:.4f}".format(batch_cost))
 
+                    # temp
+                    if itr%10  ==0:
+                        save_path = saver.save(sess, save_folder_path +'autoencoder_v1_' +'_'+str(epoch)+ '_'+str(itr)+'.ckpt', global_step=self.global_step)
+
+
                 # report loss per epoch
                 epoch_loss = epoch_loss/ iterations
                 print('epoch: ', epoch, 'Trainig Set Epoch total Cost: ',epoch_loss)
