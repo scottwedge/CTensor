@@ -549,7 +549,7 @@ def main():
         latent_train_series = np.squeeze(latent_train_series, axis=1)
         latent_test_series = np.squeeze(latent_test_series, axis=1)
         print('latent_test_series.shape: ',latent_test_series.shape)
-
+        dim = latent_test_series.shape[-1]
 
 
 ####################### city ignorant treatment ################
@@ -558,9 +558,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './crime_latentfea_model_'+ str(place) + '/'
+        save_path =  './crime_latentfea_model_'+ str(dim) + '/'
     else:
-        save_path = './crime_latentfea_model_'+ str(place) + '_'+ suffix  +'/'
+        save_path = './crime_latentfea_model_'+ str(dim) + '_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir
@@ -639,8 +639,8 @@ def main():
     with open(txt_name, 'w') as the_file:
         the_file.write('Only account for grids that intersect with city boundary \n')
 
-        the_file.write('place\n')
-        the_file.write(str(place) + '\n')
+        the_file.write('dim\n')
+        the_file.write(str(dim) + '\n')
         the_file.write('learning rate\n')
         the_file.write(str(LEARNING_RATE) + '\n')
 
