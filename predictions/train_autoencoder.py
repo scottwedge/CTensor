@@ -619,6 +619,7 @@ def main():
                      NUM_2D_FEA, NUM_1D_FEA, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                             False, checkpoint, True, train_dir).latent_representation
     print('saving latent representation to npy')
+    print('shape of latent_representation: ', latent_representation.shape)
 
     np.save(save_path +'latent_representation.npy', latent_representation)
 

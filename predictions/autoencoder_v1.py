@@ -55,7 +55,7 @@ class Autoencoder:
     # input_dim = 1, seq_size = 168,
     def __init__(self, intersect_pos_set,
                     demo_mask_arr, dim,
-                    channel, time_steps, height, width, dim):
+                    channel, time_steps, height, width):
 
         self.time_steps = time_steps
         self.width = width
