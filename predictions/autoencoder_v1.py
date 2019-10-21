@@ -730,7 +730,8 @@ class Autoencoder_entry:
     def run_inference_autoencoder(self):
         tf.reset_default_graph()
         predictor = Autoencoder(self.intersect_pos_set,
-                     self.demo_mask_arr, channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
+                     self.demo_mask_arr, self.dim,
+                     channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
         # (9337, 1, 32, 20, 1)
         latent_representation = predictor.inference_autoencoder(
