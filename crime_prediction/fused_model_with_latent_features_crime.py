@@ -1433,7 +1433,9 @@ class Conv3D:
         globals()['BATCH_SIZE']  = BATCH_SIZE
         globals()['TRAINING_STEPS']  = TRAINING_STEPS
         globals()['LEARNING_RATE']  = LEARNING_RATE
+        globals()['LATENT_CHANNEL'] = latent_test_series.shape[-1]
 
+        print('LATENT_CHANNEL set to: ', LATENT_CHANNEL)
         print('Conv3D recieved: ')
         print('HEIGHT: ', HEIGHT)
         print('start learning rate: ',LEARNING_RATE)

@@ -29,7 +29,7 @@ BIKE_CHANNEL = 1
 NUM_2D_FEA = 4 # slope = 2, bikelane = 2
 NUM_1D_FEA = 3  # temp/slp/prec
 
-LATENT_CHANNEL  =1  # dimension of latent features
+LATENT_CHANNEL  =1  # or dim, dimension of latent features = should be customized
 
 
 BATCH_SIZE = 32
@@ -1433,6 +1433,10 @@ class Conv3D:
         globals()['BATCH_SIZE']  = BATCH_SIZE
         globals()['TRAINING_STEPS']  = TRAINING_STEPS
         globals()['LEARNING_RATE']  = LEARNING_RATE
+        globals()['LATENT_CHANNEL'] = latent_test_series.shape[-1]
+
+        print('LATENT_CHANNEL set to: ', LATENT_CHANNEL)
+
 
         print('Conv3D recieved: ')
         print('HEIGHT: ', HEIGHT)

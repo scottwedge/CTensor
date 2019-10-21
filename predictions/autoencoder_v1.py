@@ -258,7 +258,7 @@ class Autoencoder:
 
                     epoch_loss += batch_cost
                     if itr%10 == 0:
-                        print("Epoch: {}/{}...".format(itr, epoch),
+                        print("Iter/Epoch: {}/{}...".format(itr, epoch),
                             "Training loss: {:.4f}".format(batch_cost))
 
                 # report loss per epoch
