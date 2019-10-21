@@ -621,7 +621,7 @@ def main():
     print('saving latent representation to npy')
     print('shape of latent_representation: ', latent_representation.shape)
 
-    np.save(save_path +'latent_representation.npy', latent_representation)
+    np.save(save_path +'latent_representation_train.npy', latent_representation)
 
 
     txt_name = save_path + 'autoencoder_v1_' + 'dim_' + str(dim) +'_'  + timer + '.txt'

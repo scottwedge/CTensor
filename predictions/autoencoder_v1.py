@@ -266,6 +266,7 @@ class Autoencoder:
                     #     save_path = saver.save(sess, save_folder_path +'autoencoder_v1_' +'_'+str(epoch)+ '_'+str(itr)+'.ckpt', global_step=self.global_step)
                     #
 
+
                 # report loss per epoch
                 epoch_loss = epoch_loss/ iterations
                 print('epoch: ', epoch, 'Trainig Set Epoch total Cost: ',epoch_loss)
@@ -273,9 +274,51 @@ class Autoencoder:
                 # save_path = saver.save(sess, './autoencoder.ckpt')
                 print('Model saved to {}'.format(save_path))
 
+                # Testing
+                # -----------------------------------------------------------------
+                print('testing')
+                test_start = train_hours
+                test_end = data_3d.shape[0] -168
+                test_len = test_end - test_start
+                print('test_start: ', test_start)
+                print('test_end: ', test_end)
+                print('test_len: ', test_len)
+
+                test_cost = 0
+                test_final_output = list()
+
+                if test_len%batch_size ==0:
+                    itrs = int(test_len/batch_size)
+                else:
+                    itrs = int(test_len/batch_size) + 1
+
+                for itr in range(itrs):
+                    start_idx = itr*batch_size + test_start
+                    if test_len < (itr+1)*batch_size:
+                        end_idx = test_end
+                    else:
+                        end_idx = (itr+1)*batch_size + test_start
+                    print('testing: start_idx, end_idx', start_idx, end_idx)
+                    test_mini_batch_x = self.create_mini_batch(start_idx, end_idx, data_1d, data_2d, data_3d)
+
+                    test_batch_cost, _ = sess.run([cost, optimizer], feed_dict={self.x: test_mini_batch_x,
+                                                                    self.y: test_mini_batch_x})
+                    # get encoded representation
+                    # # [None, 1, 32, 20, 1]
+                    # test_batch_output = sess.run([encoded], feed_dict={self.x: test_mini_batch_x,
+                    #                                                 self.y: test_mini_batch_x})
+                    # test_final_output.extend(test_batch_output)
+                    test_cost += test_batch_cost
+
+                test_epoch_loss = test_cost/ itrs
+                print('epoch: ', epoch, 'Test Set Epoch total Cost: ',test_epoch_loss)
+
+                # -----------------------------------------------------------------------
+
+
                 # save epoch statistics to csv
-                ecoch_res_df = pd.DataFrame([[epoch_loss]],
-                    columns=[ 'train_loss'])
+                ecoch_res_df = pd.DataFrame([[epoch_loss, test_epoch_loss]],
+                    columns=[ 'train_loss', 'test_loss'])
 
                 res_csv_path = save_folder_path + 'autoencoder_ecoch_res_df' +'.csv'
 
@@ -293,6 +336,8 @@ class Autoencoder:
                     the_file.write(str(self.dim) + '\n')
                     the_file.write(' epoch_loss:\n')
                     the_file.write(str(epoch_loss) + '\n')
+                    the_file.write(' test_epoch_loss:\n')
+                    the_file.write(str(test_epoch_loss) + '\n')
                     the_file.write('\n')
                     the_file.close()
 
@@ -300,7 +345,7 @@ class Autoencoder:
                 print('saving train_test plots')
                 train_test = pd.read_csv(save_folder_path  + 'autoencoder_ecoch_res_df' +'.csv')
                 # train_test = train_test.loc[:, ~train_test.columns.str.contains('^Unnamed')]
-                train_test[['train_loss']].plot()
+                train_test[['train_loss', 'test_loss']].plot()
                 plt.savefig(save_folder_path + 'total_loss_inprogress.png')
                 # train_test[['train_acc', 'test_acc']].plot()
                 # plt.savefig(save_folder_path + 'acc_loss_inprogress.png')
@@ -318,7 +363,7 @@ class Autoencoder:
             for i in range(1,len(encoded_res)):
                 output_arr = np.concatenate((output_arr, encoded_res[i]), axis=0)
 
-        # This is the latent representation (9337, 1, 32, 20, 1)
+        # This is the latent representation (9337, 1, 32, 20, 1) of training
         return output_arr
 
 
