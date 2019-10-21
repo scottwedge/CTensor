@@ -48,7 +48,7 @@ NUM_2D_FEA = 5 # slope = 2, bikelane = 2, houseprice = 1
 NUM_1D_FEA = 3  # temp/slp/prec
 CHANNEL = 27  # number of all features
 
-BATCH_SIZE = 32
+BATCH_SIZE = 64
 # actually epochs
 # TRAINING_STEPS = 200
 TRAINING_STEPS = 50
