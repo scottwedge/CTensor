@@ -730,7 +730,7 @@ class Autoencoder:
                 test_cost = 0
                 test_final_output = list()
                 test_subloss = {}  # ave loss for each dataset
-                test_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys))
+                test_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
 
                 if test_len%batch_size ==0:
