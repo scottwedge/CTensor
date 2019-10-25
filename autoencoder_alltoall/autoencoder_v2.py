@@ -41,6 +41,22 @@ THREE_HOUR_TIMESTEP = 56
 def my_leaky_relu(x):
     return tf.nn.leaky_relu(x, alpha=0.2)
 
+
+def generate_fixlen_timeseries(rawdata_arr, timestep = 168):
+    raw_seq_list = list()
+        # arr_shape: [# of timestamps, w, h]
+    arr_shape = rawdata_arr.shape
+    for i in range(0, arr_shape[0] - (timestep)+1):
+        start = i
+        end = i+ (timestep )
+            # temp_seq = rawdata_arr[start: end, :, :]
+        temp_seq = rawdata_arr[start: end]
+        raw_seq_list.append(temp_seq)
+    raw_seq_arr = np.array(raw_seq_list)
+    raw_seq_arr = np.swapaxes(raw_seq_arr,0,1)
+    return raw_seq_arr
+
+
 # create sequences in real time
 def create_mini_batch_1d(start_idx, end_idx,  data_1d):
     # data_3d : (45984, 32, 20, ?)
@@ -49,7 +65,7 @@ def create_mini_batch_1d(start_idx, end_idx,  data_1d):
     test_size = end_idx - start_idx
 
     test_data_1d = data_1d[start_idx:end_idx + 168 - 1,:]
-    test_data_1d_seq = self.generate_fixlen_timeseries(test_data_1d)
+    test_data_1d_seq = generate_fixlen_timeseries(test_data_1d)
     test_data_1d_seq = np.swapaxes(test_data_1d_seq,0,1)
     # (168, batchsize, dim)
     return test_data_1d_seq
@@ -89,7 +105,7 @@ def create_mini_batch_3d(start_idx, end_idx,data_3d, timestep):
         test_data_3d_seq = np.swapaxes(test_data_3d_seq,0,1)
     else:
         test_data_3d = data_3d[start_idx :end_idx + timestep - 1, :, :]
-        test_data_3d_seq = self.generate_fixlen_timeseries(test_data_3d, timestep)
+        test_data_3d_seq = generate_fixlen_timeseries(test_data_3d, timestep)
         test_data_3d_seq = np.expand_dims(test_data_3d_seq, axis=4)
         test_data_3d_seq = np.swapaxes(test_data_3d_seq,0,1)
     # (timestep (168/56/7), batchsize, 32, 20, 1)
@@ -522,23 +538,6 @@ class Autoencoder:
             print('output.shape: ', output.shape)
 
         return output, encoded
-
-
-
-
-    def generate_fixlen_timeseries(self, rawdata_arr, timestep = 168):
-        raw_seq_list = list()
-            # arr_shape: [# of timestamps, w, h]
-        arr_shape = rawdata_arr.shape
-        for i in range(0, arr_shape[0] - (timestep)+1):
-            start = i
-            end = i+ (timestep )
-                # temp_seq = rawdata_arr[start: end, :, :]
-            temp_seq = rawdata_arr[start: end]
-            raw_seq_list.append(temp_seq)
-        raw_seq_arr = np.array(raw_seq_list)
-        raw_seq_arr = np.swapaxes(raw_seq_arr,0,1)
-        return raw_seq_arr
 
 
 
