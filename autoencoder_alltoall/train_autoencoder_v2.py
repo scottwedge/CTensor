@@ -73,7 +73,8 @@ def generate_fixlen_timeseries(rawdata_arr, timestep = 168):
     return raw_seq_arr
 
 
-
+fea_list = ['pop','normalized_pop', 'bi_caucasian','bi_age', 'bi_high_incm','bi_edu_univ', 'bi_nocar_hh',
+           'white_pop','age65_under', 'edu_uni']
 
 '''
 train_start_time = '2017-10-01',train_end_time = '2018-08-31',
@@ -253,16 +254,16 @@ class train:
     # transform demographic data to tensor
     # with selected features to be used in prediction
     # normalize the features to [0,1]
-    # def selected_demo_to_tensor(self):
-    #     fea_to_include = fea_list.copy()
-    #     fea_to_include.extend(['pos', 'row','col'])
-    #
-    #     selected_demo_df = self.demo_raw[fea_to_include]
-    #     # for fea in fea_list:
-    #     #     selected_demo_df[fea] = selected_demo_df[fea] / selected_demo_df[fea].max()
-    #
-    #     demo_arr = self.demodata_to_tensor(selected_demo_df)
-    #     return demo_arr
+    def selected_demo_to_tensor(self):
+        fea_to_include = fea_list.copy()
+        fea_to_include.extend(['pos', 'row','col'])
+
+        selected_demo_df = self.demo_raw[fea_to_include]
+        # for fea in fea_list:
+        #     selected_demo_df[fea] = selected_demo_df[fea] / selected_demo_df[fea].max()
+
+        demo_arr = self.demodata_to_tensor(selected_demo_df)
+        return demo_arr
 
 
     # generate time series
