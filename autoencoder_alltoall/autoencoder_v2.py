@@ -114,8 +114,7 @@ class Autoencoder:
         # https://towardsdatascience.com/pitfalls-of-batch-norm-in-tensorflow-and-sanity-checks-for-training-networks-e86c207548c8
         self.is_training = tf.placeholder(tf.bool)
         self.global_step = tf.Variable(0, trainable=False)
-        self.dataset_keys = rawdata_1d_dict.keys() + rawdata_2d_dict.keys() +
-                        + rawdata_3d_dict.keys()
+        self.dataset_keys = rawdata_1d_dict.keys() + rawdata_2d_dict.keys() +rawdata_3d_dict.keys()
 
         self.rawdata_1d_tf_x_dict = {}
         self.rawdata_1d_tf_y_dict = {}
