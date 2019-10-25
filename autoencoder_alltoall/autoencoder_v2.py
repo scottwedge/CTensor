@@ -592,7 +592,7 @@ class Autoencoder:
             loss_dict[k] = temp_loss
 
 
-        for k, v in rawdata_2d_tf_y_dict.items():
+        for k, v in self.rawdata_2d_tf_y_dict.items():
             dim_2d = rawdata_2d_dict[k].shape[-1]
             reconstruction_2d = self.reconstruct_2d(latent_fea, dim_2d, self.is_training)
             temp_loss = tf.losses.absolute_difference(reconstruction_2d, v, weight)
