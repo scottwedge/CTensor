@@ -100,7 +100,7 @@ def create_mini_batch_3d(start_idx, end_idx,data_3d, timestep):
     # the sequence should be the same.
     if timestep == 7:
         # (7, 45840, 32, 20)
-        test_data_3d_seq = building_permit_arr_seq_extend[:, start_idx :end_idx, :, :]
+        test_data_3d_seq = data_3d[:, start_idx :end_idx, :, :]
         test_data_3d_seq = np.expand_dims(test_data_3d_seq, axis=4)
         test_data_3d_seq = np.swapaxes(test_data_3d_seq,0,1)
     else:
