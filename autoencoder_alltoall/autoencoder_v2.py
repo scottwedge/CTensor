@@ -304,8 +304,8 @@ class Autoencoder:
     #         print('prediction_1d.shape: ', prediction_1d.shape)
             prediction_1d = tf.expand_dims(prediction_1d, 1)
             prediction_1d = tf.expand_dims(prediction_1d, 1)
-            prediction_1d_expand = tf.tile(prediction_1d, [1, height,
-                                                    width ,1])
+            prediction_1d_expand = tf.tile(prediction_1d, [1, HEIGHT,
+                                                    WIDTH ,1])
 
             temp_list.append(prediction_1d_expand)
 
