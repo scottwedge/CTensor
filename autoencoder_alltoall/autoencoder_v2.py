@@ -604,7 +604,7 @@ class Autoencoder:
             # (?, 1, 32, 20, 1) -> (?, 7, 32, 20, 1)
 
         # reconstruct_3d(latent_fea, timestep)
-        for k, v in rawdata_3d_tf_y_dict.items():
+        for k, v in self.rawdata_3d_tf_y_dict.items():
             timestep_3d = v.shape[1]
     #         print('rawdata_3d_tf_y_dict  v.shape: ', v.shape)
     #         print('timestep_3d: ', timestep_3d)
