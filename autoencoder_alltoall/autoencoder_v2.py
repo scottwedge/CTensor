@@ -580,7 +580,7 @@ class Autoencoder:
         total_loss = 0
     #    loss_dict = []  # {dataset name: loss}
         loss_dict = {}
-        for k, v in rawdata_1d_tf_y_dict.items():
+        for k, v in self.rawdata_1d_tf_y_dict.items():
             dim_1d = rawdata_1d_dict[k].shape[-1]
 
             reconstruction_1d = reconstruct_1d(latent_fea, dim_1d, self.is_training)
@@ -664,14 +664,14 @@ class Autoencoder:
                     # create batches for 1d
                     for k, v in rawdata_1d_dict.items():
                         temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
-                        feed_dict_all[rawdata_1d_tf_x_dict[k]] = temp_batch
-                        feed_dict_all[rawdata_1d_tf_y_dict[k]] = temp_batch
+                        feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
+                        feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
 
                     # create batches for 2d
                     for k, v in rawdata_2d_dict.items():
                         temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
-                        feed_dict_all[rawdata_2d_tf_x_dict[k]] = temp_batch
-                        feed_dict_all[rawdata_2d_tf_y_dict[k]] = temp_batch
+                        feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+                        feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
 
                      # create batches for 3d
                     for k, v in rawdata_3d_dict.items():
@@ -681,8 +681,8 @@ class Autoencoder:
                             timestep = 7
                         temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
-                        feed_dict_all[rawdata_3d_tf_x_dict[k]] = temp_batch
-                        feed_dict_all[rawdata_3d_tf_y_dict[k]] = temp_batch
+                        feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+                        feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
                     # is_training: True
                     feed_dict_all[self.is_training] = True
                     batch_cost, batch_loss_dict, _ = sess.run([cost,loss_dict, optimizer], feed_dict=feed_dict_all)
@@ -749,14 +749,14 @@ class Autoencoder:
                     # create batches for 1d
                     for k, v in rawdata_1d_dict.items():
                         temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
-                        test_feed_dict_all[rawdata_1d_tf_x_dict[k]] = temp_batch
-                        test_feed_dict_all[rawdata_1d_tf_y_dict[k]] = temp_batch
+                        test_feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
+                        test_feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
 
                     # create batches for 2d
                     for k, v in rawdata_2d_dict.items():
                         temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
-                        test_feed_dict_all[rawdata_2d_tf_x_dict[k]] = temp_batch
-                        test_feed_dict_all[rawdata_2d_tf_y_dict[k]] = temp_batch
+                        test_feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+                        test_feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
 
                      # create batches for 3d
                     for k, v in rawdata_3d_dict.items():
@@ -766,8 +766,8 @@ class Autoencoder:
                             timestep = 7
                         temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
-                        test_feed_dict_all[rawdata_3d_tf_x_dict[k]] = temp_batch
-                        test_feed_dict_all[rawdata_3d_tf_y_dict[k]] = temp_batch
+                        test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+                        test_feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
                     # is_training: True
                     test_feed_dict_all[self.is_training] = True
 
