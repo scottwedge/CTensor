@@ -647,7 +647,7 @@ class Autoencoder:
                 print('Epoch', epoch, 'started', end='')
                 epoch_loss = 0
                 epoch_subloss = {}  # ave loss for each dataset
-                epoch_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys))
+                epoch_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
                 final_output = list()
 
