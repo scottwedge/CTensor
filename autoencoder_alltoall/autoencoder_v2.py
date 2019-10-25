@@ -49,7 +49,7 @@ def create_mini_batch_1d(start_idx, end_idx,  data_1d):
     test_size = end_idx - start_idx
 
     test_data_1d = data_1d[start_idx:end_idx + 168 - 1,:]
-    test_data_1d_seq = generate_fixlen_timeseries(test_data_1d)
+    test_data_1d_seq = self.generate_fixlen_timeseries(test_data_1d)
     test_data_1d_seq = np.swapaxes(test_data_1d_seq,0,1)
     # (168, batchsize, dim)
     return test_data_1d_seq
@@ -89,7 +89,7 @@ def create_mini_batch_3d(start_idx, end_idx,data_3d, timestep):
         test_data_3d_seq = np.swapaxes(test_data_3d_seq,0,1)
     else:
         test_data_3d = data_3d[start_idx :end_idx + timestep - 1, :, :]
-        test_data_3d_seq = generate_fixlen_timeseries(test_data_3d, timestep)
+        test_data_3d_seq = self.generate_fixlen_timeseries(test_data_3d, timestep)
         test_data_3d_seq = np.expand_dims(test_data_3d_seq, axis=4)
         test_data_3d_seq = np.swapaxes(test_data_3d_seq,0,1)
     # (timestep (168/56/7), batchsize, 32, 20, 1)
