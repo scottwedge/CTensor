@@ -253,16 +253,16 @@ class train:
     # transform demographic data to tensor
     # with selected features to be used in prediction
     # normalize the features to [0,1]
-    def selected_demo_to_tensor(self):
-        fea_to_include = fea_list.copy()
-        fea_to_include.extend(['pos', 'row','col'])
-
-        selected_demo_df = self.demo_raw[fea_to_include]
-        # for fea in fea_list:
-        #     selected_demo_df[fea] = selected_demo_df[fea] / selected_demo_df[fea].max()
-
-        demo_arr = self.demodata_to_tensor(selected_demo_df)
-        return demo_arr
+    # def selected_demo_to_tensor(self):
+    #     fea_to_include = fea_list.copy()
+    #     fea_to_include.extend(['pos', 'row','col'])
+    #
+    #     selected_demo_df = self.demo_raw[fea_to_include]
+    #     # for fea in fea_list:
+    #     #     selected_demo_df[fea] = selected_demo_df[fea] / selected_demo_df[fea].max()
+    #
+    #     demo_arr = self.demodata_to_tensor(selected_demo_df)
+    #     return demo_arr
 
 
     # generate time series
