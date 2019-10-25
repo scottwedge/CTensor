@@ -554,19 +554,19 @@ class Autoencoder:
         med_res_2d = []
         med_res_1d = []
         for k, v in self.rawdata_3d_tf_x_dict.items():
-            prediction_3d = self.cnn_model(v, is_training, keep_rate, seed=1)
+            prediction_3d = self.cnn_model(v, self.is_training, keep_rate, seed=1)
             med_res_3d.append(prediction_3d)
 
         for k, v in self.rawdata_2d_tf_x_dict.items():
-            prediction_2d = self.cnn_2d_model(v, is_training)
+            prediction_2d = self.cnn_2d_model(v, self.is_training)
             med_res_2d.append(prediction_2d)
 
         for k, v in self.rawdata_1d_tf_x_dict.items():
-            prediction_1d = self.cnn_1d_model(v, is_training)
+            prediction_1d = self.cnn_1d_model(v, self.is_training)
             med_res_1d.append(prediction_1d)
 
         # dim: latent fea dimension
-        latent_fea = self.model_fusion(med_res_3d, med_res_2d, med_res_1d, dim, is_training)
+        latent_fea = self.model_fusion(med_res_3d, med_res_2d, med_res_1d, dim, self.is_training)
         print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 3)
         # recontruction
         print('recontruction')
@@ -584,7 +584,7 @@ class Autoencoder:
         for k, v in rawdata_1d_tf_y_dict.items():
             dim_1d = rawdata_1d_dict[k].shape[-1]
 
-            reconstruction_1d = reconstruct_1d(latent_fea, dim_1d, is_training)
+            reconstruction_1d = reconstruct_1d(latent_fea, dim_1d, self.is_training)
     #         print('reconstruction_1d.shape: ', reconstruction_1d.shape)
     #         print('v.shape: ', v.shape)
             temp_loss = tf.losses.absolute_difference(reconstruction_1d, v)
@@ -595,7 +595,7 @@ class Autoencoder:
 
         for k, v in rawdata_2d_tf_y_dict.items():
             dim_2d = rawdata_2d_dict[k].shape[-1]
-            reconstruction_2d = reconstruct_2d(latent_fea, dim_2d, is_training)
+            reconstruction_2d = reconstruct_2d(latent_fea, dim_2d, self.is_training)
             temp_loss = tf.losses.absolute_difference(reconstruction_2d, v, weight)
             total_loss += temp_loss
             loss_dict[k] = temp_loss
@@ -685,7 +685,7 @@ class Autoencoder:
                         feed_dict_all[rawdata_3d_tf_x_dict[k]] = temp_batch
                         feed_dict_all[rawdata_3d_tf_y_dict[k]] = temp_batch
                     # is_training: True
-                    feed_dict_all[is_training] = True
+                    feed_dict_all[self.is_training] = True
                     batch_cost, batch_loss_dict, _ = sess.run([cost,loss_dict, optimizer], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
@@ -770,7 +770,7 @@ class Autoencoder:
                         test_feed_dict_all[rawdata_3d_tf_x_dict[k]] = temp_batch
                         test_feed_dict_all[rawdata_3d_tf_y_dict[k]] = temp_batch
                     # is_training: True
-                    test_feed_dict_all[is_training] = True
+                    test_feed_dict_all[self.is_training] = True
 
                     test_batch_cost, test_batch_loss_dict, _ = sess.run([cost,loss_dict, optimizer], feed_dict= test_feed_dict_all)
                     # get encoded representation
