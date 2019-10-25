@@ -554,7 +554,7 @@ class Autoencoder:
         med_res_2d = []
         med_res_1d = []
         for k, v in self.rawdata_3d_tf_x_dict.items():
-            prediction_3d = self.cnn_model(v, self.is_training, keep_rate, seed=1)
+            prediction_3d = self.cnn_model(v, self.is_training)
             med_res_3d.append(prediction_3d)
 
         for k, v in self.rawdata_2d_tf_x_dict.items():
