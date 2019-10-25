@@ -415,7 +415,7 @@ def main():
     building_permit_arr = np.load(path_3d + 'building_permit_arr_20140201_20190501_python3.npy')
     collisions_arr = np.load(path_3d + 'collisions_arr_20140201_20190501_python3.npy')
     crime_arr = np.load(path_3d + 'crime_arr_20140201_20190501_python3.npy')
-    # seattle911calls_arr = np.load(path_3d + 'seattle911scalls_arr_20140201_20190501.npy')
+    seattle911calls_arr = np.load(path_3d + 'seattle911calls_arr_20140201_20190501.npy')
     print('building_permit_arr.shape:', building_permit_arr.shape)
     print('collisions_arr.shape: ', collisions_arr.shape)
     print('crime_arr.shape: ', crime_arr.shape)
