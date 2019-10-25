@@ -114,7 +114,7 @@ class Autoencoder:
         # https://towardsdatascience.com/pitfalls-of-batch-norm-in-tensorflow-and-sanity-checks-for-training-networks-e86c207548c8
         self.is_training = tf.placeholder(tf.bool)
         self.global_step = tf.Variable(0, trainable=False)
-        self.dataset_keys = rawdata_1d_dict.keys() + rawdata_2d_dict.keys() +rawdata_3d_dict.keys()
+        self.dataset_keys = list(rawdata_1d_dict.keys()) + list(rawdata_2d_dict.keys()) + list(rawdata_3d_dict.keys())
 
         self.rawdata_1d_tf_x_dict = {}
         self.rawdata_1d_tf_y_dict = {}
@@ -1217,7 +1217,7 @@ class Autoencoder_entry:
     def run_autoencoder(self):
         tf.reset_default_graph()
         # self, channel, time_steps, height, width
-        predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, 
+        predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
                         self.intersect_pos_set,
                      self.demo_mask_arr, self.dim,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
