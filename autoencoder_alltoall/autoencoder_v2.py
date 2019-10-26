@@ -782,7 +782,7 @@ class Autoencoder:
 
                     if itr%10 == 0:
                         print("Iter/Epoch: {}/{}...".format(itr, epoch),
-                            "Training loss: {:.4f}".format(batch_cost))
+                            "testing loss: {:.4f}".format(test_batch_cost))
 
 
                     # test_mini_batch_x = self.create_mini_batch(start_idx, end_idx, data_1d, data_2d, data_3d)
@@ -877,7 +877,7 @@ class Autoencoder:
                 test_output_arr = np.concatenate((test_output_arr, test_encoded_res[i]), axis=0)
 
         # This is the latent representation (9337, 1, 32, 20, 1) of training
-        return train_output_arr, test_ouput_arr
+        return train_output_arr, test_output_arr
 
 
 
