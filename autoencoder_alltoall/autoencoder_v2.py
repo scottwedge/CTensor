@@ -801,7 +801,7 @@ class Autoencoder:
                 print('epoch: ', epoch, 'Test Set Epoch total Cost: ',test_epoch_loss)
 
                 for k, v in test_subloss.items():
-                    test_subloss[k] = v/iterations
+                    test_subloss[k] = v/itrs
                     print('epoch: ', epoch, 'k: ', k, 'mean test loss: ', test_subloss[k])
                     print('test loss for k :', k, v)
 
