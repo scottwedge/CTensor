@@ -510,17 +510,24 @@ def main():
         print('input train_arr shape: ',train_arr.shape )
 
 
+        # -------------- loat latent representation ---------------------
         print('loading latent representation')
-        # TODO: change file path
-        latent_rep_path = '/home/ubuntu/CTensor/predictions/autoencoder_v1_Seattle/inference/infer_latent_representation.npy'
+        # latent_rep_path = '/home/ubuntu/CTensor/predictions/autoencoder_v1_Seattle/inference/infer_latent_representation.npy'
+        latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/train_lat_rep.npy'
         latent_rep = np.load(latent_rep_path)
         #  (41616, 1, 32, 20, 1)
         print('latent_rep.shape: ', latent_rep.shape)
 
         # load test inference
-        latent_rep_test_path = '/home/ubuntu/CTensor/results/AE_v1/infer_latent_representation_test.npy'
+        # latent_rep_test_path = '/home/ubuntu/CTensor/results/AE_v1/infer_latent_representation_test.npy'
+        latent_rep_test_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/test_lat_rep.npy'
         latent_rep_test = np.load(latent_rep_test_path)
         print('latent_rep_test.shape: ', latent_rep_test.shape)
+
+
+        # ------------------------------------------------------------------#
+
+
 
 
         # train_hours: 8084
