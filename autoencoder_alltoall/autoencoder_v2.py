@@ -717,13 +717,14 @@ class Autoencoder:
 
                 # Testing per epoch
                 # -----------------------------------------------------------------
-                print('testing')
+                print('testing per epoch, for epoch: ', epoch)
+                # train_hours  = 41616  # train_start_time = '2014-02-01',train_end_time = '2018-10-31'
                 test_start = train_hours
-                test_end = rawdata_1d_dict['weather'].shape[0] -168
-                test_len = test_end - test_start
-                print('test_start: ', test_start)
+                test_end = rawdata_1d_dict['weather'].shape[0] -168  # 45984 - 168
+                test_len = test_end - test_start  # 4200
+                print('test_start: ', test_start) # 41616
                 print('test_end: ', test_end)
-                print('test_len: ', test_len)
+                print('test_len: ', test_len) #  4200
 
                 test_cost = 0
                 test_final_output = list()
@@ -794,7 +795,6 @@ class Autoencoder:
                     # test_batch_output = sess.run([encoded], feed_dict={self.x: test_mini_batch_x,
                     #                                                 self.y: test_mini_batch_x})
 
-                    test_final_output.extend(test_batch_output)
                     test_cost += test_batch_cost
 
                 test_epoch_loss = test_cost/ itrs
