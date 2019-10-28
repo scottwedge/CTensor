@@ -538,6 +538,10 @@ def main():
         # latent_rep_test_path = '/home/ubuntu/CTensor/results/AE_v1/infer_latent_representation_test.npy'
         latent_rep_test_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/test_lat_rep.npy'
         latent_rep_test = np.load(latent_rep_test_path)
+        # note that this version of lat rep has a length of 8400,
+        # which is a duplicatation of two 4200 lat infer_latent_representation
+        # (8400, 32, 20, 1)
+        latent_rep_test = latent_rep_test[4200, :, :, :]
         print('latent_rep_test.shape: ', latent_rep_test.shape)
         # ------------------------------------------------------------------#
 
