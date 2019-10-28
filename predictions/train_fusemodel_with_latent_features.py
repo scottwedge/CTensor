@@ -546,13 +546,17 @@ def main():
         train_arr, test_arr = train_obj.train_test_split(raw_seq_arr)
         print('input train_arr shape: ',train_arr.shape )
 
-
+        # --------------------------------------------------------------
         print('loading latent representation')
-        # TODO: change file path
-        latent_rep_path = '/home/ubuntu/CTensor/predictions/autoencoder_v1_Seattle/inference/infer_latent_representation.npy'
+        # latent_rep_path = '/home/ubuntu/CTensor/predictions/autoencoder_v1_Seattle/inference/infer_latent_representation.npy'
+        latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/train_lat_rep.npy'
         latent_rep = np.load(latent_rep_path)
         #  (41616, 1, 32, 20, 1)
         print('latent_rep.shape: ', latent_rep.shape)
+        # ---------------------------------------------------------------
+
+
+
         # train_hours: 8084
         train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
         total_length = raw_seq_arr.shape[1]  # 9336
