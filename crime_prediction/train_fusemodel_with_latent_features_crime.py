@@ -510,24 +510,6 @@ def main():
         print('input train_arr shape: ',train_arr.shape )
 
 
-        # -------------- loat latent representation ---------------------
-        print('loading latent representation')
-        # latent_rep_path = '/home/ubuntu/CTensor/predictions/autoencoder_v1_Seattle/inference/infer_latent_representation.npy'
-        latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/train_lat_rep.npy'
-        latent_rep = np.load(latent_rep_path)
-        #  (41616, 1, 32, 20, 1)
-        print('latent_rep.shape: ', latent_rep.shape)
-
-        # load test inference
-        # latent_rep_test_path = '/home/ubuntu/CTensor/results/AE_v1/infer_latent_representation_test.npy'
-        latent_rep_test_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/test_lat_rep.npy'
-        latent_rep_test = np.load(latent_rep_test_path)
-        print('latent_rep_test.shape: ', latent_rep_test.shape)
-
-
-        # ------------------------------------------------------------------#
-
-
 
 
         # train_hours: 8084
@@ -542,20 +524,37 @@ def main():
         start_train_hour =0
         # 40152
         end_train_hour = train_hours
+
+
+        # -------------- loat latent representation ---------------------
+        print('loading latent representation')
+        # latent_rep_path = '/home/ubuntu/CTensor/predictions/autoencoder_v1_Seattle/inference/infer_latent_representation.npy'
+        latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/train_lat_rep.npy'
+        latent_rep = np.load(latent_rep_path)
+        #  (41616, 1, 32, 20, 1)
+        print('latent_rep.shape: ', latent_rep.shape)
+
+        # load test inference
+        # latent_rep_test_path = '/home/ubuntu/CTensor/results/AE_v1/infer_latent_representation_test.npy'
+        latent_rep_test_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/test_lat_rep.npy'
+        latent_rep_test = np.load(latent_rep_test_path)
+        print('latent_rep_test.shape: ', latent_rep_test.shape)
+        # ------------------------------------------------------------------#
+
         # note: the latent representation is at hourly pace, but crime prediciton at 3-hour pace
         # average the 3-hour
         # (4580, 1, 32, 20, 1)
-        latent_rep_3hour = np.mean(latent_rep.reshape(-1, 3, 1, 32, 20, 1), axis=1)
+        latent_rep_3hour = np.mean(latent_rep.reshape(-1, 3,  32, 20, 1), axis=1)
         print('latent_rep_3hour: ', latent_rep_3hour.shape)
-        latent_rep_test_3hour = np.mean(latent_rep_test.reshape(-1, 3, 1, 32, 20, 1), axis=1)
+        latent_rep_test_3hour = np.mean(latent_rep_test.reshape(-1, 3,  32, 20, 1), axis=1)
         print('latent_rep_test_3hour: ', latent_rep_test_3hour.shape)
 
-
-        latent_train_series = latent_rep_3hour[start_train_hour:end_train_hour, :, :,:,:]
+        latent_train_series = latent_rep_3hour[start_train_hour:end_train_hour,  :,:,:]
         latent_test_series = latent_rep_test_3hour
-        latent_train_series = np.squeeze(latent_train_series, axis=1)
-        latent_test_series = np.squeeze(latent_test_series, axis=1)
+        # latent_train_series = np.squeeze(latent_train_series, axis=1)
+        # latent_test_series = np.squeeze(latent_test_series, axis=1)
         print('latent_test_series.shape: ',latent_test_series.shape)
+        print('latent_train_series.shape: ',latent_train_series.shape)
         dim = latent_test_series.shape[-1]
 
 
