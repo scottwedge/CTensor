@@ -546,16 +546,6 @@ def main():
         train_arr, test_arr = train_obj.train_test_split(raw_seq_arr)
         print('input train_arr shape: ',train_arr.shape )
 
-        # --------------------------------------------------------------
-        print('loading latent representation')
-        # latent_rep_path = '/home/ubuntu/CTensor/predictions/autoencoder_v1_Seattle/inference/infer_latent_representation.npy'
-        latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/train_lat_rep.npy'
-        latent_rep = np.load(latent_rep_path)
-        #  (41616, 1, 32, 20, 1)
-        print('latent_rep.shape: ', latent_rep.shape)
-        # ---------------------------------------------------------------
-
-
 
         # train_hours: 8084
         train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
@@ -567,12 +557,22 @@ def main():
         # 40152
         end_train_hour = datetime_utils.get_total_hour_range('2014-02-01', '2018-08-31')
 
-        latent_train_series = latent_rep[start_train_hour:end_train_hour, :, :,:,:]
-        latent_test_series = latent_rep[end_train_hour:end_train_hour + test_len, :, :,:,:]
-        latent_train_series = np.squeeze(latent_train_series, axis=1)
-        latent_test_series = np.squeeze(latent_test_series, axis=1)
+
+        # --------------------------------------------------------------
+        print('loading latent representation')
+        # latent_rep_path = '/home/ubuntu/CTensor/predictions/autoencoder_v1_Seattle/inference/infer_latent_representation.npy'
+        latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/train_lat_rep.npy'
+        latent_rep = np.load(latent_rep_path)
+        #  (41616, 1, 32, 20, 1) for v1,  (41616, 32, 20, 1) for v2
+        print('latent_rep.shape: ', latent_rep.shape)
+
+        latent_train_series = latent_rep[start_train_hour:end_train_hour,  :,:,:]
+        latent_test_series = latent_rep[end_train_hour:end_train_hour + test_len, :,:,:]
+        # latent_train_series = np.squeeze(latent_train_series, axis=1)
+        # latent_test_series = np.squeeze(latent_test_series, axis=1)
         print('latent_test_series.shape: ',latent_test_series.shape)
         dim  = latent_test_series.shape[-1]
+        # ---------------------------------------------------------------
 
 
 
