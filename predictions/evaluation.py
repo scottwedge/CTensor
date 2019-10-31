@@ -68,13 +68,12 @@ class evaluation(object):
         gt_df = self.gt_df[self.gt_df.index.isin(pred_df.index)]
         mape = 0
         for fea in list(gt_df):
-            y_forecasted = pred_df[fea]
-            y_truth = gt_df[fea]
+            y_forecasted = pred_df[fea].to_numpy()
+            y_truth = gt_df[fea].to_numpy()
             # Compute the mean square error
             # mape += mean_absolute_error(y_truth, y_forecasted) * len(y_truth)
-            if y_truth == 0:
-                continue
-            mape += abs(y_truth - y_forecasted) / float(y_truth)
+
+            mape += np.nansum(np.divide(np.absolute(y_truth - y_forecasted), y_truth))
         mape = float(mape)/ (len(list(gt_df)) * len(gt_df))
         print('The Mean absolute Percent error {}'.format(mape))
         return mape
