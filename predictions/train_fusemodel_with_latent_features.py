@@ -815,6 +815,7 @@ def main():
 
     print('rmse for conv3d: ',eval_obj4.rmse_val)
     print('mae for conv3d: ', eval_obj4.mae_val)
+    print('mape for conv3d: ', eval_obj4.mape_val)
 
     # plot train test accuracy
     train_test = pd.read_csv(save_path  + 'ecoch_res_df_' +'.csv')
@@ -848,11 +849,12 @@ def main():
         # the_file.write(str(multivar) + '\n')
         the_file.write('learning rate\n')
         the_file.write(str(LEARNING_RATE) + '\n')
-
         the_file.write('rmse for conv3d\n')
         the_file.write(str(eval_obj4.rmse_val) + '\n')
         the_file.write('mae for conv3d\n')
         the_file.write(str(eval_obj4.mae_val)+ '\n')
+        the_file.write('mape for conv3d\n')
+        the_file.write(str(eval_obj4.mape_val)+ '\n')
 
 
 
