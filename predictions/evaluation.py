@@ -73,7 +73,7 @@ class evaluation(object):
             # Compute the mean square error
             # mape += mean_absolute_error(y_truth, y_forecasted) * len(y_truth)
 
-            mape += np.nansum(np.divide(np.absolute(y_truth - y_forecasted), y_truth))
+            mape += np.nansum(np.divide(np.absolute(y_truth - y_forecasted), y_truth, out=np.zeros_like(y_truth), where=y_truth!=0))
         mape = float(mape)/ (len(list(gt_df)) * len(gt_df))
         print('The Mean absolute Percent error {}'.format(mape))
         return mape
