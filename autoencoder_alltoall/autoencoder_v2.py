@@ -613,8 +613,8 @@ class Autoencoder:
             demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
             weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
             temp_loss = tf.losses.absolute_difference(reconstruction_3d, v, weight_3d)
+            total_loss += temp_loss
             loss_dict[k] = temp_loss
-    #       loss_dict.append(temp_loss)
         print('total_loss: ', total_loss)
         cost = total_loss
 
