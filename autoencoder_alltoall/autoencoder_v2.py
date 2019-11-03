@@ -632,7 +632,7 @@ class Autoencoder:
 
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
-            start_time = datetime.datetime.now()
+
             # temporary
             # train_hours = 200
             # train_hours: train_start_time = '2014-02-01',train_end_time = '2018-10-31',
@@ -643,6 +643,7 @@ class Autoencoder:
 
             for epoch in range(epochs):
                 print('Epoch', epoch, 'started', end='')
+                start_time = datetime.datetime.now()
                 epoch_loss = 0
                 epoch_subloss = {}  # ave loss for each dataset
                 epoch_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
@@ -705,6 +706,11 @@ class Autoencoder:
                 # report loss per epoch
                 epoch_loss = epoch_loss/ iterations
                 print('epoch: ', epoch, 'Trainig Set Epoch total Cost: ',epoch_loss)
+                end_time = datetime.datetime.now()
+                train_time_per_epoch = end_time - start_time
+                train_time_per_sample = train_time_per_epoch/ train_hours
+
+                print(' Training Time per epoch: ', str(train_time_per_epoch), 'Time per sample: ', str(train_time_per_sample))
 
                 for k, v in epoch_subloss.items():
                     epoch_subloss[k] = v/iterations
@@ -725,6 +731,7 @@ class Autoencoder:
                 print('test_start: ', test_start) # 41616
                 print('test_end: ', test_end)
                 print('test_len: ', test_len) #  4200
+                test_start_time = datetime.datetime.now()
 
                 test_cost = 0
                 test_final_output = list()
@@ -799,6 +806,10 @@ class Autoencoder:
 
                 test_epoch_loss = test_cost/ itrs
                 print('epoch: ', epoch, 'Test Set Epoch total Cost: ',test_epoch_loss)
+                test_end_time = datetime.datetime.now()
+                test_time_per_epoch = test_end_time - test_start_time
+                test_time_per_sample = test_time_per_epoch/ test_len
+                print(' test Time elapse: ', str(test_time_per_epoch), 'test Time per sample: ', str(test_time_per_sample))
 
                 for k, v in test_subloss.items():
                     test_subloss[k] = v/itrs
@@ -846,6 +857,14 @@ class Autoencoder:
                     the_file.write(' test_epoch_loss:\n')
                     the_file.write(str(test_epoch_loss) + '\n')
                     the_file.write('\n')
+                    the_file.write('total time of last train epoch\n')
+                    the_file.write(str(train_time_per_epoch) + '\n')
+                    the_file.write('time per sample for train\n')
+                    the_file.write(str(train_time_per_sample) + '\n')
+                    the_file.write('total time of last test epoch\n')
+                    the_file.write(str(test_time_per_epoch) + '\n')
+                    the_file.write('time per sample for test\n')
+                    the_file.write(str(test_time_per_sample) + '\n')
                     the_file.close()
 
                 # plot results
