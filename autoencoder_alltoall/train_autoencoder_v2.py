@@ -505,12 +505,10 @@ def main():
         print('resume trainging from : ', train_dir)
         latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
                             rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
-                                             weather_seq_arr, crime_seq_arr, data_2d,
-
-                                        lamda, demo_mask_arr,
-                            train_dir, beta,
+                                         demo_mask_arr,
+                            train_dir, dim,
                             HEIGHT, WIDTH, TIMESTEPS, CHANNEL,
-                     NUM_2D_FEA, NUM_1D_FEA, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
+                            BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                             False, checkpoint, True, train_dir).latent_representation
     print('saving latent representation to npy')
     print('shape of latent_representation: ', latent_representation.shape)
