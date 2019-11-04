@@ -1017,13 +1017,7 @@ class Autoencoder:
             else:
                 iterations = int(train_hours/batch_size) + 1
 
-            # if len(crime_seq_arr)%batch_size ==0:
-            #     iterations = int(len(crime_seq_arr)/batch_size)
-            # else:
-            #     iterations = int(len(crime_seq_arr)/batch_size) + 1
-                        # run epochs
-                        # global step = epoch * len(x_train_data) + itr
-            for epoch in range(epochs):
+            for epoch in range(start_epoch, epochs):
                 print('Epoch', epoch, 'started', end='')
                 start_time = datetime.datetime.now()
                 epoch_loss = 0
