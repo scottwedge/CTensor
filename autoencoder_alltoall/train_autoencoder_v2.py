@@ -509,7 +509,7 @@ def main():
                             train_dir, dim,
                             HEIGHT, WIDTH, TIMESTEPS, CHANNEL,
                             BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
-                            False, checkpoint, True, train_dir).latent_representation
+                            False, checkpoint, True, train_dir).train_lat_rep
     print('saving latent representation to npy')
     print('shape of latent_representation: ', latent_representation.shape)
 
