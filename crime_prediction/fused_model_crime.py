@@ -746,6 +746,7 @@ class Conv3DPredictor:
                 final_output = list()
 
                 print('testing')
+                start_time_epoch = datetime.datetime.now()
                 itrs = int(len(x_test_data)/batch_size) + 1
                 for itr in range(itrs):
                     mini_batch_x_test = x_test_data[itr*batch_size: (itr+1)*batch_size]
@@ -823,6 +824,8 @@ class Conv3DPredictor:
     #             output = np.array(final_output)
 
                 end_time_epoch = datetime.datetime.now()
+                test_time_per_epoch = end_time_epoch - start_time_epoch
+                test_time_per_sample = test_time_per_epoch/ len(x_test_data)
                 #print(' Testing Set Accuracy:',test_cost/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
                 print(' Testing Set Cost:',test_cost/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
                 # print(' Testing Set Fair Cost:',test_fair_loss/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
@@ -851,14 +854,15 @@ class Conv3DPredictor:
                     #the_file.write('Only account for grids that intersect with city boundary \n')
                     the_file.write('epoch\n')
                     the_file.write(str(epoch)+'\n')
-                    # the_file.write('lamda\n')
-                    # the_file.write(str(lamda) + '\n')
                     the_file.write(' Testing Set Cost:\n')
                     the_file.write(str(test_cost/itrs) + '\n')
-                    # the_file.write('Testing Set Fair Cost\n')
-                    # the_file.write(str(test_fair_loss/itrs)+ '\n')
                     the_file.write('Testing Set Accuracy Cost\n')
                     the_file.write(str(test_acc_loss/itrs)+ '\n')
+                    the_file.write(str(test_acc_loss/itrs)+ '\n')
+                    the_file.write('total time of last test epoch\n')
+                    the_file.write(str(test_time_per_epoch) + '\n')
+                    the_file.write('time per sample\n')
+                    the_file.write(str(test_time_per_sample) + '\n')
                     the_file.write('\n')
                     the_file.close()
 
@@ -878,9 +882,8 @@ class Conv3DPredictor:
                 # plt.savefig(save_folder_path + 'fair_loss_inprogress.png')
                 plt.close()
 
-            end_time = datetime.datetime.now()
             output = np.array(test_result)
-            print('Time elapse: ', str(end_time - start_time))
+
             return output
 
 

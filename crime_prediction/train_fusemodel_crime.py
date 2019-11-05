@@ -655,6 +655,7 @@ def main():
 
     print('rmse for conv3d: ',eval_obj4.rmse_val)
     print('mae for conv3d: ', eval_obj4.mae_val)
+    print('mape for conv3d: ', eval_obj4.mape_val)
 
     # plot train test accuracy
     train_test = pd.read_csv(save_path  + 'ecoch_res_df_' +'.csv')
