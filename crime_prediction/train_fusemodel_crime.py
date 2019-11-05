@@ -469,7 +469,8 @@ def main():
         # 3-hour version
         # rawdata = pd.read_csv('../data_processing/3d_source_data/seattlecrime_grided_3-hour_20140101-20190506.csv', index_col = 0)
         # daily 3-hour version
-        rawdata = pd.read_csv('../data_processing/3d_source_data/seattlecrime_grided_daily_3-hour_20140101-20190505.csv', index_col = 0)
+        #rawdata = pd.read_csv('../data_processing/3d_source_data/seattlecrime_grided_daily_3-hour_20140101-20190505.csv', index_col = 0)
+        rawdata = pd.read_csv('../data_processing/3d_source_data/seattlecrime_grided_3-day_3-hour_20140101-20190505.csv', index_col = 0)
 
         rawdata.index = pd.to_datetime(rawdata.index)
         # a set of region codes (e.g.: 10_10) that intersect with the city
