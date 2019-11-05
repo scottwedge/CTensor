@@ -1776,6 +1776,7 @@ class Conv3D:
         pred_shape = self.predicted_vals.shape
         mse = 0
         mae = 0
+        mape = 0
         count = 0
         for i in range(0, pred_shape[0]):
             temp_image = sample_pred_squeeze[i]
@@ -1792,9 +1793,12 @@ class Conv3D:
                         count +=1
                         mse += (test_rot[r][c] - temp_rot[r][c]) ** 2
                         mae += abs(test_rot[r][c] - temp_rot[r][c])
+                        if temp_rot[r][c]!=0:
+                            mape += abs(test_rot[r][c] - temp_rot[r][c]) / test_rot[r][c]
 
         rmse = math.sqrt(mse / (pred_shape[0] * len(self.intersect_pos_set)))
         mae = mae / (pred_shape[0] * len(self.intersect_pos_set))
+        mape = mape/ (pred_shape[0] * len(self.intersect_pos_set))
         '''
         BATCH_SIZE = 32
         # actually epochs
@@ -1807,6 +1811,7 @@ class Conv3D:
         print('rmse and mae with grids that intersect with city boundary')
         print('rmse: ', rmse)
         print('mae ', mae)
+        print('mape: ', mape)
         print('count ', count)
 
     # convert predicted result tensor back to pandas dataframe
