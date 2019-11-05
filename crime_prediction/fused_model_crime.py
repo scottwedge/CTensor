@@ -1793,7 +1793,7 @@ class Conv3D:
                         count +=1
                         mse += (test_rot[r][c] - temp_rot[r][c]) ** 2
                         mae += abs(test_rot[r][c] - temp_rot[r][c])
-                        if temp_rot[r][c]!=0:
+                        if test_rot[r][c]!=0:
                             mape += abs(test_rot[r][c] - temp_rot[r][c]) / test_rot[r][c]
 
         rmse = math.sqrt(mse / (pred_shape[0] * len(self.intersect_pos_set)))
