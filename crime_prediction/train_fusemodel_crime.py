@@ -466,9 +466,11 @@ def main():
         globals()['LEARNING_RATE']  = learning_rate
         print('TRAINING_STEPS: ', TRAINING_STEPS)
 
-        # hourly_grid_timeseries = pd.read_csv('./hourly_grid_1000_timeseries_trail.csv', index_col = 0)
-        # hourly_grid_timeseries.index = pd.to_datetime(hourly_grid_timeseries.index)
-        rawdata = pd.read_csv('../data_processing/3d_source_data/seattlecrime_grided_3-hour_20140101-20190506.csv', index_col = 0)
+        # 3-hour version
+        # rawdata = pd.read_csv('../data_processing/3d_source_data/seattlecrime_grided_3-hour_20140101-20190506.csv', index_col = 0)
+        # daily 3-hour version
+        rawdata = pd.read_csv('../data_processing/3d_source_data/seattlecrime_grided_daily_3-hour_20140101-20190505.csv', index_col = 0)
+
         rawdata.index = pd.to_datetime(rawdata.index)
         # a set of region codes (e.g.: 10_10) that intersect with the city
         intersect_pos = pd.read_csv('../auxillary_data/intersect_pos_32_20.csv')
@@ -566,9 +568,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './crime_fusion_model_'+ str(place) + '_'  +str(use_1d_fea) +'_'+str(use_2d_fea)  + '/'
+        save_path =  './crime_daily_3hour_'+ str(place) + '_'  +str(use_1d_fea) +'_'+str(use_2d_fea)  + '/'
     else:
-        save_path = './crime_fusion_model_'+ str(place) + '_' +str(use_1d_fea) +'_'+str(use_2d_fea) + '_'+ suffix  +'/'
+        save_path = './crime_daily_3hour_'+ str(place) + '_' +str(use_1d_fea) +'_'+str(use_2d_fea) + '_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir
@@ -684,6 +686,9 @@ def main():
         the_file.write(str(eval_obj4.rmse_val) + '\n')
         the_file.write('mae for conv3d\n')
         the_file.write(str(eval_obj4.mae_val)+ '\n')
+        the_file.write('mape for conv3d\n')
+        the_file.write(str(eval_obj4.mape_val)+ '\n')
+
 
 
         the_file.close()

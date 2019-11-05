@@ -19,6 +19,7 @@ class evaluation(object):
         self.pred_df = pred_df
         self.rmse_val = self.rmse()
         self.mae_val = self.mae()
+        self.mape_val = self.mape()
         self.demo_raw = demo_raw
         # self.mae_df = self.mae_over_city()
         # self.rmse_df = self.rmse_over_city()
@@ -57,6 +58,26 @@ class evaluation(object):
         mae = float(mae)/ (len(list(gt_df)) * len(gt_df))
         print('The Mean absolute error {}'.format(mae))
         return mae
+
+
+
+    def mape(self):
+        #gt_df = gt_df[gt_df.index == pred_df.index]
+        pred_df = self.pred_df.dropna()
+        # df1 = df1[~df1.index.isin(df2.index)]
+        gt_df = self.gt_df[self.gt_df.index.isin(pred_df.index)]
+        mape = 0
+        for fea in list(gt_df):
+            y_forecasted = np.array(pred_df[fea])
+            y_truth = np.array(gt_df[fea])
+            # Compute the mean square error
+            # mape += mean_absolute_error(y_truth, y_forecasted) * len(y_truth)
+
+            mape += np.nansum(np.divide(np.absolute(y_truth - y_forecasted), y_truth, out=np.zeros_like(y_truth), where=y_truth!=0))
+        mape = float(mape)/ (len(list(gt_df)) * len(gt_df))
+        print('The Mean absolute Percent error {}'.format(mape))
+        return mape
+
 
 
 
