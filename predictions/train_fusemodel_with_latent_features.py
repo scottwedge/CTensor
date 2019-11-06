@@ -561,7 +561,8 @@ def main():
         # --------------------------------------------------------------
         print('loading latent representation')
         # latent_rep_path = '/home/ubuntu/CTensor/predictions/autoencoder_v1_Seattle/inference/infer_latent_representation.npy'
-        latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/train_lat_rep.npy'
+        # latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/train_lat_rep.npy'
+        latent_rep_path = '/home/ubuntu/CTensor/results/AE_v2/autoencoder_v2_dim1_aev2_dim1_epoch20/train_lat_rep.npy'
         latent_rep = np.load(latent_rep_path)
         #  (41616, 1, 32, 20, 1) for v1,  (41616, 32, 20, 1) for v2
         print('latent_rep.shape: ', latent_rep.shape)

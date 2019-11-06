@@ -390,37 +390,6 @@ class train:
         return train_arr, test_arr
 
 
-    # for each image randomly sample pixels
-    def add_noise_to_one_image(self,img):
-        height = img.shape[1] # 20
-        width = img.shape[0] # 32
-        # num of pixels to add noise, range from 5% to 10 % of total pixel num (32 - 64 pixels)
-        num_pixel = random.choice(range(int(height * width * 0.05)+1,  int(height * width * 0.1)+1))
-        # generate a sequence of random numbers from 0 to 640.
-        pixel_to_use = set(random.sample(range(0, height * width), num_pixel))
-        index = 0
-        # apply gaussian noise to sampled pixel,
-        for p in pixel_to_use:
-            c = int(p / width)-1  # 0 -20  -> height
-            r = int(p % width)-1  # 0 -32
-            # generate a random noise
-            noise = int(random.gauss(0, 2))
-            img[r, c] = noise + img[r, c]
-            if img[r, c]< 0:
-                img[r, c] = 0
-        return img
-
-
-    # rawdata shape: (9504, 32, 20)
-    # note: make changes in place
-    def generate_noise_data(self, rawdata_arr):
-        noisy_data_list = []
-        for i in range(rawdata_arr.shape[0]):
-            #print('adding noise to ith data: ', i)
-            noisy_data_list.append(self.add_noise_to_one_image(rawdata_arr[i,:,:]))
-        noisy_data_arr = np.array(noisy_data_list)
-        return noisy_data_arr
-
 
 
 def parse_args():
@@ -529,14 +498,16 @@ def main():
         # -------------- loat latent representation ---------------------
         print('loading latent representation')
         # latent_rep_path = '/home/ubuntu/CTensor/predictions/autoencoder_v1_Seattle/inference/infer_latent_representation.npy'
-        latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/train_lat_rep.npy'
+        # latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/train_lat_rep.npy'
+        latent_rep_path = '/home/ubuntu/CTensor/results/AE_v2/autoencoder_v2_dim1_aev2_dim1_epoch20/train_lat_rep.npy'
         latent_rep = np.load(latent_rep_path)
         #  (41616, 1, 32, 20, 1)
         print('latent_rep.shape: ', latent_rep.shape)
 
         # load test inference
         # latent_rep_test_path = '/home/ubuntu/CTensor/results/AE_v1/infer_latent_representation_test.npy'
-        latent_rep_test_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/test_lat_rep.npy'
+        #latent_rep_test_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/test_lat_rep.npy'
+        latent_rep_path = '/home/ubuntu/CTensor/results/AE_v2/autoencoder_v2_dim1_aev2_dim1_epoch20/test_lat_rep.npy'
         latent_rep_test = np.load(latent_rep_test_path)
         # note that this version of lat rep has a length of 8400,
         # which is a duplicatation of two 4200 lat infer_latent_representation
