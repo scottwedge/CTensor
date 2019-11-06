@@ -446,7 +446,7 @@ def main():
 
         # hourly_grid_timeseries = pd.read_csv('./hourly_grid_1000_timeseries_trail.csv', index_col = 0)
         # hourly_grid_timeseries.index = pd.to_datetime(hourly_grid_timeseries.index)
-        rawdata = pd.read_csv('../data_processing/3d_source_data/seattlecrime_grided_3-hour_20140101-20190506.csv', index_col = 0)
+        rawdata = pd.read_csv('../data_processing/3d_source_data/seattlecrime_grided_3-day_3-hour_20140101-20190505.csv', index_col = 0)
         rawdata.index = pd.to_datetime(rawdata.index)
         # a set of region codes (e.g.: 10_10) that intersect with the city
         intersect_pos = pd.read_csv('../auxillary_data/intersect_pos_32_20.csv')

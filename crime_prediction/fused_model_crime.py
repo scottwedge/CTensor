@@ -858,7 +858,7 @@ class Conv3DPredictor:
                     the_file.write(str(test_cost/itrs) + '\n')
                     the_file.write('Testing Set Accuracy Cost\n')
                     the_file.write(str(test_acc_loss/itrs)+ '\n')
-                    the_file.write(str(test_acc_loss/itrs)+ '\n')
+
                     the_file.write('total time of last test epoch\n')
                     the_file.write(str(test_time_per_epoch) + '\n')
                     the_file.write('time per sample\n')

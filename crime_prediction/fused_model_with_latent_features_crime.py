@@ -659,7 +659,7 @@ class Conv3DPredictor:
             sess.run(tf.global_variables_initializer())
 
 
-            start_time = datetime.datetime.now()
+            # start_time = datetime.datetime.now()
             # iterations = int(len(x_train_data)/batch_size) + 1
             if len(x_train_data)%batch_size ==0:
                 iterations = int(len(x_train_data)/batch_size)
@@ -709,6 +709,7 @@ class Conv3DPredictor:
 
                 print('testing')
                 itrs = int(len(x_test_data)/batch_size) + 1
+                start_time_epoch = datetime.datetime.now()
                 for itr in range(itrs):
                     mini_batch_x_test = x_test_data[itr*batch_size: (itr+1)*batch_size]
                     mini_batch_y_test = y_test_data[itr*batch_size: (itr+1)*batch_size]
@@ -736,6 +737,8 @@ class Conv3DPredictor:
                     final_output.extend(batch_output)
 
                 end_time_epoch = datetime.datetime.now()
+                test_time_per_epoch = end_time_epoch - start_time_epoch
+                test_time_per_sample = test_time_per_epoch/ len(x_test_data)
                 #print(' Testing Set Accuracy:',test_cost/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
                 print(' Testing Set Cost:',test_cost/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
                 # print(' Testing Set Fair Cost:',test_fair_loss/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
@@ -764,6 +767,10 @@ class Conv3DPredictor:
                     the_file.write(str(test_cost/itrs) + '\n')
                     the_file.write('Testing Set Accuracy Cost\n')
                     the_file.write(str(test_acc_loss/itrs)+ '\n')
+                    the_file.write('total time of last test epoch\n')
+                    the_file.write(str(test_time_per_epoch) + '\n')
+                    the_file.write('time per sample\n')
+                    the_file.write(str(test_time_per_sample) + '\n')
                     the_file.write('\n')
                     the_file.close()
 
