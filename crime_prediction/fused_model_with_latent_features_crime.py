@@ -792,7 +792,7 @@ class Conv3DPredictor:
 
             end_time = datetime.datetime.now()
             output = np.array(test_result)
-            print('Time elapse: ', str(end_time - start_time))
+            # print('Time elapse: ', str(end_time - start_time))
             return output
 
 
@@ -1147,7 +1147,7 @@ class Conv3DPredictor:
 
             end_time = datetime.datetime.now()
             output = np.array(test_result)
-            print('Time elapse: ', str(end_time - start_time))
+            # print('Time elapse: ', str(end_time - start_time))
             return output
 
 
