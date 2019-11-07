@@ -499,7 +499,8 @@ def main():
         print('loading latent representation')
         # latent_rep_path = '/home/ubuntu/CTensor/predictions/autoencoder_v1_Seattle/inference/infer_latent_representation.npy'
         # latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/train_lat_rep.npy'
-        latent_rep_path = '/home/ubuntu/CTensor/results/AE_v2/autoencoder_v2_dim1_aev2_dim1_epoch20/train_lat_rep.npy'
+        # latent_rep_path = '/home/ubuntu/CTensor/results/AE_v2/autoencoder_v2_dim1_aev2_dim1_epoch20/train_lat_rep.npy'
+        latent_rep_path = '/home/ubuntu/CTensor/results/AE_v2/autoencoder_v2_dim3_ae_v2_dim3_epoch15/train_lat_rep.npy'
         latent_rep = np.load(latent_rep_path)
         #  (41616, 1, 32, 20, 1)
         print('latent_rep.shape: ', latent_rep.shape)
@@ -507,7 +508,7 @@ def main():
         # load test inference
         # latent_rep_test_path = '/home/ubuntu/CTensor/results/AE_v1/infer_latent_representation_test.npy'
         #latent_rep_test_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/test_lat_rep.npy'
-        latent_rep_test_path = '/home/ubuntu/CTensor/results/AE_v2/autoencoder_v2_dim1_aev2_dim1_epoch20/test_lat_rep.npy'
+        latent_rep_test_path = '/home/ubuntu/CTensor/results/AE_v2/autoencoder_v2_dim3_ae_v2_dim3_epoch15/test_lat_rep.npy'
         latent_rep_test = np.load(latent_rep_test_path)
         # note that this version of lat rep has a length of 8400,
         # which is a duplicatation of two 4200 lat infer_latent_representation
