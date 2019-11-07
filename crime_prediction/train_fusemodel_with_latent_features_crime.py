@@ -515,7 +515,7 @@ def main():
         # (8400, 32, 20, 1)
         latent_rep_test = latent_rep_test[0:4200, :, :, :]
         print('latent_rep_test.shape: ', latent_rep_test.shape)
-        dim = latent_test_series.shape[-1]
+        dim = latent_rep_test.shape[-1]
         # ------------------------------------------------------------------#
 
         # note: the latent representation is at hourly pace, but crime prediciton at 3-hour pace
