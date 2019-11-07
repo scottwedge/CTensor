@@ -515,14 +515,15 @@ def main():
         # (8400, 32, 20, 1)
         latent_rep_test = latent_rep_test[0:4200, :, :, :]
         print('latent_rep_test.shape: ', latent_rep_test.shape)
+        dim = latent_test_series.shape[-1]
         # ------------------------------------------------------------------#
 
         # note: the latent representation is at hourly pace, but crime prediciton at 3-hour pace
         # average the 3-hour
         # (4580, 1, 32, 20, 1)
-        latent_rep_3hour = np.mean(latent_rep.reshape(-1, 3,  32, 20, 1), axis=1)
+        latent_rep_3hour = np.mean(latent_rep.reshape(-1, 3,  32, 20, dim), axis=1)
         print('latent_rep_3hour: ', latent_rep_3hour.shape)
-        latent_rep_test_3hour = np.mean(latent_rep_test.reshape(-1, 3,  32, 20, 1), axis=1)
+        latent_rep_test_3hour = np.mean(latent_rep_test.reshape(-1, 3,  32, 20, dim), axis=1)
         print('latent_rep_test_3hour: ', latent_rep_test_3hour.shape)
 
         latent_train_series = latent_rep_3hour[start_train_hour:end_train_hour,  :,:,:]
@@ -531,7 +532,7 @@ def main():
         # latent_test_series = np.squeeze(latent_test_series, axis=1)
         print('latent_test_series.shape: ',latent_test_series.shape)
         print('latent_train_series.shape: ',latent_train_series.shape)
-        dim = latent_test_series.shape[-1]
+
 
 
 ####################### city ignorant treatment ################
