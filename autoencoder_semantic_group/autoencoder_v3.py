@@ -685,7 +685,7 @@ class Autoencoder:
                     total_loss += temp_loss
                     loss_dict[ds] = temp_loss
                 if ds in keys_3d:
-                    timestep_3d = rawdata_3d_tf_y_dict[ds].shape[1]
+                    timestep_3d = self.rawdata_3d_tf_y_dict[ds].shape[1]
                     reconstruction_3d = self.reconstruct_3d(first_level_decode[grp], timestep_3d)
             #         print('reconstruction_3d.shape: ', reconstruction_3d.shape) # (?, 7, 32, 20, 1)
                     # 3d weight: (?, 32, 20, 1) -> (?, 7, 32, 20, 1)
