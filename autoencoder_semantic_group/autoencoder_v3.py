@@ -656,7 +656,7 @@ class Autoencoder:
         # branch one latent feature into [# of groups]'s latent representations
         first_level_decode = dict()  # [group name: latent rep]
         for grp in list(grouping_dict.keys()):
-            first_level_decode[grp] = sellf.branching(latent_fea, dim, self.is_training)
+            first_level_decode[grp] = self.branching(latent_fea, dim, self.is_training)
 
         # reconstruct all datasets
         # assumption: all datasets with equal weights
