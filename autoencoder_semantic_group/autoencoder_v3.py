@@ -623,7 +623,7 @@ class Autoencoder:
             prediction_1d = tf.expand_dims(prediction_1d, 1)
             prediction_1d = tf.expand_dims(prediction_1d, 1)
             prediction_1d_expand = tf.tile(prediction_1d, [1, HEIGHT,
-                                                    width ,1])
+                                                    WIDTH ,1])
             first_level_output[k] = prediction_1d_expand
 
 
