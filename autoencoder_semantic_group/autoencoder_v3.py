@@ -635,7 +635,7 @@ class Autoencoder:
             temp_list = [] # a list of feature maps belonging to the same group from first level training
             for ds in data_list:
                 temp_list.append(first_level_output[ds])
-            group_fusion_featuremap = self.fuse_and_train(temp_list, is_training, dim=1) # fuse and train
+            group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, dim=1) # fuse and train
             second_level_output[grp] = group_fusion_featuremap
 
 
@@ -656,7 +656,7 @@ class Autoencoder:
         # branch one latent feature into [# of groups]'s latent representations
         first_level_decode = dict()  # [group name: latent rep]
         for grp in list(grouping_dict.keys()):
-            first_level_decode[grp] = sellf.branching(latent_fea, dim, is_training)
+            first_level_decode[grp] = sellf.branching(latent_fea, dim, self.is_training)
 
         # reconstruct all datasets
         # assumption: all datasets with equal weights
@@ -674,13 +674,13 @@ class Autoencoder:
                 # reconstruct each
                 if ds in keys_1d:
                     dim_1d = rawdata_1d_dict[ds].shape[-1]
-                    reconstruction_1d = self.reconstruct_1d(first_level_decode[grp], dim_1d, is_training)
+                    reconstruction_1d = self.reconstruct_1d(first_level_decode[grp], dim_1d, self.is_training)
                     temp_loss = tf.losses.absolute_difference(reconstruction_1d, rawdata_1d_tf_y_dict[ds])
                     total_loss += temp_loss
                     loss_dict[ds] = temp_loss
                 if ds in keys_2d:
                     dim_2d = rawdata_2d_dict[ds].shape[-1]
-                    reconstruction_2d = self.reconstruct_2d(first_level_decode[grp], dim_2d, is_training)
+                    reconstruction_2d = self.reconstruct_2d(first_level_decode[grp], dim_2d, self.is_training)
                     temp_loss = tf.losses.absolute_difference(reconstruction_2d, rawdata_2d_tf_y_dict[ds])
                     total_loss += temp_loss
                     loss_dict[ds] = temp_loss
