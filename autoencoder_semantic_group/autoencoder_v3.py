@@ -983,79 +983,93 @@ class Autoencoder:
 
     def train_autoencoder_from_checkpoint(self, rawdata_1d_dict, rawdata_2d_dict,
                     rawdata_3d_dict, train_hours,
-                     demo_mask_arr, save_folder_path, dim, checkpoint_path,
+                     demo_mask_arr, save_folder_path, dim, checkpoint_path, grouping_dict,
                       keep_rate=0.7, epochs=10, batch_size=64):
         starter_learning_rate = LEARNING_RATE
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
                                        5000, 0.96, staircase=True)
 
-
-        med_res_3d = [] # intermediate prediction features
-        med_res_2d = []
-        med_res_1d = []
+        # first level output [dataset name: output]
+        first_level_output = dict()
         for k, v in self.rawdata_3d_tf_x_dict.items():
             prediction_3d = self.cnn_model(v, self.is_training)
-            med_res_3d.append(prediction_3d)
+            first_level_output[k] = prediction_3d
 
         for k, v in self.rawdata_2d_tf_x_dict.items():
             prediction_2d = self.cnn_2d_model(v, self.is_training)
-            med_res_2d.append(prediction_2d)
+            first_level_output[k] = prediction_2d
 
         for k, v in self.rawdata_1d_tf_x_dict.items():
             prediction_1d = self.cnn_1d_model(v, self.is_training)
-            med_res_1d.append(prediction_1d)
+            prediction_1d = tf.expand_dims(prediction_1d, 1)
+            prediction_1d = tf.expand_dims(prediction_1d, 1)
+            prediction_1d_expand = tf.tile(prediction_1d, [1, HEIGHT,
+                                                    WIDTH ,1])
+            first_level_output[k] = prediction_1d_expand
 
+    # ------------ grouping in encoder ------------- #
+        # [group name: feature maps]
+        second_level_output = dict()
+        for grp, data_list in grouping_dict.items():
+            # group a list of dataset in a group
+            temp_list = [] # a list of feature maps belonging to the same group from first level training
+            for ds in data_list:
+                temp_list.append(first_level_output[ds])
+            group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, dim=1) # fuse and train
+            second_level_output[grp] = group_fusion_featuremap
+
+
+        # ------------------------------------------------#
         # dim: latent fea dimension
-        latent_fea = self.model_fusion(med_res_3d, med_res_2d, med_res_1d, dim, self.is_training)
+        latent_fea = self.fuse_and_train(list(second_level_output.values()),  self.is_training, dim)
         print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 3)
-        # recontruction
-        print('recontruction')
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr, 0)  # [1, 2]
                 # [1, 32, 20, 1]  -> [1, 1, 32, 20, 1]
                 # [1, 32, 20, 1] -> [batchsize, 32, 20, 1]
                 # batchsize = tf.shape(prediction)[0]
         demo_mask_arr_expanded = tf.tile(demo_mask_arr_expanded, [tf.shape(latent_fea)[0],1,1,1])
         weight = tf.cast(tf.greater(demo_mask_arr_expanded, 0), tf.float32)
+        # ------------------ branching -----------------------------#
+        # branch one latent feature into [# of groups]'s latent representations
+        first_level_decode = dict()  # [group name: latent rep]
+        for grp in list(grouping_dict.keys()):
+            first_level_decode[grp] = self.branching(latent_fea, dim, self.is_training)
+
 
         total_loss = 0
     #    loss_dict = []  # {dataset name: loss}
         loss_dict = {}
-        for k, v in self.rawdata_1d_tf_y_dict.items():
-            dim_1d = rawdata_1d_dict[k].shape[-1]
-
-            reconstruction_1d = self.reconstruct_1d(latent_fea, dim_1d, self.is_training)
-    #         print('reconstruction_1d.shape: ', reconstruction_1d.shape)
-    #         print('v.shape: ', v.shape)
-            temp_loss = tf.losses.absolute_difference(reconstruction_1d, v)
-            total_loss += temp_loss
-    #         loss_dict.append(temp_loss)
-            loss_dict[k] = temp_loss
-
-
-        for k, v in self.rawdata_2d_tf_y_dict.items():
-            dim_2d = rawdata_2d_dict[k].shape[-1]
-            reconstruction_2d = self.reconstruct_2d(latent_fea, dim_2d, self.is_training)
-            temp_loss = tf.losses.absolute_difference(reconstruction_2d, v, weight)
-            total_loss += temp_loss
-            loss_dict[k] = temp_loss
-
-
+        keys_1d = rawdata_1d_dict.keys()
+        keys_2d = rawdata_2d_dict.keys()
+        keys_3d = rawdata_3d_dict.keys()
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 1)
-            # (?, 1, 32, 20, 1) -> (?, 7, 32, 20, 1)
 
-        # reconstruct_3d(latent_fea, timestep)
-        for k, v in self.rawdata_3d_tf_y_dict.items():
-            timestep_3d = v.shape[1]
-    #         print('rawdata_3d_tf_y_dict  v.shape: ', v.shape)
-    #         print('timestep_3d: ', timestep_3d)
-            reconstruction_3d = self.reconstruct_3d(latent_fea, timestep_3d)
-    #         print('reconstruction_3d.shape: ', reconstruction_3d.shape) # (?, 7, 32, 20, 1)
-            # 3d weight: (?, 32, 20, 1) -> (?, 7, 32, 20, 1)
-            demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
-            weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
-            temp_loss = tf.losses.absolute_difference(reconstruction_3d, v, weight_3d)
-            total_loss += temp_loss
-            loss_dict[k] = temp_loss
+        for grp, data_list in grouping_dict.items():
+            for ds in data_list:
+                # reconstruct each
+                if ds in keys_1d:
+                    dim_1d = rawdata_1d_dict[ds].shape[-1]
+                    reconstruction_1d = self.reconstruct_1d(first_level_decode[grp], dim_1d, self.is_training)
+                    temp_loss = tf.losses.absolute_difference(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds])
+                    total_loss += temp_loss
+                    loss_dict[ds] = temp_loss
+                if ds in keys_2d:
+                    dim_2d = rawdata_2d_dict[ds].shape[-1]
+                    reconstruction_2d = self.reconstruct_2d(first_level_decode[grp], dim_2d, self.is_training)
+                    temp_loss = tf.losses.absolute_difference(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds])
+                    total_loss += temp_loss
+                    loss_dict[ds] = temp_loss
+                if ds in keys_3d:
+                    timestep_3d = self.rawdata_3d_tf_y_dict[ds].shape[1]
+                    reconstruction_3d = self.reconstruct_3d(first_level_decode[grp], timestep_3d)
+            #         print('reconstruction_3d.shape: ', reconstruction_3d.shape) # (?, 7, 32, 20, 1)
+                    # 3d weight: (?, 32, 20, 1) -> (?, 7, 32, 20, 1)
+                    demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
+                    weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
+                    temp_loss = tf.losses.absolute_difference(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds], weight_3d)
+                    total_loss += temp_loss
+                    loss_dict[ds] = temp_loss
+
         print('total_loss: ', total_loss)
         cost = total_loss
 
@@ -1538,13 +1552,13 @@ class Autoencoder_entry:
         # self, channel, time_steps, height, width
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
                         self.intersect_pos_set,
-                     self.demo_mask_arr, self.dim,
+                     self.demo_mask_arr, self.dim, self.grouping_dict,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
 
         train_lat_rep, test_lat_rep = predictor.train_autoencoder_from_checkpoint(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
-                         self.demo_mask_arr, self.save_path, self.dim, self.checkpoint_path,
+                         self.demo_mask_arr, self.save_path, self.dim, self.checkpoint_path, self.grouping_dict,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
         return train_lat_rep, test_lat_rep

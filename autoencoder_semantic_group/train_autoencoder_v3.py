@@ -514,7 +514,7 @@ def main():
         latent_representation = autoencoder_v3.Autoencoder_entry(train_obj,
                             rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                          demo_mask_arr,
-                            train_dir, dim,
+                            train_dir, dim,grouping_dict,
                             HEIGHT, WIDTH, TIMESTEPS, CHANNEL,
                             BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                             False, checkpoint, True, train_dir).train_lat_rep
