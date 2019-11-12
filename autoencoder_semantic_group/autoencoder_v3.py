@@ -622,7 +622,7 @@ class Autoencoder:
             prediction_1d = self.cnn_1d_model(v, self.is_training)
             prediction_1d = tf.expand_dims(prediction_1d, 1)
             prediction_1d = tf.expand_dims(prediction_1d, 1)
-            prediction_1d_expand = tf.tile(prediction_1d, [1, height,
+            prediction_1d_expand = tf.tile(prediction_1d, [1, HEIGHT,
                                                     width ,1])
             first_level_output[k] = prediction_1d_expand
 
