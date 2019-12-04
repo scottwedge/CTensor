@@ -1170,6 +1170,9 @@ class Autoencoder:
                 epoch_subloss = {}  # ave loss for each dataset
                 epoch_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
+                epoch_subrmse = {}  # ave loss for each dataset
+                epoch_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+
                 final_output = list()
 
                 # mini batch
