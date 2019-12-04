@@ -479,6 +479,13 @@ def main():
     }
 
 
+    # ------ grouping within 2d datasets ------  #
+#     3 ['house_price', 'slope']
+# 0 ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices', 'POI_transportation', 'transit_routes', 'transit_signals']
+# 1 ['POI_hospitals']
+# 2 ['POI_recreation', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_stop', 'bikelane']
+#
+
 
     # train_obj.train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
     print('train_hours: ', train_obj.train_hours)

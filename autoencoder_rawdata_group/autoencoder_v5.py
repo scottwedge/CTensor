@@ -682,7 +682,7 @@ class Autoencoder:
                     temp_loss = tf.losses.absolute_difference(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds])
                     total_loss += temp_loss
                     loss_dict[ds] = temp_loss
-                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(prediction, label))
+                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
                 if ds in keys_2d:
                     dim_2d = rawdata_2d_dict[ds].shape[-1]
@@ -690,7 +690,7 @@ class Autoencoder:
                     temp_loss = tf.losses.absolute_difference(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds])
                     total_loss += temp_loss
                     loss_dict[ds] = temp_loss
-                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(prediction, label))
+                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
                 if ds in keys_3d:
                     timestep_3d = self.rawdata_3d_tf_y_dict[ds].shape[1]
@@ -702,7 +702,7 @@ class Autoencoder:
                     temp_loss = tf.losses.absolute_difference(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds], weight_3d)
                     total_loss += temp_loss
                     loss_dict[ds] = temp_loss
-                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(prediction, label))
+                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
 
         print('total_loss: ', total_loss)
@@ -1087,6 +1087,7 @@ class Autoencoder:
         total_loss = 0
     #    loss_dict = []  # {dataset name: loss}
         loss_dict = {}
+        rmse_dict = {}
         keys_1d = rawdata_1d_dict.keys()
         keys_2d = rawdata_2d_dict.keys()
         keys_3d = rawdata_3d_dict.keys()
