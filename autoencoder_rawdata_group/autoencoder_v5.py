@@ -1102,12 +1102,16 @@ class Autoencoder:
                     temp_loss = tf.losses.absolute_difference(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds])
                     total_loss += temp_loss
                     loss_dict[ds] = temp_loss
+                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
+                    rmse_dict[ds] = temp_rmse
                 if ds in keys_2d:
                     dim_2d = rawdata_2d_dict[ds].shape[-1]
                     reconstruction_2d = self.reconstruct_2d(first_level_decode[grp], dim_2d, self.is_training)
                     temp_loss = tf.losses.absolute_difference(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds])
                     total_loss += temp_loss
                     loss_dict[ds] = temp_loss
+                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
+                    rmse_dict[ds] = temp_rmse
                 if ds in keys_3d:
                     timestep_3d = self.rawdata_3d_tf_y_dict[ds].shape[1]
                     reconstruction_3d = self.reconstruct_3d(first_level_decode[grp], timestep_3d)
@@ -1118,6 +1122,8 @@ class Autoencoder:
                     temp_loss = tf.losses.absolute_difference(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds], weight_3d)
                     total_loss += temp_loss
                     loss_dict[ds] = temp_loss
+                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
+                    rmse_dict[ds] = temp_rmse
 
         print('total_loss: ', total_loss)
         cost = total_loss
@@ -1204,7 +1210,7 @@ class Autoencoder:
                         feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
                     # is_training: True
                     feed_dict_all[self.is_training] = True
-                    batch_cost, batch_loss_dict, _ = sess.run([cost,loss_dict, optimizer], feed_dict=feed_dict_all)
+                    batch_cost, batch_loss_dict, batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     batch_output = sess.run([latent_fea], feed_dict= feed_dict_all)
@@ -1213,6 +1219,9 @@ class Autoencoder:
                     epoch_loss += batch_cost
                     for k, v in epoch_subloss.items():
                         epoch_subloss[k] += batch_loss_dict[k]
+
+                    for k, v in epoch_subrmse.items():
+                        epoch_subrmse[k] += batch_rmse_dict[k]
 
 
                     if itr%10 == 0:
@@ -1235,8 +1244,11 @@ class Autoencoder:
                     epoch_subloss[k] = v/iterations
                     print('epoch: ', epoch, 'k: ', k, 'mean train loss: ', epoch_subloss[k])
 
+                for k, v in epoch_subrmse.items():
+                    epoch_subrmse[k] = v/iterations
+                    print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
 
-                save_path = saver.save(sess, save_folder_path +'autoencoder_v3_' +str(epoch)+'.ckpt', global_step=self.global_step)
+                save_path = saver.save(sess, save_folder_path +'autoencoder_v5_' +str(epoch)+'.ckpt', global_step=self.global_step)
                 # save_path = saver.save(sess, './autoencoder.ckpt')
                 print('Model saved to {}'.format(save_path))
 
@@ -1256,7 +1268,8 @@ class Autoencoder:
                 test_final_output = list()
                 test_subloss = {}  # ave loss for each dataset
                 test_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
-
+                test_subrmse = {}  # ave loss for each dataset
+                test_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
                 if test_len%batch_size ==0:
                     itrs = int(test_len/batch_size)
@@ -1297,7 +1310,7 @@ class Autoencoder:
                     # is_training: True
                     test_feed_dict_all[self.is_training] = True
 
-                    test_batch_cost, test_batch_loss_dict, _ = sess.run([cost,loss_dict, optimizer], feed_dict= test_feed_dict_all)
+                    test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict= test_feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     test_batch_output = sess.run([latent_fea], feed_dict= test_feed_dict_all)
@@ -1305,6 +1318,9 @@ class Autoencoder:
 
                     for k, v in test_subloss.items():
                         test_subloss[k] += test_batch_loss_dict[k]
+
+                    for k, v in test_subrmse.items():
+                        test_subrmse[k] += test_batch_rmse_dict[k]
 
 
                     if itr%10 == 0:
@@ -1335,6 +1351,11 @@ class Autoencoder:
                     print('epoch: ', epoch, 'k: ', k, 'mean test loss: ', test_subloss[k])
                     print('test loss for k :', k, v)
 
+                for k, v in test_subrmse.items():
+                    test_subrmse[k] = v/itrs
+                    print('epoch: ', epoch, 'k: ', k, 'mean test rmse: ', test_subrmse[k])
+                    print('test rmse for k :', k, v)
+
 
                 # -----------------------------------------------------------------------
 
@@ -1361,6 +1382,23 @@ class Autoencoder:
                 test_sub_res_csv_path = save_folder_path + 'autoencoder_test_sub_res' +'.csv'
                 with open(test_sub_res_csv_path, 'a') as f:
                     test_sub_res_df.to_csv(f, header=f.tell()==0)
+
+
+                # --- rmse ------
+                train_sub_rmse_df = pd.DataFrame([list(epoch_subrmse.values())],
+                    columns= list(epoch_subrmse.keys()))
+                train_sub_rmse_csv_path = save_folder_path + 'autoencoder_train_sub_rmse' +'.csv'
+                with open(train_sub_rmse_csv_path, 'a') as f:
+                    train_sub_rmse_df.to_csv(f, header=f.tell()==0)
+
+
+
+                test_sub_rmse_df = pd.DataFrame([list(test_subrmse.values())],
+                                columns= list(test_subrmse.keys()))
+                test_sub_rmse_csv_path = save_folder_path + 'autoencoder_test_sub_rmse' +'.csv'
+                with open(test_sub_rmse_csv_path, 'a') as f:
+                    test_sub_rmse_df.to_csv(f, header=f.tell()==0)
+
 
 
                 # save results to txt
