@@ -823,7 +823,7 @@ class Autoencoder:
                 print('testing per epoch, for epoch: ', epoch)
                 # train_hours  = 41616  # train_start_time = '2014-02-01',train_end_time = '2018-10-31'
                 test_start = train_hours
-                test_end = rawdata_1d_dict['weather'].shape[0] -168  # 45984 - 168
+                test_end = rawdata_1d_dict['airquality'].shape[0] -168  # 45984 - 168
                 test_len = test_end - test_start  # 4200
                 print('test_start: ', test_start) # 41616
                 print('test_end: ', test_end)
@@ -1254,7 +1254,7 @@ class Autoencoder:
                 print('testing per epoch, for epoch: ', epoch)
                 # train_hours  = 41616  # train_start_time = '2014-02-01',train_end_time = '2018-10-31'
                 test_start = train_hours
-                test_end = rawdata_1d_dict['weather'].shape[0] -168  # 45984 - 168
+                test_end = rawdata_1d_dict['airquality'].shape[0] -168  # 45984 - 168
                 test_len = test_end - test_start  # 4200
                 print('test_start: ', test_start) # 41616
                 print('test_end: ', test_end)
