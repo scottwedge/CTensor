@@ -971,6 +971,9 @@ class Autoencoder:
                     the_file.write(str(test_time_per_epoch) + '\n')
                     the_file.write('time per sample for test\n')
                     the_file.write(str(test_time_per_sample) + '\n')
+                    the_file.write('keys_list\n')
+                    for item in keys_list:
+                        the_file.write("%s\n" % item)
                     the_file.close()
 
                 # plot results
@@ -1348,6 +1351,7 @@ class Autoencoder:
                     the_file.write(str(test_time_per_epoch) + '\n')
                     the_file.write('time per sample for test\n')
                     the_file.write(str(test_time_per_sample) + '\n')
+
                     the_file.close()
 
                 # plot results
