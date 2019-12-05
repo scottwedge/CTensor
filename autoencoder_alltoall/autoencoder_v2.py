@@ -23,6 +23,8 @@ import datetime
 from datetime import timedelta
 import datetime_utils
 import os
+import random
+import pickle
 
 import tensorflow.python.keras
 import tensorflow.contrib.keras as keras
@@ -562,6 +564,7 @@ class Autoencoder:
 
     def train_autoencoder(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, train_hours,
                      demo_mask_arr, save_folder_path, dim,
+                     resume_training = False, checkpoint_path = None,
                        epochs=1, batch_size=32):
         starter_learning_rate = LEARNING_RATE
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
@@ -570,17 +573,28 @@ class Autoencoder:
         med_res_3d = [] # intermediate prediction features
         med_res_2d = []
         med_res_1d = []
-        for k, v in self.rawdata_3d_tf_x_dict.items():
-            prediction_3d = self.cnn_model(v, self.is_training)
-            med_res_3d.append(prediction_3d)
-
-        for k, v in self.rawdata_2d_tf_x_dict.items():
-            prediction_2d = self.cnn_2d_model(v, self.is_training)
-            med_res_2d.append(prediction_2d)
+        keys_list = []
+        first_order_encoder_list = []
 
         for k, v in self.rawdata_1d_tf_x_dict.items():
             prediction_1d = self.cnn_1d_model(v, self.is_training)
             med_res_1d.append(prediction_1d)
+            keys_list.append(k)
+            first_order_encoder_list.append(prediction_1d)
+
+        for k, v in self.rawdata_2d_tf_x_dict.items():
+            prediction_2d = self.cnn_2d_model(v, self.is_training)
+            med_res_2d.append(prediction_2d)
+            keys_list.append(k)
+            first_order_encoder_list.append(prediction_2d)
+
+        for k, v in self.rawdata_3d_tf_x_dict.items():
+            prediction_3d = self.cnn_model(v, self.is_training)
+            med_res_3d.append(prediction_3d)
+            keys_list.append(k)
+            first_order_encoder_list.append(prediction_3d)
+
+
 
         # dim: latent fea dimension
         latent_fea = self.model_fusion(med_res_3d, med_res_2d, med_res_1d, dim, self.is_training)
@@ -595,18 +609,17 @@ class Autoencoder:
         weight = tf.cast(tf.greater(demo_mask_arr_expanded, 0), tf.float32)
 
         total_loss = 0
-    #    loss_dict = []  # {dataset name: loss}
-        loss_dict = {}
+        loss_dict = {} # {dataset name: loss}
+        rmse_dict = {}
         for k, v in self.rawdata_1d_tf_y_dict.items():
             dim_1d = rawdata_1d_dict[k].shape[-1]
-
             reconstruction_1d = self.reconstruct_1d(latent_fea, dim_1d, self.is_training)
-    #         print('reconstruction_1d.shape: ', reconstruction_1d.shape)
-    #         print('v.shape: ', v.shape)
             temp_loss = tf.losses.absolute_difference(reconstruction_1d, v)
             total_loss += temp_loss
     #         loss_dict.append(temp_loss)
             loss_dict[k] = temp_loss
+            temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, v))
+            rmse_dict[k] = temp_rmse
 
 
         for k, v in self.rawdata_2d_tf_y_dict.items():
@@ -615,6 +628,8 @@ class Autoencoder:
             temp_loss = tf.losses.absolute_difference(reconstruction_2d, v, weight)
             total_loss += temp_loss
             loss_dict[k] = temp_loss
+            temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, v, weight))
+            rmse_dict[k] = temp_rmse
 
 
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 1)
@@ -623,8 +638,6 @@ class Autoencoder:
         # reconstruct_3d(latent_fea, timestep)
         for k, v in self.rawdata_3d_tf_y_dict.items():
             timestep_3d = v.shape[1]
-    #         print('rawdata_3d_tf_y_dict  v.shape: ', v.shape)
-    #         print('timestep_3d: ', timestep_3d)
             reconstruction_3d = self.reconstruct_3d(latent_fea, timestep_3d)
     #         print('reconstruction_3d.shape: ', reconstruction_3d.shape) # (?, 7, 32, 20, 1)
             # 3d weight: (?, 32, 20, 1) -> (?, 7, 32, 20, 1)
@@ -633,6 +646,10 @@ class Autoencoder:
             temp_loss = tf.losses.absolute_difference(reconstruction_3d, v, weight_3d)
             total_loss += temp_loss
             loss_dict[k] = temp_loss
+            temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, v, weight_3d))
+            rmse_dict[k] = temp_rmse
+
+
         print('total_loss: ', total_loss)
         cost = total_loss
 
@@ -644,12 +661,38 @@ class Autoencoder:
         saver = tf.train.Saver()
         train_result = list()
         test_result = list()
+        # feature maps of last layer of encoder.
+        # used for deriving dataset similarity
+        encoded_list = list()
+        # random sampling to calculate dataset similarity
+        # sample_index = random.sample(range(0, train_hours), num_samples)
 
         if not os.path.exists(save_folder_path):
             os.makedirs(save_path)
 
+
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
+
+            # ---- if resume training -----
+            if resume_training:
+                if checkpoint_path is not None:
+                    saver.restore(sess, checkpoint_path)
+                else:
+                    saver.restore(sess, tf.train.latest_checkpoint(save_folder_path))
+                # check global step
+                print("global step: ", sess.run([self.global_step]))
+                print("Model restore finished, current globle step: %d" % self.global_step.eval())
+
+                # get new epoch num
+                print("int(train_hours / batch_size +1): ", int(train_hours / batch_size +1))
+                start_epoch_num = tf.div(self.global_step, int(train_hours / batch_size +1))
+                #self.global_step/ (len(x_train_data) / batch_size +1) -1
+                print("start_epoch_num: ", start_epoch_num.eval())
+                start_epoch = start_epoch_num.eval()
+            else:
+                start_epoch = 0
+
 
             # temporary
             # train_hours = 200
@@ -659,14 +702,19 @@ class Autoencoder:
             else:
                 iterations = int(train_hours/batch_size) + 1
 
-            for epoch in range(epochs):
+            for epoch in range(start_epoch, epochs):
                 print('Epoch', epoch, 'started', end='')
                 start_time = datetime.datetime.now()
                 epoch_loss = 0
                 epoch_subloss = {}  # ave loss for each dataset
                 epoch_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
+                epoch_subrmse = {}  # ave loss for each dataset
+                epoch_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+
+
                 final_output = list()
+                final_encoded_list = list()
 
                 # mini batch
                 for itr in range(iterations):
@@ -703,15 +751,23 @@ class Autoencoder:
                         feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
                     # is_training: True
                     feed_dict_all[self.is_training] = True
-                    batch_cost, batch_loss_dict, _ = sess.run([cost,loss_dict, optimizer], feed_dict=feed_dict_all)
+                    batch_cost, batch_loss_dict, batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict,optimizer], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
-                    batch_output = sess.run([latent_fea], feed_dict= feed_dict_all)
+                    batch_output, batch_encoded_list = sess.run([latent_fea, first_order_encoder_list], feed_dict= feed_dict_all)
                     final_output.extend(batch_output)
+
+
+                    # record results every 50 iterations, that is about 900 samples
+                    if itr% 50 == 0:
+                        final_encoded_list.append(batch_encoded_list)
 
                     epoch_loss += batch_cost
                     for k, v in epoch_subloss.items():
                         epoch_subloss[k] += batch_loss_dict[k]
+
+                    for k, v in epoch_subrmse.items():
+                        epoch_subrmse[k] += batch_rmse_dict[k]
 
 
                     if itr%10 == 0:
@@ -734,6 +790,10 @@ class Autoencoder:
                     epoch_subloss[k] = v/iterations
                     print('epoch: ', epoch, 'k: ', k, 'mean train loss: ', epoch_subloss[k])
 
+                for k, v in epoch_subrmse.items():
+                    epoch_subrmse[k] = v/iterations
+                    print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
+
 
                 save_path = saver.save(sess, save_folder_path +'autoencoder_v2_' +str(epoch)+'.ckpt', global_step=self.global_step)
                 # save_path = saver.save(sess, './autoencoder.ckpt')
@@ -755,6 +815,9 @@ class Autoencoder:
                 test_final_output = list()
                 test_subloss = {}  # ave loss for each dataset
                 test_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+
+                test_subrmse = {}  # ave loss for each dataset
+                test_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
 
                 if test_len%batch_size ==0:
@@ -796,7 +859,7 @@ class Autoencoder:
                     # is_training: True
                     test_feed_dict_all[self.is_training] = True
 
-                    test_batch_cost, test_batch_loss_dict, _ = sess.run([cost,loss_dict, optimizer], feed_dict= test_feed_dict_all)
+                    test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict= test_feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     test_batch_output = sess.run([latent_fea], feed_dict= test_feed_dict_all)
@@ -804,6 +867,9 @@ class Autoencoder:
 
                     for k, v in test_subloss.items():
                         test_subloss[k] += test_batch_loss_dict[k]
+
+                    for k, v in test_subrmse.items():
+                        test_subrmse[k] += test_batch_rmse_dict[k]
 
 
                     if itr%10 == 0:
@@ -834,9 +900,13 @@ class Autoencoder:
                     print('epoch: ', epoch, 'k: ', k, 'mean test loss: ', test_subloss[k])
                     print('test loss for k :', k, v)
 
+                for k, v in test_subrmse.items():
+                    test_subrmse[k] = v/itrs
+                    print('epoch: ', epoch, 'k: ', k, 'mean test rmse: ', test_subrmse[k])
+                    print('test rmse for k :', k, v)
+
 
                 # -----------------------------------------------------------------------
-
 
                 # save epoch statistics to csv
                 ecoch_res_df = pd.DataFrame([[epoch_loss, test_epoch_loss]],
@@ -860,6 +930,24 @@ class Autoencoder:
                 test_sub_res_csv_path = save_folder_path + 'autoencoder_test_sub_res' +'.csv'
                 with open(test_sub_res_csv_path, 'a') as f:
                     test_sub_res_df.to_csv(f, header=f.tell()==0)
+
+
+                # --- rmse ------
+                train_sub_rmse_df = pd.DataFrame([list(epoch_subrmse.values())],
+                    columns= list(epoch_subrmse.keys()))
+                train_sub_rmse_csv_path = save_folder_path + 'autoencoder_train_sub_rmse' +'.csv'
+                with open(train_sub_rmse_csv_path, 'a') as f:
+                    train_sub_rmse_df.to_csv(f, header=f.tell()==0)
+
+
+
+                test_sub_rmse_df = pd.DataFrame([list(test_subrmse.values())],
+                                columns= list(test_subrmse.keys()))
+                test_sub_rmse_csv_path = save_folder_path + 'autoencoder_test_sub_rmse' +'.csv'
+                with open(test_sub_rmse_csv_path, 'a') as f:
+                    test_sub_rmse_df.to_csv(f, header=f.tell()==0)
+
+
 
 
                 # save results to txt
@@ -901,6 +989,7 @@ class Autoencoder:
                     train_result.extend(final_output)
                     test_final_output = np.array(test_final_output)
                     test_result.extend(test_final_output)
+                    encoded_list.extend(final_encoded_list)
 
             # encoded_res = np.array(test_result)
             train_encoded_res = train_result
@@ -914,11 +1003,11 @@ class Autoencoder:
                 test_output_arr = np.concatenate((test_output_arr, test_encoded_res[i]), axis=0)
 
         # This is the latent representation (9337, 1, 32, 20, 1) of training
-        return train_output_arr, test_output_arr
+        return train_output_arr, test_output_arr, encoded_list, keys_list
 
 
 
-
+    # deprecated
     def train_autoencoder_from_checkpoint(self, rawdata_1d_dict, rawdata_2d_dict,
                     rawdata_3d_dict, train_hours,
                      demo_mask_arr, save_folder_path, dim, checkpoint_path,
@@ -1426,15 +1515,20 @@ class Autoencoder_entry:
                     # get prediction results
                     print('training from scratch, and get prediction results')
                     # predicted_vals: (552, 30, 30, 1)
-                    self.train_lat_rep, self.test_lat_rep = self.run_autoencoder()
-                    np.save(self.save_path +'train_lat_rep.npy', self.train_lat_rep)
-                    np.save(self.save_path +'test_lat_rep.npy', self.test_lat_rep)
+                    self.train_lat_rep, self.test_lat_rep, encoded_list, keys_list = self.run_autoencoder()
+
             else:
                     # resume training
                     print("resume training, and get prediction results")
-                    self.train_lat_rep, self.test_lat_rep = self.run_resume_training()
-                    np.save(self.save_path +'train_lat_rep.npy', self.train_lat_rep)
-                    np.save(self.save_path +'test_lat_rep.npy', self.test_lat_rep)
+                    self.train_lat_rep, self.test_lat_rep, encoded_list, keys_list = self.run_resume_training()
+            np.save(self.save_path +'train_lat_rep.npy', self.train_lat_rep)
+            np.save(self.save_path +'test_lat_rep.npy', self.test_lat_rep)
+            file = open(self.save_path + 'encoded_list', 'wb')
+            # dump information to that file
+            # number of batches, num_dataset, batchsize, h, w, dim
+            print('dumping encoded_list to pickle')
+            pickle.dump(encoded_list, file)
+            file.close()
         else:
             # inference only
             print('get inference results')
@@ -1459,12 +1553,12 @@ class Autoencoder_entry:
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
         # (9337, 1, 32, 20, 1)
-        train_lat_rep, test_lat_rep = predictor.train_autoencoder(
+        train_lat_rep, test_lat_rep, encoded_list, keys_list = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
-        return train_lat_rep, test_lat_rep
+        return train_lat_rep, test_lat_rep, encoded_list, keys_list
 
 
 
@@ -1476,15 +1570,22 @@ class Autoencoder_entry:
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
                         self.intersect_pos_set,
                      self.demo_mask_arr, self.dim,
+                     False, None,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
-
-        train_lat_rep, test_lat_rep = predictor.train_autoencoder_from_checkpoint(
+        train_lat_rep, test_lat_rep, encoded_list, keys_list = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
-                         self.demo_mask_arr, self.save_path, self.dim, self.checkpoint_path,
+                         self.demo_mask_arr, self.save_path, self.dim,
+                         True, self.checkpoint_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
-        return train_lat_rep, test_lat_rep
+
+        # train_lat_rep, test_lat_rep = predictor.train_autoencoder_from_checkpoint(
+        #                 self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
+        #                  self.demo_mask_arr, self.save_path, self.dim, self.checkpoint_path,
+        #              epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
+
+        return train_lat_rep, test_lat_rep, encoded_list, keys_list
 
 
 
