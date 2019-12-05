@@ -6,6 +6,11 @@
 # be reconstructed with equal weight in MAE loss
 # last updated: October, 2019
 
+# update: Dec, 2019
+# update the structure of AE
+# record rmse of each dataset
+# output the last layer of encoder of each dataset
+
 
 import numpy as np
 import tensorflow as tf
@@ -176,7 +181,7 @@ class Autoencoder:
 
 
 
-    def cnn_model(self, x_train_data, is_training, keep_rate=0.7, seed=None):
+    def cnn_model(self, x_train_data, is_training, output_dim = 3, keep_rate=0.7, seed=None):
         # output from 3d cnn (?, 168, 32, 20, 1)  * weight + b = (?, 32, 20, 1)
         with tf.name_scope("layer_a"):
             # conv => 16*16*16
@@ -202,10 +207,10 @@ class Autoencoder:
             # swap axes -> (?, 32, 20, 168) -> [0, 1, 2, 3] -> []
             cnn3d_bn_squeeze = tf.transpose(cnn3d_bn_squeeze, perm=[0,2,3, 1])
 
-        # output should be (?, 32, 20, 1)
+        # output should be (?, 32, 20, dim)
         conv5 = tf.layers.conv2d(
                   inputs=cnn3d_bn_squeeze,
-                  filters=1,
+                  filters=output_dim,   # changed from 1 to 3
                   kernel_size=[1, 1],
                   padding="same",
                   activation=my_leaky_relu
@@ -222,7 +227,7 @@ class Autoencoder:
     input: 2d feature tensor: height * width * # of features (batchsize, 32, 20, 4)
     output: (32, 20, 1)
     '''
-    def cnn_2d_model(self, x_2d_train_data, is_training, seed=None):
+    def cnn_2d_model(self, x_2d_train_data, is_training, output_dim = 1, seed=None):
 
         with tf.name_scope("2d_layer_a"):
             '''
@@ -240,7 +245,8 @@ class Autoencoder:
             conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
 
             #  Convolution Layer with 64 filters and a kernel size of 3
-            conv2 = tf.layers.conv2d(conv1, 16, 3, padding='same',activation=None)
+            # conv2: change from 16 to 32
+            conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
             conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
 
@@ -248,7 +254,7 @@ class Autoencoder:
         with tf.name_scope("2d_layer_b"):
             conv3 = tf.layers.conv2d(
                       inputs=conv2,
-                      filters=1,
+                      filters=output_dim,
                       kernel_size=[1, 1],
                       padding="same",
                       activation=my_leaky_relu
@@ -265,7 +271,7 @@ class Autoencoder:
     output: (batchsize, 1)
     '''
     # (batchsize, 168, # of features)
-    def cnn_1d_model(self, x_1d_train_data, is_training,seed=None):
+    def cnn_1d_model(self, x_1d_train_data, is_training, output_dim =3, seed=None):
         with tf.name_scope("1d_layer_a"):
             # https://www.tensorflow.org/api_docs/python/tf/layers/conv1d
             '''
@@ -284,7 +290,8 @@ class Autoencoder:
 
             #  Convolution Layer with 64 filters and a kernel size of 3
             # output shape: None, 168,16
-            conv2 = tf.layers.conv1d(conv1, 16, 3,padding='same', activation=None)
+            # conv2 change from 16 to 32
+            conv2 = tf.layers.conv1d(conv1, 32, 3,padding='same', activation=None)
             conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
 
@@ -295,7 +302,7 @@ class Autoencoder:
         with tf.name_scope("1d_layer_b"):
             conv3 = tf.layers.conv1d(
                       inputs=conv2,
-                      filters=1,
+                      filters=output_dim, # switch from 1 to 3
                       kernel_size=1,
                       padding="same",
                       activation=my_leaky_relu
@@ -339,17 +346,27 @@ class Autoencoder:
 
         with tf.name_scope("fusion_layer_a"):
             # Convolution Layer with 32 filters and a kernel size of 5
-            conv1 = tf.layers.conv2d(fuse_feature, 16, 3, padding='same',activation=my_leaky_relu)
-        with tf.name_scope("fusion_batch_norm"):
-            cnn2d_bn = tf.layers.batch_normalization(inputs=conv1, training=is_training)
-            # (?, 168, 32, 20, 1)
-            print('cnn2d_bn shape: ',cnn2d_bn.shape)
+            conv1 = tf.layers.conv2d(fuse_feature, 16, 3, padding='same',activation=None)
+            # conv1 = tf.layers.conv2d(x_2d_train_data, 16, 3, padding='same',activation=None)
+            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
+
+            #  Convolution Layer with 64 filters and a kernel size of 3
+            # conv2: change from 16 to 32
+            conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+
+        # with tf.name_scope("fusion_batch_norm"):
+        #     cnn2d_bn = tf.layers.batch_normalization(inputs=conv2, training=is_training)
+        #     # (?, 168, 32, 20, 1)
+        #     print('cnn2d_bn shape: ',cnn2d_bn.shape)
 
 
         # output should be (?, 32, 20, 1)
         with tf.name_scope("fusion_layer_b"):
             conv3 = tf.layers.conv2d(
-                      inputs=cnn2d_bn,
+                      inputs=conv2,
                       filters=dim,
                       kernel_size=[1, 1],
                       padding="same",
@@ -371,7 +388,8 @@ class Autoencoder:
         latent_fea = tf.expand_dims(latent_fea, 1)
         if timestep == 168:
             # [batchsize, 32, 20, dim]-> [batchsize, 168, 32, 20, 1]
-            deconv1 = tf.layers.conv3d_transpose(inputs=latent_fea, filters=32, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
+            # change from 32 to 16
+            deconv1 = tf.layers.conv3d_transpose(inputs=latent_fea, filters=16, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
             # [1, 32, 20, 32]
             # https://www.tensorflow.org/api_docs/python/tf/keras/backend/resize_volumes
             unpool1 = K.resize_volumes(deconv1,7,1,1,"channels_last")

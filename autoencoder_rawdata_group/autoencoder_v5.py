@@ -681,6 +681,7 @@ class Autoencoder:
 
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
+
                 if ds in keys_2d:
                     dim_2d = rawdata_2d_dict[ds].shape[-1]
                     reconstruction_2d = self.reconstruct_2d(first_level_decode[grp], dim_2d, self.is_training)
@@ -689,6 +690,7 @@ class Autoencoder:
                     loss_dict[ds] = temp_loss
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
+
                 if ds in keys_3d:
                     timestep_3d = self.rawdata_3d_tf_y_dict[ds].shape[1]
                     reconstruction_3d = self.reconstruct_3d(first_level_decode[grp], timestep_3d)
@@ -701,6 +703,7 @@ class Autoencoder:
                     loss_dict[ds] = temp_loss
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
+
 
         print('total_loss: ', total_loss)
         cost = total_loss
