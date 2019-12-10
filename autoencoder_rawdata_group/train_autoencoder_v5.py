@@ -486,17 +486,35 @@ def main():
 
 
     ######  grouping using all raw datasets with cosine similarity ######
+    # grouping_dict = {
+    #     'group_1': ['precipitation'],
+    #     'group_2': ['temperature', 'pressure', 'airquality'],
+    #     'group_3': ['house_price', 'POI_recreation', 'POI_school', 'seattle_street',
+    #             'total_flow_count', 'transit_stop', 'slope', 'bikelane'],
+    #     'group_4': ['POI_business', 'POI_food', 'POI_government',
+    #             'POI_publicservices', 'POI_transportation', 'transit_routes',
+    #                 'transit_signals', 'seattle911calls'],
+    #     'group_5': ['POI_hospitals', 'building_permit', 'collisions']
+    #
+    # }
+
+    ########  grouping using raw datasets with cosine similarity BY DIM #########
+
     grouping_dict = {
-        'group_1': ['precipitation'],
-        'group_2': ['temperature', 'pressure', 'airquality'],
-        'group_3': ['house_price', 'POI_recreation', 'POI_school', 'seattle_street',
+        'group_1': ['precipitation', 'temperature', 'pressure', 'airquality'],
+        'group_2': ['seattle911calls'],
+        'group_3': ['building_permit', 'collisions'],
+        'group_4': ['house_price', 'POI_recreation', 'POI_school', 'seattle_street',
                 'total_flow_count', 'transit_stop', 'slope', 'bikelane'],
-        'group_4': ['POI_business', 'POI_food', 'POI_government',
+        'group_5': ['POI_business', 'POI_food', 'POI_government',
                 'POI_publicservices', 'POI_transportation', 'transit_routes',
-                    'transit_signals', 'seattle911calls'],
-        'group_5': ['POI_hospitals', 'building_permit', 'collisions']
+                    'transit_signals'],
+        'group_6': ['POI_hospitals', ]
+
 
     }
+
+
 
 
     # ------ grouping within 2d datasets ------  #
