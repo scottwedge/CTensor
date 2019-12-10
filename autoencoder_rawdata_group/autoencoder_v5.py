@@ -502,7 +502,7 @@ class Autoencoder:
         # output should be (?, 32, 20, 1)
         with tf.name_scope("fusion_layer_b"):
             conv3 = tf.layers.conv2d(
-                      inputs=cnn2d_bn,
+                      inputs=conv2,
                       filters=dim,
                       kernel_size=[1, 1],
                       padding="same",
