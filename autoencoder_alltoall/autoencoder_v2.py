@@ -1574,7 +1574,6 @@ class Autoencoder_entry:
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
                         self.intersect_pos_set,
                      self.demo_mask_arr, self.dim,
-                     False, None,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
         train_lat_rep, test_lat_rep, encoded_list, keys_list = predictor.train_autoencoder(
