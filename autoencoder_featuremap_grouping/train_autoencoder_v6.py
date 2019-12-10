@@ -1,4 +1,6 @@
-# v2: all_to_all autoencoder, still flat structure
+# v3: datasets were grouped during encoding and decoding
+# according to a predefined grouping strategy
+# [raw datasets grouping by Pearson correlation and affinity propogation ]
 # train autoencoder for urban features
 # for each week's data, learn a
 # laten representation as [H, W, dim]
@@ -8,7 +10,7 @@
 # when used for new task prediction. The latent representation can be
 # directly concatenate with 168 hours of historical biekshare data.
 
-# last updated: October, 2019
+# last updated: Nov, 2019
 
 
 import pandas as pd
@@ -31,9 +33,8 @@ import time
 import datetime
 from datetime import timedelta
 import datetime_utils
-#import lstm
-import evaluation
-import autoencoder_v2
+
+import autoencoder_v6
 from matplotlib import pyplot as plt
 import random
 
@@ -174,10 +175,6 @@ class train:
 
     # make mask for demo data
     def demo_mask(self):
-    #     if demo_arr is None:
-    #         raw_df = demo_raw.fillna(0)
-
-    #         raw_df = demo_arr.fillna(0)
         rawdata_list = list()
         # add a dummy col
         temp_image = [[0 for i in range(HEIGHT)] for j in range(WIDTH)]
@@ -429,8 +426,14 @@ def main():
 
     # construct dictionary
     print('use dictionary to organize data')
+    # rawdata_1d_dict = {
+    #  'weather': weather_arr,
+    # 'airquality': airquality_arr,
+    # }
     rawdata_1d_dict = {
-     'weather': weather_arr,
+     'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
+    'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
+    'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
     'airquality': airquality_arr,
     }
 
@@ -459,6 +462,84 @@ def main():
         'seattle911calls': seattle911calls_arr # (45984, 32, 20)
         }
 
+    # -------------- grouping -----------------------
+    # grouping_dict = {'weather_grp': ['weather', 'airquality'],
+    #             'transportation_grp': ['POI_transportation', 'seattle_street', 'total_flow_count',
+    #                                   'transit_routes', 'transit_signals', 'transit_stop', 'bikelane',
+    #                                   'collisions', 'slope'],
+    #             'economics_grp': ['house_price', 'POI_business', 'POI_food', 'building_permit',
+    #                          'seattle911calls'],
+    #              'public_service_grp': ['POI_government', 'POI_hospitals', 'POI_publicservices',
+    #                                'POI_recreation', 'POI_school']
+    #             }
+
+    ####  grouping all datasets altogether using affinity propogation and Pearson correlation
+    # grouping_dict = {
+    #     'group_1': ['precipitation'],
+    #     'group_2': ['temperature', 'pressure', 'airquality'],
+    #     'group_3': ['house_price', 'slope'],
+    #     'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices',
+    #             'POI_transportation', 'transit_routes', 'transit_signals', 'seattle911calls'],
+    #     'group_5': ['POI_hospitals', 'building_permit', 'collisions'],
+    #     'group_6':['POI_recreation', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_stop', 'bikelane']
+    # }
+
+
+    ######  grouping using all raw datasets with cosine similarity ######
+    # grouping_dict = {
+    #     'group_1': ['precipitation'],
+    #     'group_2': ['temperature', 'pressure', 'airquality'],
+    #     'group_3': ['house_price', 'POI_recreation', 'POI_school', 'seattle_street',
+    #             'total_flow_count', 'transit_stop', 'slope', 'bikelane'],
+    #     'group_4': ['POI_business', 'POI_food', 'POI_government',
+    #             'POI_publicservices', 'POI_transportation', 'transit_routes',
+    #                 'transit_signals', 'seattle911calls'],
+    #     'group_5': ['POI_hospitals', 'building_permit', 'collisions']
+    #
+    # }
+
+    ########  grouping using raw datasets with cosine similarity BY DIM #########
+
+    # grouping_dict = {
+    #     'group_1': ['precipitation', 'temperature', 'pressure', 'airquality'],
+    #     'group_2': ['seattle911calls'],
+    #     'group_3': ['building_permit', 'collisions'],
+    #     'group_4': ['house_price', 'POI_recreation', 'POI_school', 'seattle_street',
+    #             'total_flow_count', 'transit_stop', 'slope', 'bikelane'],
+    #     'group_5': ['POI_business', 'POI_food', 'POI_government',
+    #             'POI_publicservices', 'POI_transportation', 'transit_routes',
+    #                 'transit_signals'],
+    #     'group_6': ['POI_hospitals', ]
+    #
+    #
+    # }
+
+    ####### grouping by ALL feature maps using cosine distance  #########################################
+    ########## sampled every 50 iterations ###################################
+    grouping_dict = {
+        'group_1': ['precipitation', 'temperature', 'pressure', 'airquality'],
+        'group_2': ['house_price', 'POI_government', 'POI_school',
+                    'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
+        'group_3': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation',
+                    'transit_stop', 'bikelane'],
+        'group_4': ['POI_hospitals', 'POI_recreation', 'slope'],
+        'group_5': ['building_permit'],
+        'group_6': ['collisions'],
+        'group_7': ['seattle911calls']
+
+    }
+
+
+
+
+
+    # ------ grouping within 2d datasets ------  #
+#     3 ['house_price', 'slope']
+# 0 ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices', 'POI_transportation', 'transit_routes', 'transit_signals']
+# 1 ['POI_hospitals']
+# 2 ['POI_recreation', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_stop', 'bikelane']
+#
+
 
     # train_obj.train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
     print('train_hours: ', train_obj.train_hours)
@@ -469,9 +550,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './autoencoder_v2_'+ 'dim'+ str(dim)  +'/'
+        save_path =  './autoencoder_v6_cos_'+ 'dim'+ str(dim)  +'/'
     else:
-        save_path = './autoencoder_v2_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
+        save_path = './autoencoder_v6_cos_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir
@@ -495,28 +576,28 @@ def main():
     if resume_training == False:
     # Model fusion without fairness
         print('Train Model')
-        latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
+        latent_representation = autoencoder_v6.Autoencoder_entry(train_obj,
                                 rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
-                                 demo_mask_arr,  save_path, dim,
+                                 demo_mask_arr,  save_path, dim, grouping_dict,
                             HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE
                     ).train_lat_rep
     else:
          # resume training
         print('resume trainging from : ', train_dir)
-        latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
+        latent_representation = autoencoder_v6.Autoencoder_entry(train_obj,
                             rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                          demo_mask_arr,
-                            train_dir, dim,
+                            train_dir, dim,grouping_dict,
                             HEIGHT, WIDTH, TIMESTEPS, CHANNEL,
                             BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                             False, checkpoint, True, train_dir).train_lat_rep
     print('saving latent representation to npy')
     print('shape of latent_representation: ', latent_representation.shape)
 
-    np.save(save_path +'latent_representation_train.npy', latent_representation)
+    # np.save(save_path +'latent_representation_train.npy', latent_representation)
 
 
-    txt_name = save_path + 'autoencoder_v2_' + 'dim_' + str(dim) +'_'  + timer + '.txt'
+    txt_name = save_path + 'autoencoder_v6_' + 'dim_' + str(dim) +'_'  + timer + '.txt'
     with open(txt_name, 'w') as the_file:
         the_file.write('Only account for grids that intersect with city boundary \n')
         the_file.write('place\n')

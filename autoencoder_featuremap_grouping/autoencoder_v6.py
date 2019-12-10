@@ -1,8 +1,14 @@
-# autoencoder_featuremap_Grouping
-# based on autoencoder_v2: all to all structure
-# difference lies in: 2d conv layers are added
-# after the 1d feature maps are duplicated
-# last updated: Nov, 2019
+# v3: datasets were grouped during encoding and decoding
+# according to a predefined grouping strategy
+# [raw datasets grouping by Pearson correlation and affinity propogation ]
+#
+# train autoencoder for urban features
+# for each week's data, learn a
+# laten representation as [H, W, dim]
+# from the latent representation, each datasets will
+# be reconstructed with equal weight in MAE loss
+# last updated: Dec, 2019
+
 
 
 import numpy as np
@@ -116,7 +122,7 @@ class Autoencoder:
     # input_dim = 1, seq_size = 168,
     def __init__(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
                    intersect_pos_set,
-                    demo_mask_arr, dim,
+                    demo_mask_arr, dim,grouping_dict,
                     channel, time_steps, height, width):
 
         self.time_steps = time_steps
@@ -124,6 +130,7 @@ class Autoencoder:
         self.height = height
         self.channel = channel  # 27
         self.dim  = dim # default = 1, it is the dimension of latent representation
+        self.grouping_dict = grouping_dict
         # this is usefor Batch normalization.
         # https://towardsdatascience.com/pitfalls-of-batch-norm-in-tensorflow-and-sanity-checks-for-training-networks-e86c207548c8
         self.is_training = tf.placeholder(tf.bool)
@@ -135,8 +142,6 @@ class Autoencoder:
         # rawdata_1d_dict
         for k, v in rawdata_1d_dict.items():
             dim = v.shape[-1]
-            tf_name_x = k+ '_' + 'x'
-            tf_name_y = k+ '_' + 'y'
             self.rawdata_1d_tf_x_dict[k] = tf.placeholder(tf.float32, shape=[None,168, dim])
             self.rawdata_1d_tf_y_dict[k] = tf.placeholder(tf.float32, shape=[None,168, dim])
 
@@ -146,8 +151,6 @@ class Autoencoder:
         # rawdata_1d_dict
         for k, v in rawdata_2d_dict.items():
             dim = v.shape[-1]
-            tf_name_x = k+ '_' + 'x'
-            tf_name_y = k+ '_' + 'y'
             self.rawdata_2d_tf_x_dict[k] = tf.placeholder(tf.float32, shape=[None, height, width, dim])
             self.rawdata_2d_tf_y_dict[k] = tf.placeholder(tf.float32, shape=[None, height, width, dim])
 
@@ -174,7 +177,7 @@ class Autoencoder:
 
 
 
-    def cnn_model(self, x_train_data, is_training, keep_rate=0.7, seed=None):
+    def cnn_model(self, x_train_data, is_training, output_dim = 3, keep_rate=0.7, seed=None):
         # output from 3d cnn (?, 168, 32, 20, 1)  * weight + b = (?, 32, 20, 1)
         with tf.name_scope("layer_a"):
             # conv => 16*16*16
@@ -203,7 +206,7 @@ class Autoencoder:
         # output should be (?, 32, 20, 1)
         conv5 = tf.layers.conv2d(
                   inputs=cnn3d_bn_squeeze,
-                  filters=1,
+                  filters=output_dim,
                   kernel_size=[1, 1],
                   padding="same",
                   activation=my_leaky_relu
@@ -220,7 +223,7 @@ class Autoencoder:
     input: 2d feature tensor: height * width * # of features (batchsize, 32, 20, 4)
     output: (32, 20, 1)
     '''
-    def cnn_2d_model(self, x_2d_train_data, is_training, seed=None):
+    def cnn_2d_model(self, x_2d_train_data, is_training, output_dim = 1, seed=None):
 
         with tf.name_scope("2d_layer_a"):
             '''
@@ -238,7 +241,7 @@ class Autoencoder:
             conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
 
             #  Convolution Layer with 64 filters and a kernel size of 3
-            conv2 = tf.layers.conv2d(conv1, 16, 3, padding='same',activation=None)
+            conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
             conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
 
@@ -246,7 +249,7 @@ class Autoencoder:
         with tf.name_scope("2d_layer_b"):
             conv3 = tf.layers.conv2d(
                       inputs=conv2,
-                      filters=1,
+                      filters=output_dim,
                       kernel_size=[1, 1],
                       padding="same",
                       activation=my_leaky_relu
@@ -263,7 +266,7 @@ class Autoencoder:
     output: (batchsize, 1)
     '''
     # (batchsize, 168, # of features)
-    def cnn_1d_model(self, x_1d_train_data, is_training,seed=None):
+    def cnn_1d_model(self, x_1d_train_data, is_training, output_dim =3, seed=None):
         with tf.name_scope("1d_layer_a"):
             # https://www.tensorflow.org/api_docs/python/tf/layers/conv1d
             '''
@@ -282,7 +285,7 @@ class Autoencoder:
 
             #  Convolution Layer with 64 filters and a kernel size of 3
             # output shape: None, 168,16
-            conv2 = tf.layers.conv1d(conv1, 16, 3,padding='same', activation=None)
+            conv2 = tf.layers.conv1d(conv1, 32, 3,padding='same', activation=None)
             conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
 
@@ -293,7 +296,7 @@ class Autoencoder:
         with tf.name_scope("1d_layer_b"):
             conv3 = tf.layers.conv1d(
                       inputs=conv2,
-                      filters=1,
+                      filters=output_dim,
                       kernel_size=1,
                       padding="same",
                       activation=my_leaky_relu
@@ -369,7 +372,7 @@ class Autoencoder:
         latent_fea = tf.expand_dims(latent_fea, 1)
         if timestep == 168:
             # [batchsize, 32, 20, dim]-> [batchsize, 168, 32, 20, 1]
-            deconv1 = tf.layers.conv3d_transpose(inputs=latent_fea, filters=32, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
+            deconv1 = tf.layers.conv3d_transpose(inputs=latent_fea, filters=16, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
             # [1, 32, 20, 32]
             # https://www.tensorflow.org/api_docs/python/tf/keras/backend/resize_volumes
             unpool1 = K.resize_volumes(deconv1,7,1,1,"channels_last")
@@ -469,6 +472,70 @@ class Autoencoder:
         return conv4
 
 
+    # take a list of feature maps, combine them through stacking
+    # continue to train the stacked feature maps using several conv layers.
+    # output a latent feature with specified dim
+    def fuse_and_train(self, feature_map_list, is_training, dim=3):
+        fuse_feature =tf.concat(axis=3,values=feature_map_list)
+        print('fuse_feature.shape: ', fuse_feature.shape)
+        with tf.name_scope("fusion_layer_a"):
+            # Convolution Layer with 32 filters and a kernel size of 5
+            # conv1 = tf.layers.conv2d(fuse_feature, 32, 3, padding='same',activation=my_leaky_relu)
+            # Convolution Layer with 32 filters and a kernel size of 5
+            conv1 = tf.layers.conv2d(fuse_feature, 16, 3, padding='same',activation=None)
+            # conv1 = tf.layers.conv2d(x_2d_train_data, 16, 3, padding='same',activation=None)
+            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
+
+            #  Convolution Layer with 64 filters and a kernel size of 3
+            # conv2: change from 16 to 32
+            conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+
+
+        # with tf.name_scope("fusion_batch_norm"):
+        #     cnn2d_bn = tf.layers.batch_normalization(inputs=conv1, training=is_training)
+        #     # (?, 168, 32, 20, 1)
+        #     print('cnn2d_bn shape: ',cnn2d_bn.shape)
+
+        # output should be (?, 32, 20, 1)
+        with tf.name_scope("fusion_layer_b"):
+            conv3 = tf.layers.conv2d(
+                      inputs=conv2,
+                      filters=dim,
+                      kernel_size=[1, 1],
+                      padding="same",
+                      activation=my_leaky_relu
+                      #reuse = tf.AUTO_REUSE
+                )
+
+        out = conv3
+        print('latent representation shape: ',out.shape)
+        # output size should be [batchsize, height, width, dim]
+        return out
+
+
+    # take a latent fea, decode into [batchsize, 32, 20, dim_decode]
+    def branching(self, latent_fea, dim_decode, is_training):
+        padding = 'SAME'
+        stride = [1, 1]
+        #  [None, 32, 20, dim] - > [None, 32, 20, 16]
+        conv1 = tf.layers.conv2d(latent_fea, 16, 3, padding='same',activation=None)
+        conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+        conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
+
+        conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
+        conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+        conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+        # [None, 32, 20, 16]  -> [None,32, 20 32]
+
+        conv3 = tf.layers.conv2d(conv2, dim_decode, 3, padding='same',activation=None)
+        conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+        conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
+        #[None,32, 20 32] -> [None, 32, 20, dim_2d]
+        return conv3
+
 
     '''
     inputs_: feature tensor: input shape: [None, timestep, height, width, channels]
@@ -541,30 +608,48 @@ class Autoencoder:
 
 
     def train_autoencoder(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, train_hours,
-                     demo_mask_arr, save_folder_path, dim,
+                     demo_mask_arr, save_folder_path, dim, grouping_dict,
+                     resume_training = False, checkpoint_path = None,
                        epochs=1, batch_size=32):
         starter_learning_rate = LEARNING_RATE
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
                                        5000, 0.96, staircase=True)
-        # reconstructed, encoded = self.vanilla_autoencoder(self.x)
-        med_res_3d = [] # intermediate prediction features
-        med_res_2d = []
-        med_res_1d = []
-        for k, v in self.rawdata_3d_tf_x_dict.items():
-            prediction_3d = self.cnn_model(v, self.is_training)
-            med_res_3d.append(prediction_3d)
+        # first level output [dataset name: output]
+        first_level_output = dict()
+        for k, v in self.rawdata_1d_tf_x_dict.items():
+            prediction_1d = self.cnn_1d_model(v, self.is_training)
+            prediction_1d = tf.expand_dims(prediction_1d, 1)
+            prediction_1d = tf.expand_dims(prediction_1d, 1)
+            prediction_1d_expand = tf.tile(prediction_1d, [1, HEIGHT,
+                                                    WIDTH ,1])
+            first_level_output[k] = prediction_1d_expand
 
         for k, v in self.rawdata_2d_tf_x_dict.items():
             prediction_2d = self.cnn_2d_model(v, self.is_training)
-            med_res_2d.append(prediction_2d)
+            first_level_output[k] = prediction_2d
 
-        for k, v in self.rawdata_1d_tf_x_dict.items():
-            prediction_1d = self.cnn_1d_model(v, self.is_training)
-            med_res_1d.append(prediction_1d)
+        for k, v in self.rawdata_3d_tf_x_dict.items():
+            prediction_3d = self.cnn_model(v, self.is_training)
+            first_level_output[k] = prediction_3d
 
+
+
+        # ------------ grouping in encoder ------------- #
+        # [group name: feature maps]
+        second_level_output = dict()
+        for grp, data_list in grouping_dict.items():
+            # group a list of dataset in a group
+            temp_list = [] # a list of feature maps belonging to the same group from first level training
+            for ds in data_list:
+                temp_list.append(first_level_output[ds])
+            group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, dim=3) # fuse and train
+            second_level_output[grp] = group_fusion_featuremap
+
+
+        # ------------------------------------------------#
         # dim: latent fea dimension
-        latent_fea = self.model_fusion(med_res_3d, med_res_2d, med_res_1d, dim, self.is_training)
-        print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 3)
+        latent_fea = self.fuse_and_train(list(second_level_output.values()),  self.is_training, dim)
+        print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 5)
         # recontruction
         print('recontruction')
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr, 0)  # [1, 2]
@@ -574,45 +659,60 @@ class Autoencoder:
         demo_mask_arr_expanded = tf.tile(demo_mask_arr_expanded, [tf.shape(latent_fea)[0],1,1,1])
         weight = tf.cast(tf.greater(demo_mask_arr_expanded, 0), tf.float32)
 
+        # ------------------ branching -----------------------------#
+        # branch one latent feature into [# of groups]'s latent representations
+        first_level_decode = dict()  # [group name: latent rep]
+        for grp in list(grouping_dict.keys()):
+            first_level_decode[grp] = self.branching(latent_fea, dim, self.is_training)
+
+        # reconstruct all datasets
+        # assumption: all datasets with equal weights
         total_loss = 0
     #    loss_dict = []  # {dataset name: loss}
         loss_dict = {}
-        for k, v in self.rawdata_1d_tf_y_dict.items():
-            dim_1d = rawdata_1d_dict[k].shape[-1]
-
-            reconstruction_1d = self.reconstruct_1d(latent_fea, dim_1d, self.is_training)
-    #         print('reconstruction_1d.shape: ', reconstruction_1d.shape)
-    #         print('v.shape: ', v.shape)
-            temp_loss = tf.losses.absolute_difference(reconstruction_1d, v)
-            total_loss += temp_loss
-    #         loss_dict.append(temp_loss)
-            loss_dict[k] = temp_loss
-
-
-        for k, v in self.rawdata_2d_tf_y_dict.items():
-            dim_2d = rawdata_2d_dict[k].shape[-1]
-            reconstruction_2d = self.reconstruct_2d(latent_fea, dim_2d, self.is_training)
-            temp_loss = tf.losses.absolute_difference(reconstruction_2d, v, weight)
-            total_loss += temp_loss
-            loss_dict[k] = temp_loss
-
-
+        rmse_dict = {}
+        # decode by groups
+        keys_1d = rawdata_1d_dict.keys()
+        keys_2d = rawdata_2d_dict.keys()
+        keys_3d = rawdata_3d_dict.keys()
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 1)
-            # (?, 1, 32, 20, 1) -> (?, 7, 32, 20, 1)
 
-        # reconstruct_3d(latent_fea, timestep)
-        for k, v in self.rawdata_3d_tf_y_dict.items():
-            timestep_3d = v.shape[1]
-    #         print('rawdata_3d_tf_y_dict  v.shape: ', v.shape)
-    #         print('timestep_3d: ', timestep_3d)
-            reconstruction_3d = self.reconstruct_3d(latent_fea, timestep_3d)
-    #         print('reconstruction_3d.shape: ', reconstruction_3d.shape) # (?, 7, 32, 20, 1)
-            # 3d weight: (?, 32, 20, 1) -> (?, 7, 32, 20, 1)
-            demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
-            weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
-            temp_loss = tf.losses.absolute_difference(reconstruction_3d, v, weight_3d)
-            total_loss += temp_loss
-            loss_dict[k] = temp_loss
+        for grp, data_list in grouping_dict.items():
+            for ds in data_list:
+                # reconstruct each
+                if ds in keys_1d:
+                    dim_1d = rawdata_1d_dict[ds].shape[-1]
+                    reconstruction_1d = self.reconstruct_1d(first_level_decode[grp], dim_1d, self.is_training)
+                    temp_loss = tf.losses.absolute_difference(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds])
+                    total_loss += temp_loss
+                    loss_dict[ds] = temp_loss
+
+                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
+                    rmse_dict[ds] = temp_rmse
+
+                if ds in keys_2d:
+                    dim_2d = rawdata_2d_dict[ds].shape[-1]
+                    reconstruction_2d = self.reconstruct_2d(first_level_decode[grp], dim_2d, self.is_training)
+                    temp_loss = tf.losses.absolute_difference(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds])
+                    total_loss += temp_loss
+                    loss_dict[ds] = temp_loss
+                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds]))
+                    rmse_dict[ds] = temp_rmse
+
+                if ds in keys_3d:
+                    timestep_3d = self.rawdata_3d_tf_y_dict[ds].shape[1]
+                    reconstruction_3d = self.reconstruct_3d(first_level_decode[grp], timestep_3d)
+            #         print('reconstruction_3d.shape: ', reconstruction_3d.shape) # (?, 7, 32, 20, 1)
+                    # 3d weight: (?, 32, 20, 1) -> (?, 7, 32, 20, 1)
+                    demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
+                    weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
+                    temp_loss = tf.losses.absolute_difference(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds], weight_3d)
+                    total_loss += temp_loss
+                    loss_dict[ds] = temp_loss
+                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds]))
+                    rmse_dict[ds] = temp_rmse
+
+
         print('total_loss: ', total_loss)
         cost = total_loss
 
@@ -630,6 +730,24 @@ class Autoencoder:
 
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
+            # ---- if resume training -----
+            if resume_training:
+                if checkpoint_path is not None:
+                    saver.restore(sess, checkpoint_path)
+                else:
+                    saver.restore(sess, tf.train.latest_checkpoint(save_folder_path))
+                # check global step
+                print("global step: ", sess.run([self.global_step]))
+                print("Model restore finished, current globle step: %d" % self.global_step.eval())
+
+                # get new epoch num
+                print("int(train_hours / batch_size +1): ", int(train_hours / batch_size +1))
+                start_epoch_num = tf.div(self.global_step, int(train_hours / batch_size +1))
+                #self.global_step/ (len(x_train_data) / batch_size +1) -1
+                print("start_epoch_num: ", start_epoch_num.eval())
+                start_epoch = start_epoch_num.eval()
+            else:
+                start_epoch = 0
 
             # temporary
             # train_hours = 200
@@ -639,12 +757,15 @@ class Autoencoder:
             else:
                 iterations = int(train_hours/batch_size) + 1
 
-            for epoch in range(epochs):
+            for epoch in range(start_epoch, epochs):
                 print('Epoch', epoch, 'started', end='')
                 start_time = datetime.datetime.now()
                 epoch_loss = 0
                 epoch_subloss = {}  # ave loss for each dataset
                 epoch_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+
+                epoch_subrmse = {}  # ave loss for each dataset
+                epoch_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
                 final_output = list()
 
@@ -683,7 +804,7 @@ class Autoencoder:
                         feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
                     # is_training: True
                     feed_dict_all[self.is_training] = True
-                    batch_cost, batch_loss_dict, _ = sess.run([cost,loss_dict, optimizer], feed_dict=feed_dict_all)
+                    batch_cost, batch_loss_dict, batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     batch_output = sess.run([latent_fea], feed_dict= feed_dict_all)
@@ -692,6 +813,9 @@ class Autoencoder:
                     epoch_loss += batch_cost
                     for k, v in epoch_subloss.items():
                         epoch_subloss[k] += batch_loss_dict[k]
+
+                    for k, v in epoch_subrmse.items():
+                        epoch_subrmse[k] += batch_rmse_dict[k]
 
 
                     if itr%10 == 0:
@@ -714,8 +838,12 @@ class Autoencoder:
                     epoch_subloss[k] = v/iterations
                     print('epoch: ', epoch, 'k: ', k, 'mean train loss: ', epoch_subloss[k])
 
+                for k, v in epoch_subrmse.items():
+                    epoch_subrmse[k] = v/iterations
+                    print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
 
-                save_path = saver.save(sess, save_folder_path +'autoencoder_v2_' +str(epoch)+'.ckpt', global_step=self.global_step)
+
+                save_path = saver.save(sess, save_folder_path +'autoencoder_v5_' +str(epoch)+'.ckpt', global_step=self.global_step)
                 # save_path = saver.save(sess, './autoencoder.ckpt')
                 print('Model saved to {}'.format(save_path))
 
@@ -724,7 +852,7 @@ class Autoencoder:
                 print('testing per epoch, for epoch: ', epoch)
                 # train_hours  = 41616  # train_start_time = '2014-02-01',train_end_time = '2018-10-31'
                 test_start = train_hours
-                test_end = rawdata_1d_dict['weather'].shape[0] -168  # 45984 - 168
+                test_end = rawdata_1d_dict['airquality'].shape[0] -168  # 45984 - 168
                 test_len = test_end - test_start  # 4200
                 print('test_start: ', test_start) # 41616
                 print('test_end: ', test_end)
@@ -735,6 +863,9 @@ class Autoencoder:
                 test_final_output = list()
                 test_subloss = {}  # ave loss for each dataset
                 test_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+
+                test_subrmse = {}  # ave loss for each dataset
+                test_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
 
                 if test_len%batch_size ==0:
@@ -776,7 +907,7 @@ class Autoencoder:
                     # is_training: True
                     test_feed_dict_all[self.is_training] = True
 
-                    test_batch_cost, test_batch_loss_dict, _ = sess.run([cost,loss_dict, optimizer], feed_dict= test_feed_dict_all)
+                    test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict,  _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict= test_feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     test_batch_output = sess.run([latent_fea], feed_dict= test_feed_dict_all)
@@ -784,6 +915,9 @@ class Autoencoder:
 
                     for k, v in test_subloss.items():
                         test_subloss[k] += test_batch_loss_dict[k]
+
+                    for k, v in test_subrmse.items():
+                        test_subrmse[k] += test_batch_rmse_dict[k]
 
 
                     if itr%10 == 0:
@@ -814,6 +948,11 @@ class Autoencoder:
                     print('epoch: ', epoch, 'k: ', k, 'mean test loss: ', test_subloss[k])
                     print('test loss for k :', k, v)
 
+                for k, v in test_subrmse.items():
+                    test_subrmse[k] = v/itrs
+                    print('epoch: ', epoch, 'k: ', k, 'mean test rmse: ', test_subrmse[k])
+                    print('test rmse for k :', k, v)
+
 
                 # -----------------------------------------------------------------------
 
@@ -842,8 +981,25 @@ class Autoencoder:
                     test_sub_res_df.to_csv(f, header=f.tell()==0)
 
 
+                # --- rmse ------
+                train_sub_rmse_df = pd.DataFrame([list(epoch_subrmse.values())],
+                    columns= list(epoch_subrmse.keys()))
+                train_sub_rmse_csv_path = save_folder_path + 'autoencoder_train_sub_rmse' +'.csv'
+                with open(train_sub_rmse_csv_path, 'a') as f:
+                    train_sub_rmse_df.to_csv(f, header=f.tell()==0)
+
+
+
+                test_sub_rmse_df = pd.DataFrame([list(test_subrmse.values())],
+                                columns= list(test_subrmse.keys()))
+                test_sub_rmse_csv_path = save_folder_path + 'autoencoder_test_sub_rmse' +'.csv'
+                with open(test_sub_rmse_csv_path, 'a') as f:
+                    test_sub_rmse_df.to_csv(f, header=f.tell()==0)
+
+
+
                 # save results to txt
-                txt_name = save_folder_path + 'AE_df_' +  '.txt'
+                txt_name = save_folder_path + 'AE_v5_df' +  '.txt'
                 with open(txt_name, 'w') as the_file:
                     #the_file.write('Only account for grids that intersect with city boundary \n')
                     the_file.write('epoch\n')
@@ -898,82 +1054,103 @@ class Autoencoder:
 
 
 
-
+    # deprecated
     def train_autoencoder_from_checkpoint(self, rawdata_1d_dict, rawdata_2d_dict,
                     rawdata_3d_dict, train_hours,
-                     demo_mask_arr, save_folder_path, dim, checkpoint_path,
+                     demo_mask_arr, save_folder_path, dim, checkpoint_path, grouping_dict,
                       keep_rate=0.7, epochs=10, batch_size=64):
         starter_learning_rate = LEARNING_RATE
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
                                        5000, 0.96, staircase=True)
 
-
-        med_res_3d = [] # intermediate prediction features
-        med_res_2d = []
-        med_res_1d = []
+        # first level output [dataset name: output]
+        first_level_output = dict()
         for k, v in self.rawdata_3d_tf_x_dict.items():
             prediction_3d = self.cnn_model(v, self.is_training)
-            med_res_3d.append(prediction_3d)
+            first_level_output[k] = prediction_3d
 
         for k, v in self.rawdata_2d_tf_x_dict.items():
             prediction_2d = self.cnn_2d_model(v, self.is_training)
-            med_res_2d.append(prediction_2d)
+            first_level_output[k] = prediction_2d
 
         for k, v in self.rawdata_1d_tf_x_dict.items():
             prediction_1d = self.cnn_1d_model(v, self.is_training)
-            med_res_1d.append(prediction_1d)
+            prediction_1d = tf.expand_dims(prediction_1d, 1)
+            prediction_1d = tf.expand_dims(prediction_1d, 1)
+            prediction_1d_expand = tf.tile(prediction_1d, [1, HEIGHT,
+                                                    WIDTH ,1])
+            first_level_output[k] = prediction_1d_expand
 
+    # ------------ grouping in encoder ------------- #
+        # [group name: feature maps]
+        second_level_output = dict()
+        for grp, data_list in grouping_dict.items():
+            # group a list of dataset in a group
+            temp_list = [] # a list of feature maps belonging to the same group from first level training
+            for ds in data_list:
+                temp_list.append(first_level_output[ds])
+            group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, dim=1) # fuse and train
+            second_level_output[grp] = group_fusion_featuremap
+
+
+        # ------------------------------------------------#
         # dim: latent fea dimension
-        latent_fea = self.model_fusion(med_res_3d, med_res_2d, med_res_1d, dim, self.is_training)
+        latent_fea = self.fuse_and_train(list(second_level_output.values()),  self.is_training, dim)
         print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 3)
-        # recontruction
-        print('recontruction')
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr, 0)  # [1, 2]
                 # [1, 32, 20, 1]  -> [1, 1, 32, 20, 1]
                 # [1, 32, 20, 1] -> [batchsize, 32, 20, 1]
                 # batchsize = tf.shape(prediction)[0]
         demo_mask_arr_expanded = tf.tile(demo_mask_arr_expanded, [tf.shape(latent_fea)[0],1,1,1])
         weight = tf.cast(tf.greater(demo_mask_arr_expanded, 0), tf.float32)
+        # ------------------ branching -----------------------------#
+        # branch one latent feature into [# of groups]'s latent representations
+        first_level_decode = dict()  # [group name: latent rep]
+        for grp in list(grouping_dict.keys()):
+            first_level_decode[grp] = self.branching(latent_fea, dim, self.is_training)
+
 
         total_loss = 0
     #    loss_dict = []  # {dataset name: loss}
         loss_dict = {}
-        for k, v in self.rawdata_1d_tf_y_dict.items():
-            dim_1d = rawdata_1d_dict[k].shape[-1]
-
-            reconstruction_1d = self.reconstruct_1d(latent_fea, dim_1d, self.is_training)
-    #         print('reconstruction_1d.shape: ', reconstruction_1d.shape)
-    #         print('v.shape: ', v.shape)
-            temp_loss = tf.losses.absolute_difference(reconstruction_1d, v)
-            total_loss += temp_loss
-    #         loss_dict.append(temp_loss)
-            loss_dict[k] = temp_loss
-
-
-        for k, v in self.rawdata_2d_tf_y_dict.items():
-            dim_2d = rawdata_2d_dict[k].shape[-1]
-            reconstruction_2d = self.reconstruct_2d(latent_fea, dim_2d, self.is_training)
-            temp_loss = tf.losses.absolute_difference(reconstruction_2d, v, weight)
-            total_loss += temp_loss
-            loss_dict[k] = temp_loss
-
-
+        rmse_dict = {}
+        keys_1d = rawdata_1d_dict.keys()
+        keys_2d = rawdata_2d_dict.keys()
+        keys_3d = rawdata_3d_dict.keys()
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 1)
-            # (?, 1, 32, 20, 1) -> (?, 7, 32, 20, 1)
 
-        # reconstruct_3d(latent_fea, timestep)
-        for k, v in self.rawdata_3d_tf_y_dict.items():
-            timestep_3d = v.shape[1]
-    #         print('rawdata_3d_tf_y_dict  v.shape: ', v.shape)
-    #         print('timestep_3d: ', timestep_3d)
-            reconstruction_3d = self.reconstruct_3d(latent_fea, timestep_3d)
-    #         print('reconstruction_3d.shape: ', reconstruction_3d.shape) # (?, 7, 32, 20, 1)
-            # 3d weight: (?, 32, 20, 1) -> (?, 7, 32, 20, 1)
-            demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
-            weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
-            temp_loss = tf.losses.absolute_difference(reconstruction_3d, v, weight_3d)
-            total_loss += temp_loss
-            loss_dict[k] = temp_loss
+        for grp, data_list in grouping_dict.items():
+            for ds in data_list:
+                # reconstruct each
+                if ds in keys_1d:
+                    dim_1d = rawdata_1d_dict[ds].shape[-1]
+                    reconstruction_1d = self.reconstruct_1d(first_level_decode[grp], dim_1d, self.is_training)
+                    temp_loss = tf.losses.absolute_difference(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds])
+                    total_loss += temp_loss
+                    loss_dict[ds] = temp_loss
+                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
+                    rmse_dict[ds] = temp_rmse
+                if ds in keys_2d:
+                    dim_2d = rawdata_2d_dict[ds].shape[-1]
+                    reconstruction_2d = self.reconstruct_2d(first_level_decode[grp], dim_2d, self.is_training)
+                    temp_loss = tf.losses.absolute_difference(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds])
+                    total_loss += temp_loss
+                    loss_dict[ds] = temp_loss
+                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds]))
+                    rmse_dict[ds] = temp_rmse
+                if ds in keys_3d:
+                    timestep_3d = self.rawdata_3d_tf_y_dict[ds].shape[1]
+                    reconstruction_3d = self.reconstruct_3d(first_level_decode[grp], timestep_3d)
+            #         print('reconstruction_3d.shape: ', reconstruction_3d.shape) # (?, 7, 32, 20, 1)
+                    # 3d weight: (?, 32, 20, 1) -> (?, 7, 32, 20, 1)
+                    demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
+                    weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
+                    temp_loss = tf.losses.absolute_difference(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds], weight_3d)
+                    total_loss += temp_loss
+                    loss_dict[ds] = temp_loss
+                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds]))
+                    rmse_dict[ds] = temp_rmse
+
         print('total_loss: ', total_loss)
         cost = total_loss
 
@@ -1022,6 +1199,9 @@ class Autoencoder:
                 epoch_subloss = {}  # ave loss for each dataset
                 epoch_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
+                epoch_subrmse = {}  # ave loss for each dataset
+                epoch_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+
                 final_output = list()
 
                 # mini batch
@@ -1059,7 +1239,7 @@ class Autoencoder:
                         feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
                     # is_training: True
                     feed_dict_all[self.is_training] = True
-                    batch_cost, batch_loss_dict, _ = sess.run([cost,loss_dict, optimizer], feed_dict=feed_dict_all)
+                    batch_cost, batch_loss_dict, batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     batch_output = sess.run([latent_fea], feed_dict= feed_dict_all)
@@ -1068,6 +1248,9 @@ class Autoencoder:
                     epoch_loss += batch_cost
                     for k, v in epoch_subloss.items():
                         epoch_subloss[k] += batch_loss_dict[k]
+
+                    for k, v in epoch_subrmse.items():
+                        epoch_subrmse[k] += batch_rmse_dict[k]
 
 
                     if itr%10 == 0:
@@ -1090,8 +1273,11 @@ class Autoencoder:
                     epoch_subloss[k] = v/iterations
                     print('epoch: ', epoch, 'k: ', k, 'mean train loss: ', epoch_subloss[k])
 
+                for k, v in epoch_subrmse.items():
+                    epoch_subrmse[k] = v/iterations
+                    print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
 
-                save_path = saver.save(sess, save_folder_path +'autoencoder_v2_' +str(epoch)+'.ckpt', global_step=self.global_step)
+                save_path = saver.save(sess, save_folder_path +'autoencoder_v5_' +str(epoch)+'.ckpt', global_step=self.global_step)
                 # save_path = saver.save(sess, './autoencoder.ckpt')
                 print('Model saved to {}'.format(save_path))
 
@@ -1100,7 +1286,7 @@ class Autoencoder:
                 print('testing per epoch, for epoch: ', epoch)
                 # train_hours  = 41616  # train_start_time = '2014-02-01',train_end_time = '2018-10-31'
                 test_start = train_hours
-                test_end = rawdata_1d_dict['weather'].shape[0] -168  # 45984 - 168
+                test_end = rawdata_1d_dict['airquality'].shape[0] -168  # 45984 - 168
                 test_len = test_end - test_start  # 4200
                 print('test_start: ', test_start) # 41616
                 print('test_end: ', test_end)
@@ -1111,7 +1297,8 @@ class Autoencoder:
                 test_final_output = list()
                 test_subloss = {}  # ave loss for each dataset
                 test_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
-
+                test_subrmse = {}  # ave loss for each dataset
+                test_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
                 if test_len%batch_size ==0:
                     itrs = int(test_len/batch_size)
@@ -1152,7 +1339,7 @@ class Autoencoder:
                     # is_training: True
                     test_feed_dict_all[self.is_training] = True
 
-                    test_batch_cost, test_batch_loss_dict, _ = sess.run([cost,loss_dict, optimizer], feed_dict= test_feed_dict_all)
+                    test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict= test_feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     test_batch_output = sess.run([latent_fea], feed_dict= test_feed_dict_all)
@@ -1160,6 +1347,9 @@ class Autoencoder:
 
                     for k, v in test_subloss.items():
                         test_subloss[k] += test_batch_loss_dict[k]
+
+                    for k, v in test_subrmse.items():
+                        test_subrmse[k] += test_batch_rmse_dict[k]
 
 
                     if itr%10 == 0:
@@ -1190,6 +1380,11 @@ class Autoencoder:
                     print('epoch: ', epoch, 'k: ', k, 'mean test loss: ', test_subloss[k])
                     print('test loss for k :', k, v)
 
+                for k, v in test_subrmse.items():
+                    test_subrmse[k] = v/itrs
+                    print('epoch: ', epoch, 'k: ', k, 'mean test rmse: ', test_subrmse[k])
+                    print('test rmse for k :', k, v)
+
 
                 # -----------------------------------------------------------------------
 
@@ -1216,6 +1411,23 @@ class Autoencoder:
                 test_sub_res_csv_path = save_folder_path + 'autoencoder_test_sub_res' +'.csv'
                 with open(test_sub_res_csv_path, 'a') as f:
                     test_sub_res_df.to_csv(f, header=f.tell()==0)
+
+
+                # --- rmse ------
+                train_sub_rmse_df = pd.DataFrame([list(epoch_subrmse.values())],
+                    columns= list(epoch_subrmse.keys()))
+                train_sub_rmse_csv_path = save_folder_path + 'autoencoder_train_sub_rmse' +'.csv'
+                with open(train_sub_rmse_csv_path, 'a') as f:
+                    train_sub_rmse_df.to_csv(f, header=f.tell()==0)
+
+
+
+                test_sub_rmse_df = pd.DataFrame([list(test_subrmse.values())],
+                                columns= list(test_subrmse.keys()))
+                test_sub_rmse_csv_path = save_folder_path + 'autoencoder_test_sub_rmse' +'.csv'
+                with open(test_sub_rmse_csv_path, 'a') as f:
+                    test_sub_rmse_df.to_csv(f, header=f.tell()==0)
+
 
 
                 # save results to txt
@@ -1364,7 +1576,7 @@ fixed lenght time window: 168 hours
 class Autoencoder_entry:
     def __init__(self, train_obj,
               rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
-                    demo_mask_arr, save_path, dim,
+                    demo_mask_arr, save_path, dim, grouping_dict,
                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                      is_inference = False, checkpoint_path = None,
                      resume_training = False, train_dir = None
@@ -1380,6 +1592,7 @@ class Autoencoder_entry:
         self.demo_mask_arr = demo_mask_arr
         self.save_path = save_path
         self.dim = dim
+        self.grouping_dict = grouping_dict
 
         globals()['HEIGHT']  = HEIGHT
         globals()['WIDTH']  = WIDTH
@@ -1435,13 +1648,13 @@ class Autoencoder_entry:
         # self, channel, time_steps, height, width
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
                         self.intersect_pos_set,
-                     self.demo_mask_arr, self.dim,
+                     self.demo_mask_arr, self.dim, self.grouping_dict,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
         # (9337, 1, 32, 20, 1)
         train_lat_rep, test_lat_rep = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
-                         self.demo_mask_arr, self.save_path, self.dim,
+                         self.demo_mask_arr, self.save_path, self.dim, self.grouping_dict,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
         return train_lat_rep, test_lat_rep
@@ -1455,14 +1668,20 @@ class Autoencoder_entry:
         # self, channel, time_steps, height, width
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
                         self.intersect_pos_set,
-                     self.demo_mask_arr, self.dim,
+                     self.demo_mask_arr, self.dim, self.grouping_dict,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
-
-        train_lat_rep, test_lat_rep = predictor.train_autoencoder_from_checkpoint(
+        train_lat_rep, test_lat_rep = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
-                         self.demo_mask_arr, self.save_path, self.dim, self.checkpoint_path,
+                         self.demo_mask_arr, self.save_path, self.dim, self.grouping_dict,
+                         True, self.checkpoint_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
+
+
+        # train_lat_rep, test_lat_rep = predictor.train_autoencoder_from_checkpoint(
+        #                 self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
+        #                  self.demo_mask_arr, self.save_path, self.dim, self.checkpoint_path, self.grouping_dict,
+        #              epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
         return train_lat_rep, test_lat_rep
 
