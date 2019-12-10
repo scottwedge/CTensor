@@ -177,7 +177,7 @@ class Autoencoder:
 
 
 
-    def cnn_model(self, x_train_data, is_training, keep_rate=0.7, seed=None):
+    def cnn_model(self, x_train_data, is_training, output_dim = 3, keep_rate=0.7, seed=None):
         # output from 3d cnn (?, 168, 32, 20, 1)  * weight + b = (?, 32, 20, 1)
         with tf.name_scope("layer_a"):
             # conv => 16*16*16
@@ -206,7 +206,7 @@ class Autoencoder:
         # output should be (?, 32, 20, 1)
         conv5 = tf.layers.conv2d(
                   inputs=cnn3d_bn_squeeze,
-                  filters=1,
+                  filters=output_dim,
                   kernel_size=[1, 1],
                   padding="same",
                   activation=my_leaky_relu
@@ -223,7 +223,7 @@ class Autoencoder:
     input: 2d feature tensor: height * width * # of features (batchsize, 32, 20, 4)
     output: (32, 20, 1)
     '''
-    def cnn_2d_model(self, x_2d_train_data, is_training, seed=None):
+    def cnn_2d_model(self, x_2d_train_data, is_training, output_dim = 1, seed=None):
 
         with tf.name_scope("2d_layer_a"):
             '''
@@ -241,7 +241,7 @@ class Autoencoder:
             conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
 
             #  Convolution Layer with 64 filters and a kernel size of 3
-            conv2 = tf.layers.conv2d(conv1, 16, 3, padding='same',activation=None)
+            conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
             conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
 
@@ -249,7 +249,7 @@ class Autoencoder:
         with tf.name_scope("2d_layer_b"):
             conv3 = tf.layers.conv2d(
                       inputs=conv2,
-                      filters=1,
+                      filters=output_dim,
                       kernel_size=[1, 1],
                       padding="same",
                       activation=my_leaky_relu
@@ -266,7 +266,7 @@ class Autoencoder:
     output: (batchsize, 1)
     '''
     # (batchsize, 168, # of features)
-    def cnn_1d_model(self, x_1d_train_data, is_training,seed=None):
+    def cnn_1d_model(self, x_1d_train_data, is_training, output_dim =3, seed=None):
         with tf.name_scope("1d_layer_a"):
             # https://www.tensorflow.org/api_docs/python/tf/layers/conv1d
             '''
@@ -285,7 +285,7 @@ class Autoencoder:
 
             #  Convolution Layer with 64 filters and a kernel size of 3
             # output shape: None, 168,16
-            conv2 = tf.layers.conv1d(conv1, 16, 3,padding='same', activation=None)
+            conv2 = tf.layers.conv1d(conv1, 32, 3,padding='same', activation=None)
             conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
 
@@ -296,7 +296,7 @@ class Autoencoder:
         with tf.name_scope("1d_layer_b"):
             conv3 = tf.layers.conv1d(
                       inputs=conv2,
-                      filters=1,
+                      filters=output_dim,
                       kernel_size=1,
                       padding="same",
                       activation=my_leaky_relu
@@ -372,7 +372,7 @@ class Autoencoder:
         latent_fea = tf.expand_dims(latent_fea, 1)
         if timestep == 168:
             # [batchsize, 32, 20, dim]-> [batchsize, 168, 32, 20, 1]
-            deconv1 = tf.layers.conv3d_transpose(inputs=latent_fea, filters=32, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
+            deconv1 = tf.layers.conv3d_transpose(inputs=latent_fea, filters=16, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
             # [1, 32, 20, 32]
             # https://www.tensorflow.org/api_docs/python/tf/keras/backend/resize_volumes
             unpool1 = K.resize_volumes(deconv1,7,1,1,"channels_last")
@@ -475,23 +475,29 @@ class Autoencoder:
     # take a list of feature maps, combine them through stacking
     # continue to train the stacked feature maps using several conv layers.
     # output a latent feature with specified dim
-    def fuse_and_train(self, feature_map_list, is_training, dim=1):
+    def fuse_and_train(self, feature_map_list, is_training, dim=3):
         fuse_feature =tf.concat(axis=3,values=feature_map_list)
         print('fuse_feature.shape: ', fuse_feature.shape)
         with tf.name_scope("fusion_layer_a"):
             # Convolution Layer with 32 filters and a kernel size of 5
-            conv1 = tf.layers.conv2d(fuse_feature, 32, 3, padding='same',activation=my_leaky_relu)
-            #  Convolution Layer with 64 filters and a kernel size of 3
-    #         conv2 = tf.layers.conv2d(conv1, 16, 3, padding='same',activation=my_leaky_relu)
-            # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
-            # Average Pooling
-            # https://www.tensorflow.org/api_docs/python/tf/layers/average_pooling2d
-    #         conv2 = tf.layers.max_pooling2d(conv2, 2, 2)
+            # conv1 = tf.layers.conv2d(fuse_feature, 32, 3, padding='same',activation=my_leaky_relu)
+            # Convolution Layer with 32 filters and a kernel size of 5
+            conv1 = tf.layers.conv2d(fuse_feature, 16, 3, padding='same',activation=None)
+            # conv1 = tf.layers.conv2d(x_2d_train_data, 16, 3, padding='same',activation=None)
+            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
 
-        with tf.name_scope("fusion_batch_norm"):
-            cnn2d_bn = tf.layers.batch_normalization(inputs=conv1, training=is_training)
-            # (?, 168, 32, 20, 1)
-            print('cnn2d_bn shape: ',cnn2d_bn.shape)
+            #  Convolution Layer with 64 filters and a kernel size of 3
+            # conv2: change from 16 to 32
+            conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+
+
+        # with tf.name_scope("fusion_batch_norm"):
+        #     cnn2d_bn = tf.layers.batch_normalization(inputs=conv1, training=is_training)
+        #     # (?, 168, 32, 20, 1)
+        #     print('cnn2d_bn shape: ',cnn2d_bn.shape)
 
         # output should be (?, 32, 20, 1)
         with tf.name_scope("fusion_layer_b"):
@@ -519,7 +525,7 @@ class Autoencoder:
         conv1 = tf.layers.batch_normalization(conv1, training=is_training)
         conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
 
-        conv2 = tf.layers.conv2d(conv1, 16, 3, padding='same',activation=None)
+        conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
         conv2 = tf.layers.batch_normalization(conv2, training=is_training)
         conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
         # [None, 32, 20, 16]  -> [None,32, 20 32]
@@ -602,21 +608,14 @@ class Autoencoder:
 
 
     def train_autoencoder(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, train_hours,
-                     demo_mask_arr, save_folder_path, dim,grouping_dict,
+                     demo_mask_arr, save_folder_path, dim, grouping_dict,
+                     resume_training = False, checkpoint_path = None,
                        epochs=1, batch_size=32):
         starter_learning_rate = LEARNING_RATE
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
                                        5000, 0.96, staircase=True)
         # first level output [dataset name: output]
         first_level_output = dict()
-        for k, v in self.rawdata_3d_tf_x_dict.items():
-            prediction_3d = self.cnn_model(v, self.is_training)
-            first_level_output[k] = prediction_3d
-
-        for k, v in self.rawdata_2d_tf_x_dict.items():
-            prediction_2d = self.cnn_2d_model(v, self.is_training)
-            first_level_output[k] = prediction_2d
-
         for k, v in self.rawdata_1d_tf_x_dict.items():
             prediction_1d = self.cnn_1d_model(v, self.is_training)
             prediction_1d = tf.expand_dims(prediction_1d, 1)
@@ -624,6 +623,15 @@ class Autoencoder:
             prediction_1d_expand = tf.tile(prediction_1d, [1, HEIGHT,
                                                     WIDTH ,1])
             first_level_output[k] = prediction_1d_expand
+
+        for k, v in self.rawdata_2d_tf_x_dict.items():
+            prediction_2d = self.cnn_2d_model(v, self.is_training)
+            first_level_output[k] = prediction_2d
+
+        for k, v in self.rawdata_3d_tf_x_dict.items():
+            prediction_3d = self.cnn_model(v, self.is_training)
+            first_level_output[k] = prediction_3d
+
 
 
         # ------------ grouping in encoder ------------- #
@@ -634,14 +642,14 @@ class Autoencoder:
             temp_list = [] # a list of feature maps belonging to the same group from first level training
             for ds in data_list:
                 temp_list.append(first_level_output[ds])
-            group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, dim=1) # fuse and train
+            group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, dim=3) # fuse and train
             second_level_output[grp] = group_fusion_featuremap
 
 
         # ------------------------------------------------#
         # dim: latent fea dimension
         latent_fea = self.fuse_and_train(list(second_level_output.values()),  self.is_training, dim)
-        print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 3)
+        print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 5)
         # recontruction
         print('recontruction')
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr, 0)  # [1, 2]
@@ -722,6 +730,24 @@ class Autoencoder:
 
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
+            # ---- if resume training -----
+            if resume_training:
+                if checkpoint_path is not None:
+                    saver.restore(sess, checkpoint_path)
+                else:
+                    saver.restore(sess, tf.train.latest_checkpoint(save_folder_path))
+                # check global step
+                print("global step: ", sess.run([self.global_step]))
+                print("Model restore finished, current globle step: %d" % self.global_step.eval())
+
+                # get new epoch num
+                print("int(train_hours / batch_size +1): ", int(train_hours / batch_size +1))
+                start_epoch_num = tf.div(self.global_step, int(train_hours / batch_size +1))
+                #self.global_step/ (len(x_train_data) / batch_size +1) -1
+                print("start_epoch_num: ", start_epoch_num.eval())
+                start_epoch = start_epoch_num.eval()
+            else:
+                start_epoch = 0
 
             # temporary
             # train_hours = 200
@@ -731,7 +757,7 @@ class Autoencoder:
             else:
                 iterations = int(train_hours/batch_size) + 1
 
-            for epoch in range(epochs):
+            for epoch in range(start_epoch, epochs):
                 print('Epoch', epoch, 'started', end='')
                 start_time = datetime.datetime.now()
                 epoch_loss = 0
@@ -1028,7 +1054,7 @@ class Autoencoder:
 
 
 
-
+    # deprecated
     def train_autoencoder_from_checkpoint(self, rawdata_1d_dict, rawdata_2d_dict,
                     rawdata_3d_dict, train_hours,
                      demo_mask_arr, save_folder_path, dim, checkpoint_path, grouping_dict,
@@ -1645,11 +1671,17 @@ class Autoencoder_entry:
                      self.demo_mask_arr, self.dim, self.grouping_dict,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
-
-        train_lat_rep, test_lat_rep = predictor.train_autoencoder_from_checkpoint(
+        train_lat_rep, test_lat_rep = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
-                         self.demo_mask_arr, self.save_path, self.dim, self.checkpoint_path, self.grouping_dict,
+                         self.demo_mask_arr, self.save_path, self.dim, self.grouping_dict,
+                         True, self.checkpoint_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
+
+
+        # train_lat_rep, test_lat_rep = predictor.train_autoencoder_from_checkpoint(
+        #                 self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
+        #                  self.demo_mask_arr, self.save_path, self.dim, self.checkpoint_path, self.grouping_dict,
+        #              epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
         return train_lat_rep, test_lat_rep
 

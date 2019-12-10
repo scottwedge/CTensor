@@ -474,14 +474,28 @@ def main():
     #             }
 
     ####  grouping all datasets altogether using affinity propogation and Pearson correlation
+    # grouping_dict = {
+    #     'group_1': ['precipitation'],
+    #     'group_2': ['temperature', 'pressure', 'airquality'],
+    #     'group_3': ['house_price', 'slope'],
+    #     'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices',
+    #             'POI_transportation', 'transit_routes', 'transit_signals', 'seattle911calls'],
+    #     'group_5': ['POI_hospitals', 'building_permit', 'collisions'],
+    #     'group_6':['POI_recreation', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_stop', 'bikelane']
+    # }
+
+
+    ######  grouping using all raw datasets with cosine similarity ######
     grouping_dict = {
         'group_1': ['precipitation'],
         'group_2': ['temperature', 'pressure', 'airquality'],
-        'group_3': ['house_price', 'slope'],
-        'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices',
-                'POI_transportation', 'transit_routes', 'transit_signals', 'seattle911calls'],
-        'group_5': ['POI_hospitals', 'building_permit', 'collisions'],
-        'group_6':['POI_recreation', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_stop', 'bikelane']
+        'group_3': ['house_price', 'POI_recreation', 'POI_school', 'seattle_street',
+                'total_flow_count', 'transit_stop', 'slope', 'bikelane'],
+        'group_4': ['POI_business', 'POI_food', 'POI_government',
+                'POI_publicservices', 'POI_transportation', 'transit_routes',
+                    'transit_signals', 'seattle911calls'],
+        'group_5': ['POI_hospitals', 'building_permit', 'collisions']
+
     }
 
 
@@ -502,9 +516,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './autoencoder_v5_'+ 'dim'+ str(dim)  +'/'
+        save_path =  './autoencoder_v5_cos_'+ 'dim'+ str(dim)  +'/'
     else:
-        save_path = './autoencoder_v5_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
+        save_path = './autoencoder_v5_cos_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir
