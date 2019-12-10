@@ -516,20 +516,33 @@ def main():
 
     ####### grouping by ALL feature maps using cosine distance  #########################################
     ########## sampled every 50 iterations ###################################
+    # grouping_dict = {
+    #     'group_1': ['precipitation', 'temperature', 'pressure', 'airquality'],
+    #     'group_2': ['house_price', 'POI_government', 'POI_school',
+    #                 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
+    #     'group_3': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation',
+    #                 'transit_stop', 'bikelane'],
+    #     'group_4': ['POI_hospitals', 'POI_recreation', 'slope'],
+    #     'group_5': ['building_permit'],
+    #     'group_6': ['collisions'],
+    #     'group_7': ['seattle911calls']
+    #
+    # }
+
+    ########### grouping by feature maps using cosine distance BY DIM ########
+    ########## sampled every 50 iterations ###################################
+
     grouping_dict = {
-        'group_1': ['precipitation', 'temperature', 'pressure', 'airquality'],
-        'group_2': ['house_price', 'POI_government', 'POI_school',
-                    'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
-        'group_3': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation',
-                    'transit_stop', 'bikelane'],
-        'group_4': ['POI_hospitals', 'POI_recreation', 'slope'],
-        'group_5': ['building_permit'],
-        'group_6': ['collisions'],
-        'group_7': ['seattle911calls']
+        'group_1': ['precipitation', 'pressure'],
+        'group_2': ['temperature', 'airquality'],
+        'group_3': ['house_price', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
+        'group_4': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation', 'transit_stop', 'bikelane'],
+        'group_5': ['POI_government', 'POI_recreation', 'slope'],
+        'group_6': ['POI_hospitals'],
+        'group_7': ['building_permit', 'collisions'],
+        'group_8': ['seattle911calls'],
 
     }
-
-
 
 
 
