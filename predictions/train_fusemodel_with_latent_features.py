@@ -566,6 +566,8 @@ def main():
         latent_rep = np.load(latent_rep_path)
         #  (41616, 1, 32, 20, 1) for v1,  (41616, 32, 20, 1) for v2
         print('latent_rep.shape: ', latent_rep.shape)
+        latent_rep =latent_rep.reshape((41616, 32, 20, 5))
+
 
         latent_train_series = latent_rep[start_train_hour:end_train_hour,  :,:,:]
         latent_test_series = latent_rep[end_train_hour:end_train_hour + test_len, :,:,:]
