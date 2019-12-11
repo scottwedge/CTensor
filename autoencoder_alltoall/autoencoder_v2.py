@@ -863,6 +863,7 @@ class Autoencoder:
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     test_batch_output = sess.run([latent_fea], feed_dict= test_feed_dict_all)
+                    print('test_batch_output.shape: ', test_batch_output.shape)
                     test_final_output.extend(test_batch_output)
 
                     for k, v in test_subloss.items():
@@ -988,6 +989,8 @@ class Autoencoder:
                 plt.close()
 
                 if epoch == epochs-1:
+                    print('final_output.shape: , ', len(final_output))
+                    print('final_output[0].shape: ', final_output[0].shape)
                     final_output = np.array(final_output)
                     train_result.extend(final_output)
                     test_final_output = np.array(test_final_output)
@@ -996,7 +999,9 @@ class Autoencoder:
 
             # encoded_res = np.array(test_result)
             train_encoded_res = train_result
+            print('train_encoded_res.len: ', len(train_encoded_res))
             train_output_arr = train_encoded_res[0]
+            print('train_encoded_res[0].shape: ', train_encoded_res[0].shape)
             for i in range(1,len(train_encoded_res)):
                 train_output_arr = np.concatenate((train_output_arr, train_encoded_res[i]), axis=0)
 
@@ -1366,6 +1371,8 @@ class Autoencoder:
                 plt.close()
 
                 if epoch == epochs-1:
+                    print('final_output.shape: , ', len(final_output))
+                    print('final_output[0].shape: ', final_output[0].shape)
                     final_output = np.array(final_output)
                     train_result.extend(final_output)
                     test_final_output = np.array(test_final_output)
