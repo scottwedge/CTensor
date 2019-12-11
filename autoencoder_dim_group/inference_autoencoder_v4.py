@@ -21,7 +21,7 @@ from datetime import timedelta
 import datetime_utils
 #import lstm
 import evaluation
-import autoencoder_v4
+import autoencoder_v1
 
 from matplotlib import pyplot as plt
 import random
