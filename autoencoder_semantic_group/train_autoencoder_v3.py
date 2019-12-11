@@ -1,5 +1,6 @@
 # v3: datasets were grouped during encoding and decoding
 # according to a predefined grouping strategy
+# [raw datasets grouping by Pearson correlation and affinity propogation ]
 # train autoencoder for urban features
 # for each week's data, learn a
 # laten representation as [H, W, dim]
@@ -425,8 +426,14 @@ def main():
 
     # construct dictionary
     print('use dictionary to organize data')
+    # rawdata_1d_dict = {
+    #  'weather': weather_arr,
+    # 'airquality': airquality_arr,
+    # }
     rawdata_1d_dict = {
-     'weather': weather_arr,
+     'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
+    'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
+    'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
     'airquality': airquality_arr,
     }
 
@@ -456,7 +463,8 @@ def main():
         }
 
     # -------------- grouping -----------------------
-    grouping_dict = {'weather_grp': ['weather', 'airquality'],
+    ################ semantic grouping ###########################
+    grouping_dict = {'weather_grp': ['temperature', 'pressure', 'airquality', 'precipitation'],
                 'transportation_grp': ['POI_transportation', 'seattle_street', 'total_flow_count',
                                       'transit_routes', 'transit_signals', 'transit_stop', 'bikelane',
                                       'collisions', 'slope'],
@@ -466,6 +474,85 @@ def main():
                                    'POI_recreation', 'POI_school']
                 }
 
+    ####  grouping all datasets altogether using affinity propogation and Pearson correlation
+    # grouping_dict = {
+    #     'group_1': ['precipitation'],
+    #     'group_2': ['temperature', 'pressure', 'airquality'],
+    #     'group_3': ['house_price', 'slope'],
+    #     'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices',
+    #             'POI_transportation', 'transit_routes', 'transit_signals', 'seattle911calls'],
+    #     'group_5': ['POI_hospitals', 'building_permit', 'collisions'],
+    #     'group_6':['POI_recreation', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_stop', 'bikelane']
+    # }
+
+
+    ######  grouping using all raw datasets with cosine similarity ######
+    # grouping_dict = {
+    #     'group_1': ['precipitation'],
+    #     'group_2': ['temperature', 'pressure', 'airquality'],
+    #     'group_3': ['house_price', 'POI_recreation', 'POI_school', 'seattle_street',
+    #             'total_flow_count', 'transit_stop', 'slope', 'bikelane'],
+    #     'group_4': ['POI_business', 'POI_food', 'POI_government',
+    #             'POI_publicservices', 'POI_transportation', 'transit_routes',
+    #                 'transit_signals', 'seattle911calls'],
+    #     'group_5': ['POI_hospitals', 'building_permit', 'collisions']
+    #
+    # }
+
+    ########  grouping using raw datasets with cosine similarity BY DIM #########
+
+    # grouping_dict = {
+    #     'group_1': ['precipitation', 'temperature', 'pressure', 'airquality'],
+    #     'group_2': ['seattle911calls'],
+    #     'group_3': ['building_permit', 'collisions'],
+    #     'group_4': ['house_price', 'POI_recreation', 'POI_school', 'seattle_street',
+    #             'total_flow_count', 'transit_stop', 'slope', 'bikelane'],
+    #     'group_5': ['POI_business', 'POI_food', 'POI_government',
+    #             'POI_publicservices', 'POI_transportation', 'transit_routes',
+    #                 'transit_signals'],
+    #     'group_6': ['POI_hospitals', ]
+    #
+    #
+    # }
+
+    ####### grouping by ALL feature maps using cosine distance  #########################################
+    ########## sampled every 50 iterations ###################################
+    # grouping_dict = {
+    #     'group_1': ['precipitation', 'temperature', 'pressure', 'airquality'],
+    #     'group_2': ['house_price', 'POI_government', 'POI_school',
+    #                 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
+    #     'group_3': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation',
+    #                 'transit_stop', 'bikelane'],
+    #     'group_4': ['POI_hospitals', 'POI_recreation', 'slope'],
+    #     'group_5': ['building_permit'],
+    #     'group_6': ['collisions'],
+    #     'group_7': ['seattle911calls']
+    #
+    # }
+
+    ########### grouping by feature maps using cosine distance BY DIM ########
+    ########## sampled every 50 iterations ###################################
+
+    # grouping_dict = {
+    #     'group_1': ['precipitation', 'pressure'],
+    #     'group_2': ['temperature', 'airquality'],
+    #     'group_3': ['house_price', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
+    #     'group_4': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation', 'transit_stop', 'bikelane'],
+    #     'group_5': ['POI_government', 'POI_recreation', 'slope'],
+    #     'group_6': ['POI_hospitals'],
+    #     'group_7': ['building_permit', 'collisions'],
+    #     'group_8': ['seattle911calls'],
+    #
+    # }
+
+
+
+    # ------ grouping within 2d datasets ------  #
+#     3 ['house_price', 'slope']
+# 0 ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices', 'POI_transportation', 'transit_routes', 'transit_signals']
+# 1 ['POI_hospitals']
+# 2 ['POI_recreation', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_stop', 'bikelane']
+#
 
 
     # train_obj.train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
@@ -477,9 +564,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './autoencoder_v3_'+ 'dim'+ str(dim)  +'/'
+        save_path =  './autoencoder_v3_cos_'+ 'dim'+ str(dim)  +'/'
     else:
-        save_path = './autoencoder_v3_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
+        save_path = './autoencoder_v3_cos_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir
@@ -521,10 +608,10 @@ def main():
     print('saving latent representation to npy')
     print('shape of latent_representation: ', latent_representation.shape)
 
-    np.save(save_path +'latent_representation_train.npy', latent_representation)
+    # np.save(save_path +'latent_representation_train.npy', latent_representation)
 
 
-    txt_name = save_path + 'autoencoder_v3_' + 'dim_' + str(dim) +'_'  + timer + '.txt'
+    txt_name = save_path + 'autoencoder_v6_' + 'dim_' + str(dim) +'_'  + timer + '.txt'
     with open(txt_name, 'w') as the_file:
         the_file.write('Only account for grids that intersect with city boundary \n')
         the_file.write('place\n')
