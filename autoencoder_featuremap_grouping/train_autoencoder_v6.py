@@ -544,19 +544,38 @@ def main():
     #
     # }
 
+
     ########### group by ALL feature maps using cosine similarity  ####
-    #### removed abs from cos similarity, flatten 3d tensors into 1d to compare ###
+    #### removed abs from cos similarity  #############################
     grouping_dict = {
-        'group_1': ['precipitation', 'pressure', 'POI_government', 'POI_recreation', 'slope'],
-        'group_2': ['temperature', 'house_price', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
-        'group_3': ['airquality'],
-        'group_4': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation', 'transit_stop', 'bikelane'],
-        'group_5': ['POI_hospitals'],
+        'group_1': ['precipitation', 'temperature', 'pressure'],
+        'group_2': ['airquality'],
+        'group_3': ['house_price', 'POI_government', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
+        'group_4': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation',
+                    'transit_stop', 'bikelane'],
+        'group_5': 'POI_hospitals', 'POI_recreation', 'slope'],
         'group_6': ['building_permit'],
         'group_7': ['collisions'],
         'group_8': ['seattle911calls'],
 
     }
+
+
+
+
+    ########### group by ALL feature maps using cosine similarity  ####
+    #### removed abs from cos similarity, flatten 3d tensors into 1d to compare ###
+    # grouping_dict = {
+    #     'group_1': ['precipitation', 'pressure', 'POI_government', 'POI_recreation', 'slope'],
+    #     'group_2': ['temperature', 'house_price', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
+    #     'group_3': ['airquality'],
+    #     'group_4': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation', 'transit_stop', 'bikelane'],
+    #     'group_5': ['POI_hospitals'],
+    #     'group_6': ['building_permit'],
+    #     'group_7': ['collisions'],
+    #     'group_8': ['seattle911calls'],
+    # 
+    # }
 
 
 
