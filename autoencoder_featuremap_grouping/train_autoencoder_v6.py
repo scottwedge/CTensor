@@ -553,7 +553,7 @@ def main():
         'group_3': ['house_price', 'POI_government', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
         'group_4': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation',
                     'transit_stop', 'bikelane'],
-        'group_5': 'POI_hospitals', 'POI_recreation', 'slope'],
+        'group_5': ['POI_hospitals', 'POI_recreation', 'slope'],
         'group_6': ['building_permit'],
         'group_7': ['collisions'],
         'group_8': ['seattle911calls'],
@@ -574,7 +574,7 @@ def main():
     #     'group_6': ['building_permit'],
     #     'group_7': ['collisions'],
     #     'group_8': ['seattle911calls'],
-    # 
+    #
     # }
 
 
