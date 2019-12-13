@@ -790,7 +790,8 @@ class Autoencoder:
                 print(' Training Time per epoch: ', str(train_time_per_epoch), 'Time per sample: ', str(train_time_per_sample))
 
                 for k, v in epoch_subloss.items():
-                    epoch_subloss[k] = v/iterations
+                    epoch_subloss[k] = v/ite
+                    rations
                     print('epoch: ', epoch, 'k: ', k, 'mean train loss: ', epoch_subloss[k])
 
                 for k, v in epoch_subrmse.items():
@@ -866,7 +867,7 @@ class Autoencoder:
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     test_batch_output = sess.run([latent_fea], feed_dict= test_feed_dict_all)
-                    print('test_batch_output.shape: ', test_batch_output.shape)
+                    #print('test_batch_output.shape: ', test_batch_output.shape)
                     test_final_output.extend(test_batch_output)
 
                     for k, v in test_subloss.items():

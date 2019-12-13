@@ -866,7 +866,7 @@ class Autoencoder:
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     test_batch_output = sess.run([latent_fea], feed_dict= test_feed_dict_all)
-                    print('test_batch_output.shape: ', test_batch_output.shape)
+                    #print('test_batch_output.shape: ', test_batch_output.shape)
                     test_final_output.extend(test_batch_output)
 
                     for k, v in test_subloss.items():
