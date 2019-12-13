@@ -422,19 +422,33 @@ def main():
     collisions_arr_seq = generate_fixlen_timeseries(collisions_arr, 7)
     collisions_arr_seq_extend = np.repeat(collisions_arr_seq, 24, axis =1)
 
+
+
     # stack 1d data together
     datalist_1d = [weather_arr, airquality_arr]
     data_1d = np.concatenate(datalist_1d, axis=1)
     print('data_1d.shape: ', data_1d.shape)
 
     print('Stack 2d data')
+    datalist_2d_group1 =  ['house_price', 'POI_recreation', 'POI_school',
+            'seattle_street', 'total_flow_count', 'transit_stop', 'slope', 'bikelane']
+
+    datalist_2d_group2 = ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices',
+            'POI_transportation', 'transit_routes', 'transit_signals']
+    datalist_2d_group3 = ['POI_hospitals']
     # stack 2d data
-    datalist_2d = [house_price_arr,POI_business_arr, POI_food_arr, POI_government_arr,
-                          POI_hospitals_arr, POI_publicservices_arr, POI_recreation_arr, POI_school_arr,
-                          POI_transportation_arr, seattle_street_arr, total_flow_count_arr, transit_routes_arr,
-                          transit_signals_arr, transit_stop_arr, slope_arr, bikelane_arr]
-    data_2d = np.concatenate(datalist_2d, axis=2)
-    print('data_2d.shape: ', data_2d.shape)
+    data_2d_group1 = np.concatenate(datalist_2d_group1, axis=2)
+    data_2d_group2 = np.concatenate(datalist_2d_group2, axis=2)
+    data_2d_group3 = np.concatenate(datalist_2d_group3, axis=2)
+
+    # datalist_2d = [house_price_arr,POI_business_arr, POI_food_arr, POI_government_arr,
+    #                       POI_hospitals_arr, POI_publicservices_arr, POI_recreation_arr, POI_school_arr,
+    #                       POI_transportation_arr, seattle_street_arr, total_flow_count_arr, transit_routes_arr,
+    #                       transit_signals_arr, transit_stop_arr, slope_arr, bikelane_arr]
+    # data_2d = np.concatenate(datalist_2d, axis=2)
+    # print('data_2d.shape: ', data_2d.shape)
+
+    # stack 2d data according to grouping
 
 
 
@@ -442,13 +456,14 @@ def main():
     print('use dictionary to organize data')
     rawdata_1d_dict = {
      'data_1d': data_1d,
-    # 'airquality': airquality_arr,
     }
 
     rawdata_2d_dict = {
-     'data_2d': data_2d,
-    # 'airquality': airquality_arr,
+     'data_2d_group1': data_2d_group1,
+     'data_2d_group2': data_2d_group2,
+     'data_2d_group3': data_2d_group3,
     }
+
 
     # rawdata_1d_dict = {
     #  'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
