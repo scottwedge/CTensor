@@ -603,8 +603,9 @@ class Autoencoder:
                 # [1, 32, 20, 1]  -> [1, 1, 32, 20, 1]
                 # [1, 32, 20, 1] -> [batchsize, 32, 20, 1]
                 # batchsize = tf.shape(prediction)[0]
+        #
         demo_mask_arr_expanded = tf.tile(demo_mask_arr_expanded, [tf.shape(latent_fea)[0],1,1,1])
-        weight = tf.cast(tf.greater(demo_mask_arr_expanded, 0), tf.float32)
+
 
         total_loss = 0
         loss_dict = {} # {dataset name: loss}
@@ -623,7 +624,9 @@ class Autoencoder:
         for k, v in self.rawdata_2d_tf_y_dict.items():
             dim_2d = rawdata_2d_dict[k].shape[-1]
             reconstruction_2d = self.reconstruct_2d(latent_fea, dim_2d, self.is_training)
-            temp_loss = tf.losses.absolute_difference(reconstruction_2d, v, weight)
+            demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, 1,1, dim_2d])
+            weight_2d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
+            temp_loss = tf.losses.absolute_difference(reconstruction_2d, v, weight_2d)
             total_loss += temp_loss
             loss_dict[k] = temp_loss
             temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, v, weight))
