@@ -757,7 +757,7 @@ class Autoencoder:
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     batch_output, batch_encoded_list = sess.run([latent_fea, first_order_encoder_list], feed_dict= feed_dict_all)
-                    print('batch_output.shape, : ', batch_output.shape)
+                    #print('batch_output.shape, : ', batch_output.shape)
                     final_output.extend(batch_output)
 
 
