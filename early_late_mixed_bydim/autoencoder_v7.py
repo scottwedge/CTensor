@@ -332,6 +332,7 @@ class Autoencoder:
 
         print('check med_res_2d: ')
         for prediction_2d in med_res_2d:
+            print('prediction_2d.shape: ', prediction_2d.shape)
             temp_list.append(prediction_2d)
 
         print('check med_res_3d:')
@@ -629,7 +630,7 @@ class Autoencoder:
             temp_loss = tf.losses.absolute_difference(reconstruction_2d, v, weight_2d)
             total_loss += temp_loss
             loss_dict[k] = temp_loss
-            temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, v, weight))
+            temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, v, weight_2d))
             rmse_dict[k] = temp_rmse
 
 
