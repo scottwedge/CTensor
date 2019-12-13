@@ -790,8 +790,7 @@ class Autoencoder:
                 print(' Training Time per epoch: ', str(train_time_per_epoch), 'Time per sample: ', str(train_time_per_sample))
 
                 for k, v in epoch_subloss.items():
-                    epoch_subloss[k] = v/ite
-                    rations
+                    epoch_subloss[k] = v/iterations
                     print('epoch: ', epoch, 'k: ', k, 'mean train loss: ', epoch_subloss[k])
 
                 for k, v in epoch_subrmse.items():
