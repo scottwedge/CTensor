@@ -418,10 +418,12 @@ class Autoencoder:
 
         if timestep == 7:
             # [1, 32, 20, 1]-> [168, 32, 20, 9]
-            deconv1 = tf.layers.conv3d_transpose(inputs=latent_fea, filters=32, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
+            deconv1 = tf.layers.conv3d_transpose(inputs=latent_fea, filters=16, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
+            # added
+            deconv2 = tf.layers.conv3d_transpose(inputs=deconv1, filters=32, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
             # [1, 32, 20, 32]
             # https://www.tensorflow.org/api_docs/python/tf/keras/backend/resize_volumes
-            unpool1 = K.resize_volumes(deconv1,7,1,1,"channels_last")
+            unpool1 = K.resize_volumes(deconv2,7,1,1,"channels_last")
             # [7, 32, 20, 32]
                     # [168, 32, 20, 9]
             output = tf.layers.conv3d(inputs=unpool1, filters= 1, kernel_size=[3,3,3], padding='same', activation=my_leaky_relu)
