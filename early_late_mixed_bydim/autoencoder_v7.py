@@ -615,11 +615,15 @@ class Autoencoder:
             dim_1d = rawdata_1d_dict[k].shape[-1]
             reconstruction_1d = self.reconstruct_1d(latent_fea, dim_1d, self.is_training)
             temp_loss = tf.losses.absolute_difference(reconstruction_1d, v)
-            total_loss += temp_loss
+            temp_loss_all = tf.multiply(temp_loss, dim_1d)
+            total_loss += temp_loss_all
+            loss_dict[k] = temp_loss_all
+
     #         loss_dict.append(temp_loss)
-            loss_dict[k] = temp_loss
+            # loss_dict[k] = temp_loss
             temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, v))
-            rmse_dict[k] = temp_rmse
+            temp_rmse_all = tf.multiply(temp_rmse, dim_1d)
+            rmse_dict[k] = temp_rmse_all
 
 
         for k, v in self.rawdata_2d_tf_y_dict.items():
@@ -628,10 +632,14 @@ class Autoencoder:
             demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, 1,1, dim_2d])
             weight_2d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
             temp_loss = tf.losses.absolute_difference(reconstruction_2d, v, weight_2d)
-            total_loss += temp_loss
-            loss_dict[k] = temp_loss
+            # total loss should be the average cell loss of all datasets.
+            temp_loss_all = tf.multiply(temp_loss, dim_2d)
+            total_loss += temp_loss_all
+            loss_dict[k] = temp_loss_all
+
             temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, v, weight_2d))
-            rmse_dict[k] = temp_rmse
+            temp_rmse_all = tf.multiply(temp_rmse, dim_2d)
+            rmse_dict[k] = temp_rmse_all
 
 
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 1)
