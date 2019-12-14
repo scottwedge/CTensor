@@ -430,12 +430,12 @@ def main():
     print('data_1d.shape: ', data_1d.shape)
 
     print('Stack 2d data')
-    datalist_2d_group1 =  ['house_price', 'POI_recreation', 'POI_school',
-            'seattle_street', 'total_flow_count', 'transit_stop', 'slope', 'bikelane']
+    datalist_2d_group1 =  ['house_price_arr', 'POI_recreation_arr', 'POI_school_arr',
+            'seattle_street_arr', 'total_flow_count_arr', 'transit_stop_arr', 'slope_arr', 'bikelane_arr']
 
-    datalist_2d_group2 = ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices',
-            'POI_transportation', 'transit_routes', 'transit_signals']
-    datalist_2d_group3 = ['POI_hospitals']
+    datalist_2d_group2 = ['POI_business_arr', 'POI_food_arr', 'POI_government_arr', 'POI_publicservices_arr',
+            'POI_transportation_arr', 'transit_routes_arr', 'transit_signals_arr']
+    datalist_2d_group3 = ['POI_hospitals_arr']
     # stack 2d data
     data_2d_group1 = np.concatenate(datalist_2d_group1, axis=2)
     data_2d_group2 = np.concatenate(datalist_2d_group2, axis=2)
