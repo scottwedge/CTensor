@@ -649,7 +649,7 @@ class Autoencoder:
     def train_autoencoder(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, train_hours,
                      demo_mask_arr, save_folder_path, dim, grouping_dict,
                      resume_training = False, checkpoint_path = None,
-                     train_from_start = True, pretrained_ckpt_path = None,
+                     use_pretrained = False, pretrained_ckpt_path = None,
                        epochs=1, batch_size=32):
         starter_learning_rate = LEARNING_RATE
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
@@ -771,7 +771,7 @@ class Autoencoder:
 
 
         # --- dealing with saver ------ #
-        if train_from_start:
+        if not use_pretrained:
             saver = tf.train.Saver()
         else:
             print('Restoring saver from pretrained model....', pretrained_ckpt_path)
@@ -794,7 +794,7 @@ class Autoencoder:
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
             # ----- if initialized with pretrained weights ----
-            if not train_from_start:
+            if use_pretrained:
                 saver.restore(sess, pretrained_ckpt_path)
 
             # ---- if resume training -----
@@ -1647,7 +1647,7 @@ class Autoencoder_entry:
                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                      is_inference = False, checkpoint_path = None,
                      resume_training = False, train_dir = None,
-                     train_from_start = True, pretrained_ckpt_path = None,
+                     use_pretrained = False, pretrained_ckpt_path = None,
                       # weather to train from pretrained models
                      ):
                      #  if s_inference = True, do inference only
@@ -1679,7 +1679,7 @@ class Autoencoder_entry:
         self.resume_training = resume_training
         self.train_dir = train_dir
 
-        self.train_from_start = train_from_start
+        self.use_pretrained = use_pretrained
         self.pretrained_ckpt_path = pretrained_ckpt_path
 
         # ignore non-intersection cells in test_df
@@ -1727,7 +1727,7 @@ class Autoencoder_entry:
         train_lat_rep, test_lat_rep = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim, self.grouping_dict,
-                train_from_start =  self.train_from_start, pretrained_ckpt_path = self.pretrained_ckpt_path,
+                use_pretrained =  self.use_pretrained, pretrained_ckpt_path = self.pretrained_ckpt_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
         return train_lat_rep, test_lat_rep
@@ -1748,7 +1748,7 @@ class Autoencoder_entry:
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim, self.grouping_dict,
                          True, self.checkpoint_path,
-                          self.train_from_start, self.pretrained_ckpt_path,
+                          self.use_pretrained, self.pretrained_ckpt_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
 
