@@ -7,7 +7,12 @@
 # laten representation as [H, W, dim]
 # from the latent representation, each datasets will
 # be reconstructed with equal weight in MAE loss
-# last updated: Dec, 2019
+
+
+# last updated: Jan 7 2020
+# add variable_scopes to variables to restore
+# change saved model name and path
+# added restoring some variables from pretrained all-to-all AE
 
 
 
@@ -116,6 +121,30 @@ def create_mini_batch_3d(start_idx, end_idx,data_3d, timestep):
     return test_data_3d_seq
 
 
+# get variables to be restored from pretrained model
+def get_variables_to_restore(variables, scopes_to_reserve):
+    variables_to_restore = []
+    for v in variables:
+        if v.name.split(':')[0].split('/')[0] in scopes_to_reserve:
+            print("Variables restored: %s" % v.name)
+            variables_to_restore.append(v)
+
+    return variables_to_restore
+
+
+
+# get names of variable_scopes to be restored
+def get_scopes_to_restore(rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict):
+    keys_1d = list(rawdata_1d_dict.keys())
+    keys_2d = list(rawdata_2d_dict.keys())
+    keys_3d = list(rawdata_3d_dict.keys())
+    scopes_to_reserve = []
+    prefix_list = ['1d_data_process_', '2d_data_process_', '3d_data_process_']
+    suffix_list = keys_1d + keys_2d + keys_3d
+    for prefix in prefix_list:
+        for suffix in suffix_list:
+            scopes_to_reserve.append(prefix + suffix)
+    return scopes_to_reserve
 
 
 class Autoencoder:
@@ -177,9 +206,11 @@ class Autoencoder:
 
 
 
-    def cnn_model(self, x_train_data, is_training, output_dim = 3, keep_rate=0.7, seed=None):
+
+    def cnn_model(self, x_train_data, is_training, suffix = '',  output_dim = 3, keep_rate=0.7, seed=None):
         # output from 3d cnn (?, 168, 32, 20, 1)  * weight + b = (?, 32, 20, 1)
-        with tf.name_scope("layer_a"):
+        var_scope = "3d_data_process_" + suffix
+        with tf.variable_scope(var_scope):
             # conv => 16*16*16
             # input: (?, 168, 32, 20, 2)
             conv1 = tf.layers.conv3d(inputs=x_train_data, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
@@ -195,8 +226,6 @@ class Autoencoder:
             conv3 = tf.layers.batch_normalization(conv3, training=is_training)
             conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
 
-        with tf.name_scope("batch_norm"):
-
         # transfer (?, 168, 32, 20, 1) to (?,  32, 20, 168)
         # squeeze -> (?, 168, 32, 20)
             cnn3d_bn_squeeze = tf.squeeze(conv3, axis = 4)
@@ -204,16 +233,16 @@ class Autoencoder:
             cnn3d_bn_squeeze = tf.transpose(cnn3d_bn_squeeze, perm=[0,2,3, 1])
 
         # output should be (?, 32, 20, 1)
-        conv5 = tf.layers.conv2d(
-                  inputs=cnn3d_bn_squeeze,
-                  filters=output_dim,
-                  kernel_size=[1, 1],
-                  padding="same",
-                  activation=my_leaky_relu
-                  #reuse = tf.AUTO_REUSE
-            )
-        #
-        out = conv5
+            conv5 = tf.layers.conv2d(
+                      inputs=cnn3d_bn_squeeze,
+                      filters=output_dim,
+                      kernel_size=[1, 1],
+                      padding="same",
+                      activation=my_leaky_relu
+                      #reuse = tf.AUTO_REUSE
+                )
+            #
+            out = conv5
         # output size should be [None, height, width, channel]
         return out
 
@@ -223,9 +252,9 @@ class Autoencoder:
     input: 2d feature tensor: height * width * # of features (batchsize, 32, 20, 4)
     output: (32, 20, 1)
     '''
-    def cnn_2d_model(self, x_2d_train_data, is_training, output_dim = 1, seed=None):
-
-        with tf.name_scope("2d_layer_a"):
+    def cnn_2d_model(self, x_2d_train_data, is_training, suffix = '', output_dim = 1, seed=None):
+        var_scope = "2d_data_process_" + suffix
+        with tf.variable_scope(var_scope):
             '''
             # conv => 16*16*16
             conv1 = tf.layers.conv3d(inputs=x_train_data, filters=16, kernel_size=[3,3,3], padding='same', activation=my_leaky_relu)
@@ -246,7 +275,7 @@ class Autoencoder:
             conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
 
         # output should be (?, 32, 20, 1)
-        with tf.name_scope("2d_layer_b"):
+        # with tf.name_scope("2d_layer_b"):
             conv3 = tf.layers.conv2d(
                       inputs=conv2,
                       filters=output_dim,
@@ -255,7 +284,7 @@ class Autoencoder:
                       activation=my_leaky_relu
                       #reuse = tf.AUTO_REUSE
                 )
-        out = conv3
+            out = conv3
         # output size should be [height, width, 1]
         return out
 
@@ -266,8 +295,9 @@ class Autoencoder:
     output: (batchsize, 1)
     '''
     # (batchsize, 168, # of features)
-    def cnn_1d_model(self, x_1d_train_data, is_training, output_dim =3, seed=None):
-        with tf.name_scope("1d_layer_a"):
+    def cnn_1d_model(self, x_1d_train_data, is_training, suffix = '', output_dim =3, seed=None):
+        var_scope = "1d_data_process_" + suffix
+        with tf.variable_scope(var_scope):
             # https://www.tensorflow.org/api_docs/python/tf/layers/conv1d
             '''
             # conv => 16*16*16
@@ -293,7 +323,7 @@ class Autoencoder:
             # Average Pooling   None, 168,16  -> None, 1, 16
             conv2 = tf.layers.average_pooling1d( conv2, 168, 1, padding='valid')
 
-        with tf.name_scope("1d_layer_b"):
+        # with tf.name_scope("1d_layer_b"):
             conv3 = tf.layers.conv1d(
                       inputs=conv2,
                       filters=output_dim,
@@ -303,11 +333,11 @@ class Autoencoder:
                       #reuse = tf.AUTO_REUSE
                 )
 
-        # squeeze  None, 1, 1  -> None, 1
-        conv3_squeeze = tf.squeeze(conv3, axis = 1)
-        out = conv3_squeeze
-        print('model 1d cnn output :',out.shape )
-        # output size should be [None, 1],
+            # squeeze  None, 1, 1  -> None, 1
+            conv3_squeeze = tf.squeeze(conv3, axis = 1)
+            out = conv3_squeeze
+            print('model 1d cnn output :',out.shape )
+            # output size should be [None, 1],
         return out
 
 
@@ -475,10 +505,11 @@ class Autoencoder:
     # take a list of feature maps, combine them through stacking
     # continue to train the stacked feature maps using several conv layers.
     # output a latent feature with specified dim
-    def fuse_and_train(self, feature_map_list, is_training, dim=3):
-        fuse_feature =tf.concat(axis=3,values=feature_map_list)
-        print('fuse_feature.shape: ', fuse_feature.shape)
-        with tf.name_scope("fusion_layer_a"):
+    def fuse_and_train(self, feature_map_list, is_training, suffix = '', dim=3):
+        var_scope = 'fusion_layer_'+ suffix
+        with tf.variable_scope(var_scope):
+            fuse_feature =tf.concat(axis=3,values=feature_map_list)
+            print('fuse_feature.shape: ', fuse_feature.shape)
             # Convolution Layer with 32 filters and a kernel size of 5
             # conv1 = tf.layers.conv2d(fuse_feature, 32, 3, padding='same',activation=my_leaky_relu)
             # Convolution Layer with 32 filters and a kernel size of 5
@@ -500,7 +531,7 @@ class Autoencoder:
         #     print('cnn2d_bn shape: ',cnn2d_bn.shape)
 
         # output should be (?, 32, 20, 1)
-        with tf.name_scope("fusion_layer_b"):
+        # with tf.name_scope("fusion_layer_b"):
             conv3 = tf.layers.conv2d(
                       inputs=conv2,
                       filters=dim,
@@ -510,8 +541,8 @@ class Autoencoder:
                       #reuse = tf.AUTO_REUSE
                 )
 
-        out = conv3
-        print('latent representation shape: ',out.shape)
+            out = conv3
+            print('latent representation shape: ',out.shape)
         # output size should be [batchsize, height, width, dim]
         return out
 
@@ -606,10 +637,19 @@ class Autoencoder:
 
 
 
+    '''
+    TODO: output encoded layers for further grouping
+    train_from_start: weather to train from scratch or not. If False, train
+        from a pretrained all-to-all AE with part of the variables.
 
+    pretrained_ckpt_path: pretrained model that provides intiialization of
+        weights
+
+    '''
     def train_autoencoder(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, train_hours,
                      demo_mask_arr, save_folder_path, dim, grouping_dict,
                      resume_training = False, checkpoint_path = None,
+                     train_from_start = True, pretrained_ckpt_path = None,
                        epochs=1, batch_size=32):
         starter_learning_rate = LEARNING_RATE
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
@@ -617,7 +657,7 @@ class Autoencoder:
         # first level output [dataset name: output]
         first_level_output = dict()
         for k, v in self.rawdata_1d_tf_x_dict.items():
-            prediction_1d = self.cnn_1d_model(v, self.is_training)
+            prediction_1d = self.cnn_1d_model(v, self.is_training, k)
             prediction_1d = tf.expand_dims(prediction_1d, 1)
             prediction_1d = tf.expand_dims(prediction_1d, 1)
             prediction_1d_expand = tf.tile(prediction_1d, [1, HEIGHT,
@@ -625,11 +665,11 @@ class Autoencoder:
             first_level_output[k] = prediction_1d_expand
 
         for k, v in self.rawdata_2d_tf_x_dict.items():
-            prediction_2d = self.cnn_2d_model(v, self.is_training)
+            prediction_2d = self.cnn_2d_model(v, self.is_training, k)
             first_level_output[k] = prediction_2d
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
-            prediction_3d = self.cnn_model(v, self.is_training)
+            prediction_3d = self.cnn_model(v, self.is_training, k)
             first_level_output[k] = prediction_3d
 
 
@@ -642,13 +682,15 @@ class Autoencoder:
             temp_list = [] # a list of feature maps belonging to the same group from first level training
             for ds in data_list:
                 temp_list.append(first_level_output[ds])
-            group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, dim=3) # fuse and train
+
+            scope_name = '1'+ grp
+            group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, scope_name, dim=3) # fuse and train
             second_level_output[grp] = group_fusion_featuremap
 
 
         # ------------------------------------------------#
         # dim: latent fea dimension
-        latent_fea = self.fuse_and_train(list(second_level_output.values()),  self.is_training, dim)
+        latent_fea = self.fuse_and_train(list(second_level_output.values()),  self.is_training, '2', dim)
         print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 5)
         # recontruction
         print('recontruction')
@@ -721,15 +763,37 @@ class Autoencoder:
             optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost, global_step = self.global_step)
 
 
-        saver = tf.train.Saver()
         train_result = list()
         test_result = list()
 
         if not os.path.exists(save_folder_path):
             os.makedirs(save_path)
 
+
+        # --- dealing with saver ------ #
+        if train_from_start:
+            saver = tf.train.Saver()
+        else:
+            # train from pretrained model_fusion
+            variables = tf.global_variables()
+            # get scopes_to_reserve
+            scopes_to_reserve = get_scopes_to_restore(rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict)
+            variable_to_restore = get_variables_to_restore(variables, scopes_to_reserve)
+            vars_to_restore_dict = {}
+            # make the dictionary, note that everything here will have “:0”, avoid it.
+            for v in variable_to_restore:
+                vars_to_restore_dict[v.name[:-2]] = v
+            saver = tf.train.Saver(vars_to_restore_dict)
+
+
+
+        ########### start session ########################
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
+            # ----- if initialized with pretrained weights ----
+            if not train_from_start:
+                saver.restore(sess, pretrained_ckpt_path)
+
             # ---- if resume training -----
             if resume_training:
                 if checkpoint_path is not None:
@@ -1579,7 +1643,9 @@ class Autoencoder_entry:
                     demo_mask_arr, save_path, dim, grouping_dict,
                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                      is_inference = False, checkpoint_path = None,
-                     resume_training = False, train_dir = None
+                     resume_training = False, train_dir = None,
+                     train_from_start = True, pretrained_ckpt_path = None,
+                      # weather to train from pretrained models
                      ):
                      #  if s_inference = True, do inference only
         self.train_obj = train_obj
@@ -1609,6 +1675,9 @@ class Autoencoder_entry:
         self.checkpoint_path = checkpoint_path
         self.resume_training = resume_training
         self.train_dir = train_dir
+
+        self.train_from_start = train_from_start
+        self.pretrained_ckpt_path = pretrained_ckpt_path
 
         # ignore non-intersection cells in test_df
         # this is for evaluation
@@ -1655,6 +1724,7 @@ class Autoencoder_entry:
         train_lat_rep, test_lat_rep = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim, self.grouping_dict,
+                train_from_start =  self.train_from_start, pretrained_ckpt_path = self.pretrained_ckpt_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
         return train_lat_rep, test_lat_rep
@@ -1675,6 +1745,7 @@ class Autoencoder_entry:
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim, self.grouping_dict,
                          True, self.checkpoint_path,
+                          self.train_from_start, self.pretrained_ckpt_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
 

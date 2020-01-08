@@ -326,6 +326,10 @@ def parse_args():
                      action="store", help = 'epochs to train', default = 50)
     parser.add_argument('-l',   '--learning_rate',  type=float,
                      action="store", help = 'epochs to train', default = 0.001)
+    parser.add_argument("-up","--use_pretrained", type=bool, default=False,
+    				help="A boolean value whether or not to start from pretrained model")
+    parser.add_argument('-pc',   '--pretrained_checkpoint',
+                     action="store", help = 'checkpoint path to pretrained model', default = None)
 
 
     return parser.parse_args()
@@ -344,6 +348,10 @@ def main():
     learning_rate= args.learning_rate
     dim = args.dim
 
+    use_pretrained = args.use_pretrained
+    pretrained_checkpoint = args.pretrained_checkpoint
+
+
     print("resume_training: ", resume_training)
     print("training dir path: ", train_dir)
     print("checkpoint: ", checkpoint)
@@ -351,6 +359,12 @@ def main():
     print("epochs to train: ", epoch)
     print("start learning rate: ", learning_rate)
     print("dimension of latent representation: ", dim)
+
+    print('whether to use pretrained model: ', use_pretrained)
+    print('pretrained_checkpoint: ', pretrained_checkpoint)
+
+    if pretrained_checkpoint is not None:
+        print('pick up pretrained model: ', pretrained_checkpoint)
 
     if checkpoint is not None:
         checkpoint = train_dir + checkpoint
@@ -626,7 +640,8 @@ def main():
         latent_representation = autoencoder_v6.Autoencoder_entry(train_obj,
                                 rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                  demo_mask_arr,  save_path, dim, grouping_dict,
-                            HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE
+                            HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
+                            train_from_start = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
                     ).train_lat_rep
     else:
          # resume training
