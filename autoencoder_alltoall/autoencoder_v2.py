@@ -11,6 +11,11 @@
 # record rmse of each dataset
 # output the last layer of encoder of each dataset
 
+# update: Jan 2020
+# deprecate model_fusion function, use fuse_and_train instead
+# add variable_scopes to variables to restore
+# change saved model name and path
+
 
 import numpy as np
 import tensorflow as tf
@@ -182,10 +187,11 @@ class Autoencoder:
 
 
 
-
-    def cnn_model(self, x_train_data, is_training, output_dim = 3, keep_rate=0.7, seed=None):
+    # update on Jan, 2020: change variable_scopes
+    def cnn_model(self, x_train_data, is_training, suffix = '', output_dim = 3, keep_rate=0.7, seed=None):
         # output from 3d cnn (?, 168, 32, 20, 1)  * weight + b = (?, 32, 20, 1)
-        with tf.name_scope("layer_a"):
+        var_scope = "3d_data_process_" + suffix
+        with tf.variable_scope(var_scope):
             # conv => 16*16*16
             # input: (?, 168, 32, 20, 2)
             conv1 = tf.layers.conv3d(inputs=x_train_data, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
@@ -201,25 +207,23 @@ class Autoencoder:
             conv3 = tf.layers.batch_normalization(conv3, training=is_training)
             conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
 
-        with tf.name_scope("batch_norm"):
-
-        # transfer (?, 168, 32, 20, 1) to (?,  32, 20, 168)
-        # squeeze -> (?, 168, 32, 20)
+            # transfer (?, 168, 32, 20, 1) to (?,  32, 20, 168)
+            # squeeze -> (?, 168, 32, 20)
             cnn3d_bn_squeeze = tf.squeeze(conv3, axis = 4)
             # swap axes -> (?, 32, 20, 168) -> [0, 1, 2, 3] -> []
             cnn3d_bn_squeeze = tf.transpose(cnn3d_bn_squeeze, perm=[0,2,3, 1])
 
-        # output should be (?, 32, 20, dim)
-        conv5 = tf.layers.conv2d(
-                  inputs=cnn3d_bn_squeeze,
-                  filters=output_dim,   # changed from 1 to 3
-                  kernel_size=[1, 1],
-                  padding="same",
-                  activation=my_leaky_relu
-                  #reuse = tf.AUTO_REUSE
-            )
-        #
-        out = conv5
+            # output should be (?, 32, 20, dim)
+            conv5 = tf.layers.conv2d(
+                      inputs=cnn3d_bn_squeeze,
+                      filters=output_dim,   # changed from 1 to 3
+                      kernel_size=[1, 1],
+                      padding="same",
+                      activation=my_leaky_relu
+                      #reuse = tf.AUTO_REUSE
+                )
+            #
+            out = conv5
         # output size should be [None, height, width, channel]
         return out
 
@@ -229,9 +233,9 @@ class Autoencoder:
     input: 2d feature tensor: height * width * # of features (batchsize, 32, 20, 4)
     output: (32, 20, 1)
     '''
-    def cnn_2d_model(self, x_2d_train_data, is_training, output_dim = 1, seed=None):
-
-        with tf.name_scope("2d_layer_a"):
+    def cnn_2d_model(self, x_2d_train_data, is_training, suffix = '', output_dim = 1, seed=None):
+        var_scope = "2d_data_process_" + suffix
+        with tf.variable_scope(var_scope):
             '''
             # conv => 16*16*16
             conv1 = tf.layers.conv3d(inputs=x_train_data, filters=16, kernel_size=[3,3,3], padding='same', activation=my_leaky_relu)
@@ -253,7 +257,7 @@ class Autoencoder:
             conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
 
         # output should be (?, 32, 20, 1)
-        with tf.name_scope("2d_layer_b"):
+        # with tf.name_scope("2d_layer_b"):
             conv3 = tf.layers.conv2d(
                       inputs=conv2,
                       filters=output_dim,
@@ -262,7 +266,7 @@ class Autoencoder:
                       activation=my_leaky_relu
                       #reuse = tf.AUTO_REUSE
                 )
-        out = conv3
+            out = conv3
         # output size should be [height, width, 1]
         return out
 
@@ -273,8 +277,9 @@ class Autoencoder:
     output: (batchsize, 1)
     '''
     # (batchsize, 168, # of features)
-    def cnn_1d_model(self, x_1d_train_data, is_training, output_dim =3, seed=None):
-        with tf.name_scope("1d_layer_a"):
+    def cnn_1d_model(self, x_1d_train_data, is_training, suffix = '', output_dim =3, seed=None):
+        var_scope = "1d_data_process_" + suffix
+        with tf.variable_scope(var_scope):
             # https://www.tensorflow.org/api_docs/python/tf/layers/conv1d
             '''
             # conv => 16*16*16
@@ -301,7 +306,7 @@ class Autoencoder:
             # Average Pooling   None, 168,16  -> None, 1, 16
             conv2 = tf.layers.average_pooling1d( conv2, 168, 1, padding='valid')
 
-        with tf.name_scope("1d_layer_b"):
+        # with tf.name_scope("1d_layer_b"):
             conv3 = tf.layers.conv1d(
                       inputs=conv2,
                       filters=output_dim, # switch from 1 to 3
@@ -311,15 +316,15 @@ class Autoencoder:
                       #reuse = tf.AUTO_REUSE
                 )
 
-        # squeeze  None, 1, 1  -> None, 1
-        conv3_squeeze = tf.squeeze(conv3, axis = 1)
-        out = conv3_squeeze
-        print('model 1d cnn output :',out.shape )
-        # output size should be [None, 1],
+            # squeeze  None, 1, 1  -> None, 1
+            conv3_squeeze = tf.squeeze(conv3, axis = 1)
+            out = conv3_squeeze
+            print('model 1d cnn output :',out.shape )
+            # output size should be [None, 1],
         return out
 
 
-
+    # deprecated since jan 2020
     def model_fusion(self, med_res_3d, med_res_2d, med_res_1d, dim, is_training):
         # prediction_1d: batchsize, 1  -> duplicate to batch size, 32, 20, 1
         temp_list = []
@@ -493,6 +498,69 @@ class Autoencoder:
         return conv4
 
 
+            # take a list of feature maps, combine them through stacking
+    # continue to train the stacked feature maps using several conv layers.
+    # output a latent feature with specified dim
+    def fuse_and_train(self, feature_map_list, is_training, suffix = '', dim=3):
+        var_scope = 'fusion_layer_'+ suffix
+        with tf.variable_scope(var_scope):
+            fuse_feature =tf.concat(axis=3,values=feature_map_list)
+            print('fuse_feature.shape: ', fuse_feature.shape)
+
+            # Convolution Layer with 32 filters and a kernel size of 5
+            # conv1 = tf.layers.conv2d(fuse_feature, 32, 3, padding='same',activation=my_leaky_relu)
+            # Convolution Layer with 32 filters and a kernel size of 5
+            conv1 = tf.layers.conv2d(fuse_feature, 16, 3, padding='same',activation=None)
+            # conv1 = tf.layers.conv2d(x_2d_train_data, 16, 3, padding='same',activation=None)
+            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
+
+            #  Convolution Layer with 64 filters and a kernel size of 3
+            # conv2: change from 16 to 32
+            conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+
+        # output should be (?, 32, 20, 1)
+        # with tf.name_scope("fusion_layer_b"):
+            conv3 = tf.layers.conv2d(
+                      inputs=conv2,
+                      filters=dim,
+                      kernel_size=[1, 1],
+                      padding="same",
+                      activation=my_leaky_relu
+                      #reuse = tf.AUTO_REUSE
+                )
+
+            out = conv3
+            print('latent representation shape: ',out.shape)
+            # output size should be [batchsize, height, width, dim]
+        return out
+
+
+    # take a latent fea, decode into [batchsize, 32, 20, dim_decode]
+    def branching(self, latent_fea, dim_decode, is_training):
+        padding = 'SAME'
+        stride = [1, 1]
+        #  [None, 32, 20, dim] - > [None, 32, 20, 16]
+        conv1 = tf.layers.conv2d(latent_fea, 16, 3, padding='same',activation=None)
+        conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+        conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
+
+        conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
+        conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+        conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+        # [None, 32, 20, 16]  -> [None,32, 20 32]
+
+        conv3 = tf.layers.conv2d(conv2, dim_decode, 3, padding='same',activation=None)
+        conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+        conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
+        #[None,32, 20 32] -> [None, 32, 20, dim_2d]
+        return conv3
+
+
+
+
 
     '''
     inputs_: feature tensor: input shape: [None, timestep, height, width, channels]
@@ -572,34 +640,40 @@ class Autoencoder:
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
                                        5000, 0.96, staircase=True)
         # reconstructed, encoded = self.vanilla_autoencoder(self.x)
-        med_res_3d = [] # intermediate prediction features
-        med_res_2d = []
-        med_res_1d = []
+        # med_res_3d = [] # intermediate prediction features
+        # med_res_2d = []
+        # med_res_1d = []
         keys_list = []
         first_order_encoder_list = []
+        # first level output [dataset name: output]
+        first_level_output = dict()
 
         for k, v in self.rawdata_1d_tf_x_dict.items():
-            prediction_1d = self.cnn_1d_model(v, self.is_training)
-            med_res_1d.append(prediction_1d)
+            prediction_1d = self.cnn_1d_model(v, self.is_training, k)
+            prediction_1d = tf.expand_dims(prediction_1d, 1)
+            prediction_1d = tf.expand_dims(prediction_1d, 1)
+            prediction_1d_expand = tf.tile(prediction_1d, [1, HEIGHT,
+                                                    WIDTH ,1])
+            first_level_output[k] = prediction_1d_expand
             keys_list.append(k)
             first_order_encoder_list.append(prediction_1d)
 
         for k, v in self.rawdata_2d_tf_x_dict.items():
-            prediction_2d = self.cnn_2d_model(v, self.is_training)
-            med_res_2d.append(prediction_2d)
+            prediction_2d = self.cnn_2d_model(v, self.is_training, k)
             keys_list.append(k)
+            first_level_output[k] = prediction_2d
             first_order_encoder_list.append(prediction_2d)
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
-            prediction_3d = self.cnn_model(v, self.is_training)
-            med_res_3d.append(prediction_3d)
+            prediction_3d = self.cnn_model(v, self.is_training, k)
             keys_list.append(k)
+            first_level_output[k] = prediction_3d
             first_order_encoder_list.append(prediction_3d)
 
 
-
         # dim: latent fea dimension
-        latent_fea = self.model_fusion(med_res_3d, med_res_2d, med_res_1d, dim, self.is_training)
+        # latent_fea = self.model_fusion(med_res_3d, med_res_2d, med_res_1d, dim, self.is_training)
+        latent_fea = self.fuse_and_train(list(first_level_output.values()),  self.is_training, '1', dim)
         print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 3)
         # recontruction
         print('recontruction')
