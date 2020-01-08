@@ -475,9 +475,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './autoencoder_v2_'+ 'dim'+ str(dim)  +'/'
+        save_path =  './autoencoder_v2_202001_'+ 'dim'+ str(dim)  +'/'
     else:
-        save_path = './autoencoder_v2_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
+        save_path = './autoencoder_v2_202001_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir
