@@ -774,11 +774,14 @@ class Autoencoder:
         if train_from_start:
             saver = tf.train.Saver()
         else:
+            print('Restoring saver from pretrained model....', pretrained_ckpt_path)
             # train from pretrained model_fusion
             variables = tf.global_variables()
             # get scopes_to_reserve
             scopes_to_reserve = get_scopes_to_restore(rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict)
             variable_to_restore = get_variables_to_restore(variables, scopes_to_reserve)
+            print('variable_to_restore: ')
+            print(variable_to_restore)
             vars_to_restore_dict = {}
             # make the dictionary, note that everything here will have “:0”, avoid it.
             for v in variable_to_restore:
