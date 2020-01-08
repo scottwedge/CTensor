@@ -14,7 +14,9 @@
 # change saved model name and path
 # added restoring some variables from pretrained all-to-all AE
 
-
+# last updated: Jan 8 2020
+# fix pretrained weights
+# output second level encoded layers
 
 import numpy as np
 import tensorflow as tf
@@ -677,6 +679,10 @@ class Autoencoder:
         # ------------ grouping in encoder ------------- #
         # [group name: feature maps]
         second_level_output = dict()
+        second_order_encoder_list = []  # output feature maps for grouping
+        # second level key list, a list of group names to be used for further grouping
+        keys_list = []
+
         for grp, data_list in grouping_dict.items():
             # group a list of dataset in a group
             temp_list = [] # a list of feature maps belonging to the same group from first level training
@@ -686,6 +692,9 @@ class Autoencoder:
             scope_name = '1'+ grp
             group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, scope_name, dim=3) # fuse and train
             second_level_output[grp] = group_fusion_featuremap
+
+            second_order_encoder_list.append(group_fusion_featuremap)
+            keys_list.append(grp)
 
 
         # ------------------------------------------------#
@@ -765,6 +774,7 @@ class Autoencoder:
 
         train_result = list()
         test_result = list()
+        encoded_list = list()  # output last layer of encoded for further grouping
 
         if not os.path.exists(save_folder_path):
             os.makedirs(save_path)
@@ -874,8 +884,12 @@ class Autoencoder:
                     batch_cost, batch_loss_dict, batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
-                    batch_output = sess.run([latent_fea], feed_dict= feed_dict_all)
+                    batch_output, batch_encoded_list = sess.run([latent_fea, second_order_encoder_list], feed_dict= feed_dict_all)
                     final_output.extend(batch_output)
+
+                    # record results every 50 iterations, that is about 900 samples
+                    if itr% 50 == 0:
+                        final_encoded_list.append(batch_encoded_list)
 
                     epoch_loss += batch_cost
                     for k, v in epoch_subloss.items():
@@ -1086,6 +1100,9 @@ class Autoencoder:
                     the_file.write(str(test_time_per_epoch) + '\n')
                     the_file.write('time per sample for test\n')
                     the_file.write(str(test_time_per_sample) + '\n')
+                    the_file.write('keys_list\n')
+                    for item in keys_list:
+                        the_file.write("%s\n" % item)
                     the_file.close()
 
                 # plot results
@@ -1104,6 +1121,7 @@ class Autoencoder:
                     train_result.extend(final_output)
                     test_final_output = np.array(test_final_output)
                     test_result.extend(test_final_output)
+                    encoded_list.extend(final_encoded_list)
 
             # encoded_res = np.array(test_result)
             train_encoded_res = train_result
@@ -1117,7 +1135,7 @@ class Autoencoder:
                 test_output_arr = np.concatenate((test_output_arr, test_encoded_res[i]), axis=0)
 
         # This is the latent representation (9337, 1, 32, 20, 1) of training
-        return train_output_arr, test_output_arr
+        return train_output_arr, test_output_arr, encoded_list, keys_list
 
 
 
@@ -1518,6 +1536,9 @@ class Autoencoder:
                     the_file.write(str(test_time_per_epoch) + '\n')
                     the_file.write('time per sample for test\n')
                     the_file.write(str(test_time_per_sample) + '\n')
+                    the_file.write('keys_list\n')
+                    for item in keys_list:
+                        the_file.write("%s\n" % item)
                     the_file.close()
 
                 # plot results
@@ -1691,15 +1712,21 @@ class Autoencoder_entry:
                     # get prediction results
                     print('training from scratch, and get prediction results')
                     # predicted_vals: (552, 30, 30, 1)
-                    self.train_lat_rep, self.test_lat_rep = self.run_autoencoder()
-                    np.save(self.save_path +'train_lat_rep.npy', self.train_lat_rep)
-                    np.save(self.save_path +'test_lat_rep.npy', self.test_lat_rep)
+                    self.train_lat_rep, self.test_lat_rep, encoded_list, keys_list = self.run_autoencoder()
+                    # np.save(self.save_path +'train_lat_rep.npy', self.train_lat_rep)
+                    # np.save(self.save_path +'test_lat_rep.npy', self.test_lat_rep)
             else:
                     # resume training
                     print("resume training, and get prediction results")
-                    self.train_lat_rep, self.test_lat_rep = self.run_resume_training()
-                    np.save(self.save_path +'train_lat_rep.npy', self.train_lat_rep)
-                    np.save(self.save_path +'test_lat_rep.npy', self.test_lat_rep)
+                    self.train_lat_rep, self.test_lat_rep, encoded_list, keys_list = self.run_resume_training()
+            np.save(self.save_path +'train_lat_rep.npy', self.train_lat_rep)
+            np.save(self.save_path +'test_lat_rep.npy', self.test_lat_rep)
+            file = open(self.save_path + 'encoded_list', 'wb')
+            # dump information to that file
+            # number of batches, num_dataset, batchsize, h, w, dim
+            print('dumping encoded_list to pickle')
+            pickle.dump(encoded_list, file)
+            file.close()
         else:
             # inference only
             print('get inference results')
@@ -1724,13 +1751,13 @@ class Autoencoder_entry:
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
         # (9337, 1, 32, 20, 1)
-        train_lat_rep, test_lat_rep = predictor.train_autoencoder(
+        train_lat_rep, test_lat_rep, encoded_list, keys_list = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim, self.grouping_dict,
                 use_pretrained =  self.use_pretrained, pretrained_ckpt_path = self.pretrained_ckpt_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
-        return train_lat_rep, test_lat_rep
+        return train_lat_rep, test_lat_rep, encoded_list, keys_list
 
 
 
@@ -1744,7 +1771,7 @@ class Autoencoder_entry:
                      self.demo_mask_arr, self.dim, self.grouping_dict,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
-        train_lat_rep, test_lat_rep = predictor.train_autoencoder(
+        train_lat_rep, test_lat_rep, encoded_list, keys_list = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim, self.grouping_dict,
                          True, self.checkpoint_path,
@@ -1757,7 +1784,7 @@ class Autoencoder_entry:
         #                  self.demo_mask_arr, self.save_path, self.dim, self.checkpoint_path, self.grouping_dict,
         #              epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
-        return train_lat_rep, test_lat_rep
+        return train_lat_rep, test_lat_rep, encoded_list, keys_list
 
 
 
