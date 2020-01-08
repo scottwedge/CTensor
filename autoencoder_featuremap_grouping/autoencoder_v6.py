@@ -689,7 +689,7 @@ class Autoencoder:
             for ds in data_list:
                 temp_list.append(first_level_output[ds])
 
-            scope_name = '1'+ grp
+            scope_name = '1_'+ grp
             group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, scope_name, dim=3) # fuse and train
             second_level_output[grp] = group_fusion_featuremap
 
@@ -767,9 +767,18 @@ class Autoencoder:
         print('total_loss: ', total_loss)
         cost = total_loss
 
+        #--------  fix weights, not update during optimization ------ #
+        variables = tf.global_variables()
+        # get scopes_to_reserve
+        scopes_to_reserve = get_scopes_to_restore(rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict)
+        variable_to_restore = get_variables_to_restore(variables, scopes_to_reserve)
+        print('variable_to_restore: ')
+        print(variable_to_restore)
+        variables_to_update = [v for v in tf.global_variables() if v not in variable_to_restore]
 
         with tf.name_scope("training"):
-            optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost, global_step = self.global_step)
+            optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost,
+                    global_step = self.global_step, var_list=variables_to_update)
 
 
         train_result = list()
@@ -780,23 +789,20 @@ class Autoencoder:
             os.makedirs(save_path)
 
 
-        # --- dealing with saver ------ #
+        # --- dealing with model saver ------ #
         if not use_pretrained:
             saver = tf.train.Saver()
         else:
             print('Restoring saver from pretrained model....', pretrained_ckpt_path)
             # train from pretrained model_fusion
-            variables = tf.global_variables()
-            # get scopes_to_reserve
-            scopes_to_reserve = get_scopes_to_restore(rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict)
-            variable_to_restore = get_variables_to_restore(variables, scopes_to_reserve)
-            print('variable_to_restore: ')
-            print(variable_to_restore)
             vars_to_restore_dict = {}
             # make the dictionary, note that everything here will have “:0”, avoid it.
             for v in variable_to_restore:
                 vars_to_restore_dict[v.name[:-2]] = v
-            saver = tf.train.Saver(vars_to_restore_dict)
+            # only for restoring pretrained model weights
+            pretrained_saver = tf.train.Saver(vars_to_restore_dict)
+             # save all variables
+            saver = tf.train.Saver()
 
 
 
@@ -805,7 +811,7 @@ class Autoencoder:
             sess.run(tf.global_variables_initializer())
             # ----- if initialized with pretrained weights ----
             if use_pretrained:
-                saver.restore(sess, pretrained_ckpt_path)
+                pretrained_saver.restore(sess, pretrained_ckpt_path)
 
             # ---- if resume training -----
             if resume_training:
@@ -924,7 +930,7 @@ class Autoencoder:
                     print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
 
 
-                save_path = saver.save(sess, save_folder_path +'autoencoder_v5_' +str(epoch)+'.ckpt', global_step=self.global_step)
+                save_path = saver.save(sess, save_folder_path +'autoencoder_v6_' +str(epoch)+'.ckpt', global_step=self.global_step)
                 # save_path = saver.save(sess, './autoencoder.ckpt')
                 print('Model saved to {}'.format(save_path))
 
