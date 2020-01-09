@@ -34,6 +34,8 @@ import tensorflow.python.keras
 import tensorflow.contrib.keras as keras
 from tensorflow.python.keras import backend as K
 
+import pickle
+
 
 HEIGHT = 32
 WIDTH = 20
