@@ -851,6 +851,7 @@ class Autoencoder:
                 epoch_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
                 final_output = list()
+                final_encoded_list = list()
 
                 # mini batch
                 for itr in range(iterations):
