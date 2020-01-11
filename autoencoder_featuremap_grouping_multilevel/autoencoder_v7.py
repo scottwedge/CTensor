@@ -712,7 +712,7 @@ class Autoencoder:
                 temp_list.append(first_level_output[ds])
 
             scope_name = '2_'+ grp
-            group_fusion_featuremap = self.fuse_and_train(temp_list, is_training, scope_name, dim=3) # fuse and train
+            group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, scope_name, dim=3) # fuse and train
             second_level_output[grp] = group_fusion_featuremap
 
             second_order_encoder_list.append(group_fusion_featuremap)
