@@ -155,7 +155,8 @@ class Autoencoder:
     # input_dim = 1, seq_size = 168,
     def __init__(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
                    intersect_pos_set,
-                    demo_mask_arr, dim,grouping_dict,
+                    demo_mask_arr, dim,
+                    first_level_grouping_dict, second_level_grouping_dict,
                     channel, time_steps, height, width):
 
         self.time_steps = time_steps
@@ -163,7 +164,12 @@ class Autoencoder:
         self.height = height
         self.channel = channel  # 27
         self.dim  = dim # default = 1, it is the dimension of latent representation
-        self.grouping_dict = grouping_dict
+        #self.grouping_dict = grouping_dict
+        self.first_level_grouping_dict = first_level_grouping_dict
+        self.second_level_grouping_dict = second_level_grouping_dict
+
+
+
         # this is usefor Batch normalization.
         # https://towardsdatascience.com/pitfalls-of-batch-norm-in-tensorflow-and-sanity-checks-for-training-networks-e86c207548c8
         self.is_training = tf.placeholder(tf.bool)
