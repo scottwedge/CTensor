@@ -769,7 +769,7 @@ class Autoencoder:
         keys_3d = rawdata_3d_dict.keys()
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 1)
 
-        for grp, data_list in grouping_dict.items():
+        for grp, data_list in first_level_grouping_dict.items():
             for ds in data_list:
                 # reconstruct each
                 if ds in keys_1d:
