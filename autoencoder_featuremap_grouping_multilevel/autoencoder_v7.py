@@ -712,7 +712,7 @@ class Autoencoder:
                 temp_list.append(first_level_output[ds])
 
             scope_name = '2_'+ grp
-            group_fusion_featuremap = fuse_and_train(temp_list, is_training, scope_name, dim=3) # fuse and train
+            group_fusion_featuremap = self.fuse_and_train(temp_list, is_training, scope_name, dim=3) # fuse and train
             second_level_output[grp] = group_fusion_featuremap
 
             second_order_encoder_list.append(group_fusion_featuremap)
@@ -740,7 +740,7 @@ class Autoencoder:
         second_level_decode = dict()  # [group name: latent rep], e.g. [latent rep -> 'group_2_1' and 'group_2_2']
         for grp in list(second_level_grouping_dict.keys()):
                 # store the representation of, e.g., 'group_2_1'
-                second_level_decode[grp] = branching(latent_fea, dim, is_training)
+                second_level_decode[grp] = self.branching(latent_fea, dim, self.is_training)
 
     # ------ first level branching ------------------ #
         # for each group in second_level_decode, decode into first level
@@ -749,7 +749,7 @@ class Autoencoder:
         # grp: 'group_2_1';   data_list: ['group_1', 'group_6', 'group_7']
         for grp, data_list in second_level_grouping_dict.items():
             for ds in data_list:
-                first_level_decode[ds] = branching(second_level_decode[grp], dim, is_training)
+                first_level_decode[ds] = self.branching(second_level_decode[grp], dim, self.is_training)
 
 
         # branch one latent feature into [# of groups]'s latent representations
