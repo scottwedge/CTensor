@@ -586,7 +586,7 @@ def main():
         'group_3': ['POI_business', 'POI_food', 'POI_hospitals', 'POI_publicservices',
                 'POI_recreation', 'POI_transportation', 'total_flow_count',
                 'transit_routes', 'transit_signals', 'transit_stop', 'bikelane'],
-        'group_4': ['POI_hospitals', 'POI_recreation', 'slope'],
+        'group_4': ['POI_school', 'seattle_street', 'slope'],
         'group_5': ['building_permit'],
         'group_6': ['collisions'],
         'group_7': ['seattle911calls'],
