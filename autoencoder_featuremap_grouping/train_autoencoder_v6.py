@@ -582,7 +582,7 @@ def main():
 
     grouping_dict = {
         'group_1': ['precipitation'],
-        'group_2': ['temperature', 'pressure', 'airquality', 'house_price', 'POI_government']],
+        'group_2': ['temperature', 'pressure', 'airquality', 'house_price', 'POI_government'],
         'group_3': ['POI_business', 'POI_food', 'POI_hospitals', 'POI_publicservices',
                 'POI_recreation', 'POI_transportation', 'total_flow_count',
                 'transit_routes', 'transit_signals', 'transit_stop', 'bikelane'],
