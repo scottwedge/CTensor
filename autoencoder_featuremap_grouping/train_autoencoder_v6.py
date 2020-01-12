@@ -562,18 +562,37 @@ def main():
 
     ########### group by ALL feature maps using cosine similarity  ####
     #### removed abs from cos similarity  #############################
+    # grouping_dict = {
+    #     'group_1': ['precipitation', 'temperature', 'pressure'],
+    #     'group_2': ['airquality'],
+    #     'group_3': ['house_price', 'POI_government', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
+    #     'group_4': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation',
+    #                 'transit_stop', 'bikelane'],
+    #     'group_5': ['POI_hospitals', 'POI_recreation', 'slope'],
+    #     'group_6': ['building_permit'],
+    #     'group_7': ['collisions'],
+    #     'group_8': ['seattle911calls'],
+    #
+    # }
+
+
+
+    # ------    featuremap_similarity_cosine-expansion-formal-flatten_comparison --- #
+
+
     grouping_dict = {
-        'group_1': ['precipitation', 'temperature', 'pressure'],
-        'group_2': ['airquality'],
-        'group_3': ['house_price', 'POI_government', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
-        'group_4': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation',
-                    'transit_stop', 'bikelane'],
-        'group_5': ['POI_hospitals', 'POI_recreation', 'slope'],
-        'group_6': ['building_permit'],
-        'group_7': ['collisions'],
-        'group_8': ['seattle911calls'],
+        'group_1': ['precipitation'],
+        'group_2': ['temperature', 'pressure', 'airquality', 'house_price', 'POI_government']],
+        'group_3': ['POI_business', 'POI_food', 'POI_hospitals', 'POI_publicservices',
+                'POI_recreation', 'POI_transportation', 'total_flow_count',
+                'transit_routes', 'transit_signals', 'transit_stop', 'bikelane'],
+        'group_4': ['POI_hospitals', 'POI_recreation', 'slope'],
+        'group_5': ['building_permit'],
+        'group_6': ['collisions'],
+        'group_7': ['seattle911calls'],
 
     }
+
 
 
 
