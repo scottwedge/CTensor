@@ -479,6 +479,17 @@ def main():
         # 'seattle911calls': seattle911calls_arr # (45984, 32, 20)
         }
 
+
+    # --- TOY CASE GROUPING ----------------- #
+    grouping_dict = {
+        'group_1': ['precipitation', 'temperature'],
+        'group_2': ['seattle_street', 'bikelane'],
+
+    }
+
+
+
+
     # -------------- grouping -----------------------
     # grouping_dict = {'weather_grp': ['weather', 'airquality'],
     #             'transportation_grp': ['POI_transportation', 'seattle_street', 'total_flow_count',
@@ -582,19 +593,19 @@ def main():
     # ------    featuremap_similarity_cosine-expansion-formal-flatten_comparison --- #
 
 
-    grouping_dict = {
-        'group_1': ['precipitation'],
-        'group_2': ['temperature', 'pressure', 'airquality', 'house_price', 'POI_government'],
-        'group_3': ['POI_business', 'POI_food', 'POI_hospitals', 'POI_publicservices',
-                'POI_recreation', 'POI_transportation', 'total_flow_count',
-                'transit_routes', 'transit_signals', 'transit_stop', 'bikelane'],
-        'group_4': ['POI_school', 'seattle_street', 'slope'],
-        'group_5': ['building_permit'],
-        'group_6': ['collisions'],
-        'group_7': ['seattle911calls'],
-
-    }
-
+    # grouping_dict = {
+    #     'group_1': ['precipitation'],
+    #     'group_2': ['temperature', 'pressure', 'airquality', 'house_price', 'POI_government'],
+    #     'group_3': ['POI_business', 'POI_food', 'POI_hospitals', 'POI_publicservices',
+    #             'POI_recreation', 'POI_transportation', 'total_flow_count',
+    #             'transit_routes', 'transit_signals', 'transit_stop', 'bikelane'],
+    #     'group_4': ['POI_school', 'seattle_street', 'slope'],
+    #     'group_5': ['building_permit'],
+    #     'group_6': ['collisions'],
+    #     'group_7': ['seattle911calls'],
+    #
+    # }
+    #
 
 
 
