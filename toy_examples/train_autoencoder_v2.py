@@ -461,9 +461,9 @@ def main():
         }
 
     rawdata_3d_dict = {
-          'building_permit': building_permit_arr_seq_extend,
-        'collisions': collisions_arr_seq_extend,  # (7, 45840, 32, 20)
-        'seattle911calls': seattle911calls_arr # (45984, 32, 20)
+        #   'building_permit': building_permit_arr_seq_extend,
+        # 'collisions': collisions_arr_seq_extend,  # (7, 45840, 32, 20)
+        # 'seattle911calls': seattle911calls_arr # (45984, 32, 20)
         }
 
 
