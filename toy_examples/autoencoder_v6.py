@@ -782,7 +782,7 @@ class Autoencoder:
 
         with tf.name_scope("training"):
             optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost,
-                    global_step = self.global_step, var_list=variables_to_update)
+                    global_step = self.global_step)
 
 
         train_result = list()
