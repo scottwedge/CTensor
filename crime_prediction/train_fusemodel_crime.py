@@ -627,6 +627,10 @@ def main():
         train_arr = np.concatenate([train_arr,seattle911calls_train_arr], axis=4)
         test_arr = np.concatenate([test_arr,seattle911calls_test_arr], axis=4)
         print('train_arr.shape: ', train_arr.shape)
+    else:
+        train_arr = np.expand_dims(train_arr, axis=4)
+        test_arr = np.expand_dims(test_arr, axis=4)
+
 
 
 
