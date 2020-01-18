@@ -569,6 +569,8 @@ def main():
 
 
 
+
+
 ####################### city ignorant treatment ################
     # lamda = 0
     # if specified training dir to resume training,
@@ -631,6 +633,8 @@ def main():
         print('ignore 3d data')
         train_arr = np.expand_dims(train_arr, axis=4)
         test_arr = np.expand_dims(test_arr, axis=4)
+
+    globals()['BIKE_CHANNEL']  = train_arr.shape[-1]
 
 
 
