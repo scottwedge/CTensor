@@ -463,14 +463,17 @@ def main():
 
         path_3d = '../data_processing/3d_source_data/'
 
-        if os.path.isfile(path_3d + 'crime_arr_20140201_20190501_python3.npy'):
+
+        #  seattlecrime_grided_3-day_3-hour_20140101-20190505.npy
+        # crime_arr_20140201_20190501_python3.npy
+        if os.path.isfile(path_3d + 'seattlecrime_grided_3-day_3-hour_20140101-20190505.npy'):
             print('loading raw data array...')
-            rawdata_arr = np.load(path_3d + 'crime_arr_20140201_20190501_python3.npy')
+            rawdata_arr = np.load(path_3d + 'seattlecrime_grided_3-day_3-hour_20140101-20190505.npy')
             # rawdata_arr = np.load('bikedata_32_20_171001-181031.npy')
         else:
             print('generating raw data array')
             rawdata_arr = train_obj.df_to_tensor()
-            np.save('crime_arr_20140201_20190501_python3.npy', rawdata_arr)
+            np.save('seattlecrime_grided_3-day_3-hour_20140101-20190505.npy', rawdata_arr)
 
         print('generating fixed window length training and testing sequences...')
         # raw_seq_arr.shape (169, 9336, 32, 20)
