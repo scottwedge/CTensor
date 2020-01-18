@@ -628,6 +628,7 @@ def main():
         test_arr = np.concatenate([test_arr,seattle911calls_test_arr], axis=4)
         print('train_arr.shape: ', train_arr.shape)
     else:
+        print('ignore 3d data')
         train_arr = np.expand_dims(train_arr, axis=4)
         test_arr = np.expand_dims(test_arr, axis=4)
 
