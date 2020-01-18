@@ -409,6 +409,8 @@ def parse_args():
                     action="store", help = 'whether to use 1d features. If use this option, set to True. Otherwise, default False')
     parser.add_argument('-use_2d_fea',    type=bool, default=False,
                     action="store", help = 'whether to use 2d features')
+    parser.add_argument('-use_3d_fea',    type=bool, default=False,
+                    action="store", help = 'whether to use 3d features')
 
     parser.add_argument('-s',   '--suffix',
                      action="store", help = 'save path suffix', default = '')
@@ -435,6 +437,7 @@ def main():
 
     use_1d_fea = bool(args.use_1d_fea)
     use_2d_fea = bool(args.use_2d_fea)
+    use_3d_fea = bool(args.use_3d_fea)
     suffix = args.suffix
 
     # the following arguments for resuming training
@@ -448,6 +451,7 @@ def main():
 
     print("use_1d_fea: ", use_1d_fea)
     print("use_2d_fea: ", use_2d_fea)
+    print("use_3d_fea: ", use_3d_fea)
     print("resume_training: ", resume_training)
     print("training dir path: ", train_dir)
     print("checkpoint: ", checkpoint)
@@ -473,6 +477,8 @@ def main():
         rawdata = pd.read_csv('../data_processing/3d_source_data/seattlecrime_grided_3-day_3-hour_20140101-20190505.csv', index_col = 0)
 
         rawdata.index = pd.to_datetime(rawdata.index)
+        rawdata = rawdata.loc['2014-02-01 00:00:00': '2019-05-01 23:00:00']
+
         # a set of region codes (e.g.: 10_10) that intersect with the city
         intersect_pos = pd.read_csv('../auxillary_data/intersect_pos_32_20.csv')
         intersect_pos_set = set(intersect_pos['0'].tolist())
@@ -552,14 +558,14 @@ def main():
             train_arr_1d = None
             test_arr_1d = None
 
-        if os.path.isfile(path_3d + 'crime_arr_20140201_20190501_python3.npy'):
+        if os.path.isfile(path_3d + 'seattlecrime_grided_3-day_3-hour_20140201-20190501.npy'):
             print('loading raw data array...')
-            rawdata_arr = np.load(path_3d + 'crime_arr_20140201_20190501_python3.npy')
+            rawdata_arr = np.load(path_3d + 'seattlecrime_grided_3-day_3-hour_20140201-20190501.npy')
             # rawdata_arr = np.load('bikedata_32_20_171001-181031.npy')
         else:
             print('generating raw data array')
             rawdata_arr = train_obj.df_to_tensor()
-            np.save('crime_arr_20140201_20190501_python3.npy', rawdata_arr)
+            np.save(path_3d + 'seattlecrime_grided_3-day_3-hour_20140201-20190501.npy', rawdata_arr)
 
 
 
@@ -603,21 +609,24 @@ def main():
     print('input train_arr shape: ',train_arr.shape )
     print('input test_arr shape: ',test_arr.shape )
 
-    # add 3d 911 data: (45984, 32, 20)
-    seattle911calls_arr = np.load(path_3d + 'seattle911calls_arr_20140201_20190501.npy')
-    seattle911calls_arr_3hour = np.mean(seattle911calls_arr.reshape(-1, 3, 32, 20), axis=1)
-    seattle911calls_arr_3hour_seq = train_obj.generate_fixlen_timeseries(seattle911calls_arr_3hour)
-    seattle911calls_train_arr, seattle911calls_test_arr = train_obj.train_test_split(seattle911calls_arr_3hour_seq)
+    if use_3d_fea:
+        print('use 3d feature')
 
-    # compose bikeshare and crime data
-    train_arr = np.expand_dims(train_arr, axis=4)
-    seattle911calls_train_arr = np.expand_dims(seattle911calls_train_arr, axis=4)
-    test_arr = np.expand_dims(test_arr, axis=4)
-    seattle911calls_test_arr = np.expand_dims(seattle911calls_test_arr, axis=4)
+        # add 3d 911 data: (45984, 32, 20)
+        seattle911calls_arr = np.load(path_3d + 'seattle911calls_arr_20140201_20190501.npy')
+        seattle911calls_arr_3hour = np.mean(seattle911calls_arr.reshape(-1, 3, 32, 20), axis=1)
+        seattle911calls_arr_3hour_seq = train_obj.generate_fixlen_timeseries(seattle911calls_arr_3hour)
+        seattle911calls_train_arr, seattle911calls_test_arr = train_obj.train_test_split(seattle911calls_arr_3hour_seq)
 
-    train_arr = np.concatenate([train_arr,seattle911calls_train_arr], axis=4)
-    test_arr = np.concatenate([test_arr,seattle911calls_test_arr], axis=4)
-    print('train_arr.shape: ', train_arr.shape)
+        # compose bikeshare and crime data
+        train_arr = np.expand_dims(train_arr, axis=4)
+        seattle911calls_train_arr = np.expand_dims(seattle911calls_train_arr, axis=4)
+        test_arr = np.expand_dims(test_arr, axis=4)
+        seattle911calls_test_arr = np.expand_dims(seattle911calls_test_arr, axis=4)
+
+        train_arr = np.concatenate([train_arr,seattle911calls_train_arr], axis=4)
+        test_arr = np.concatenate([test_arr,seattle911calls_test_arr], axis=4)
+        print('train_arr.shape: ', train_arr.shape)
 
 
 
