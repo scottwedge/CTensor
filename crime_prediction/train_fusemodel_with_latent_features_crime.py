@@ -448,6 +448,9 @@ def main():
         # hourly_grid_timeseries.index = pd.to_datetime(hourly_grid_timeseries.index)
         rawdata = pd.read_csv('../data_processing/3d_source_data/seattlecrime_grided_3-day_3-hour_20140101-20190505.csv', index_col = 0)
         rawdata.index = pd.to_datetime(rawdata.index)
+        rawdata = rawdata.loc['2014-02-01 00:00:00': '2019-05-01 23:00:00']
+
+
         # a set of region codes (e.g.: 10_10) that intersect with the city
         intersect_pos = pd.read_csv('../auxillary_data/intersect_pos_32_20.csv')
         intersect_pos_set = set(intersect_pos['0'].tolist())
@@ -466,14 +469,14 @@ def main():
 
         #  seattlecrime_grided_3-day_3-hour_20140101-20190505.npy
         # crime_arr_20140201_20190501_python3.npy
-        if os.path.isfile(path_3d + 'seattlecrime_grided_3-day_3-hour_20140101-20190505.npy'):
+        if os.path.isfile(path_3d + 'seattlecrime_grided_3-day_3-hour_20140201-20190501.npy'):
             print('loading raw data array...')
-            rawdata_arr = np.load(path_3d + 'seattlecrime_grided_3-day_3-hour_20140101-20190505.npy')
+            rawdata_arr = np.load(path_3d + 'seattlecrime_grided_3-day_3-hour_20140201-20190501.npy')
             # rawdata_arr = np.load('bikedata_32_20_171001-181031.npy')
         else:
             print('generating raw data array')
             rawdata_arr = train_obj.df_to_tensor()
-            np.save('seattlecrime_grided_3-day_3-hour_20140101-20190505.npy', rawdata_arr)
+            np.save(path_3d + 'seattlecrime_grided_3-day_3-hour_20140201-20190501.npy', rawdata_arr)
 
         print('generating fixed window length training and testing sequences...')
         # raw_seq_arr.shape (169, 9336, 32, 20)
