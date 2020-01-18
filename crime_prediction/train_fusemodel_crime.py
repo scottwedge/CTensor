@@ -577,9 +577,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './crime_daily_3hour_'+ str(place) + '_'  +str(use_1d_fea) +'_'+str(use_2d_fea)  + '/'
+        save_path =  './crime_daily_3hour_'+ str(place) + '_'  +str(use_1d_fea) +'_'+str(use_2d_fea) +'_'+str(use_3d_fea) + '/'
     else:
-        save_path = './crime_daily_3hour_'+ str(place) + '_' +str(use_1d_fea) +'_'+str(use_2d_fea) + '_'+ suffix  +'/'
+        save_path = './crime_daily_3hour_'+ str(place) + '_' +str(use_1d_fea) +'_'+str(use_2d_fea) + '_'+str(use_3d_fea) + '_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir
@@ -699,6 +699,8 @@ def main():
         the_file.write(str(use_1d_fea) + '\n')
         the_file.write('use_2d_fea\n')
         the_file.write(str(use_2d_fea) + '\n')
+        the_file.write('use_3d_fea\n')
+        the_file.write(str(use_3d_fea) + '\n')
         the_file.write('learning rate\n')
         the_file.write(str(LEARNING_RATE) + '\n')
 
