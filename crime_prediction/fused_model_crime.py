@@ -1663,10 +1663,11 @@ class Conv3D:
     def run_resume_training(self):
         tf.reset_default_graph()
         # self, channel, time_steps, height, width
-        predictor = Conv3DPredictor(self.intersect_pos_set, self.demo_sensitive, self.demo_pop,
-                                    self.pop_g1, self.pop_g2,self.grid_g1, self.grid_g2, self.fairloss,
+        predictor = Conv3DPredictor(self.intersect_pos_set,
+                                # self.demo_sensitive, self.demo_pop,
+                                #     self.pop_g1, self.pop_g2,self.grid_g1, self.grid_g2, self.fairloss,
                                     # self.data_2d, self.data_1d.X, self.data_2d, self.data_1d_test.X,
-                                     self.lamda, self.demo_mask_arr, channel=BIKE_CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH,
+                                     self.demo_mask_arr, channel=BIKE_CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH,
                                     )
         #data = data_loader.load_series('international-airline-passengers.csv')
         # rawdata, timesteps, batchsize
