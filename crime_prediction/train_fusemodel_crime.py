@@ -505,16 +505,16 @@ def main():
             POI_business_arr = np.load(path_2d + 'POI_business.npy')
             POI_food_arr = np.load(path_2d + 'POI_food.npy')
             POI_government_arr = np.load(path_2d + 'POI_government.npy')
-            POI_hospitals_arr = np.load(path_2d + 'POI_hospitals.npy')
+            # POI_hospitals_arr = np.load(path_2d + 'POI_hospitals.npy')
             POI_publicservices_arr = np.load(path_2d + 'POI_publicservices.npy')
 
             POI_recreation_arr = np.load(path_2d + 'POI_recreation.npy')
             POI_school_arr = np.load(path_2d + 'POI_school.npy')
-            POI_transportation_arr = np.load(path_2d + 'POI_transportation.npy')
+            # POI_transportation_arr = np.load(path_2d + 'POI_transportation.npy')
             seattle_street_arr = np.load(path_2d + 'seattle_street.npy')
-            total_flow_count_arr = np.load(path_2d + 'total_flow_count.npy')
-            transit_routes_arr = np.load(path_2d + 'transit_routes.npy')
-            transit_signals_arr = np.load(path_2d + 'transit_signals.npy')
+            # total_flow_count_arr = np.load(path_2d + 'total_flow_count.npy')
+            # transit_routes_arr = np.load(path_2d + 'transit_routes.npy')
+            # transit_signals_arr = np.load(path_2d + 'transit_signals.npy')
             # transit_stop_arr = np.load(path_2d + 'transit_stop.npy')
 
             # bikelane_arr = np.load('../feature_transform/bikelane_arr.npy')
@@ -522,10 +522,13 @@ def main():
             # transitstop_arr = np.load('../feature_transform/transitstop_arr.npy')
 
             # concatenate 2d data
+            # datalist_2d = [house_price_arr,POI_business_arr, POI_food_arr, POI_government_arr,
+            #   POI_hospitals_arr, POI_publicservices_arr, POI_recreation_arr, POI_school_arr,
+            #   POI_transportation_arr, seattle_street_arr, total_flow_count_arr, transit_routes_arr,
+            #   transit_signals_arr]
             datalist_2d = [house_price_arr,POI_business_arr, POI_food_arr, POI_government_arr,
-              POI_hospitals_arr, POI_publicservices_arr, POI_recreation_arr, POI_school_arr,
-              POI_transportation_arr, seattle_street_arr, total_flow_count_arr, transit_routes_arr,
-              transit_signals_arr]
+                POI_publicservices_arr, POI_recreation_arr, POI_school_arr,
+              seattle_street_arr]
             data_2d = np.concatenate(datalist_2d, axis=2)
 
             # data_2d = np.concatenate([slope_arr,bikelane_arr], axis=2)
