@@ -504,11 +504,11 @@ def main():
             house_price_arr = np.load(path_2d + 'house_price.npy')
             POI_business_arr = np.load(path_2d + 'POI_business.npy')
             POI_food_arr = np.load(path_2d + 'POI_food.npy')
-            POI_government_arr = np.load(path_2d + 'POI_government.npy')
+            #POI_government_arr = np.load(path_2d + 'POI_government.npy')
             # POI_hospitals_arr = np.load(path_2d + 'POI_hospitals.npy')
-            POI_publicservices_arr = np.load(path_2d + 'POI_publicservices.npy')
+            #POI_publicservices_arr = np.load(path_2d + 'POI_publicservices.npy')
 
-            POI_recreation_arr = np.load(path_2d + 'POI_recreation.npy')
+            # POI_recreation_arr = np.load(path_2d + 'POI_recreation.npy')
             POI_school_arr = np.load(path_2d + 'POI_school.npy')
             # POI_transportation_arr = np.load(path_2d + 'POI_transportation.npy')
             seattle_street_arr = np.load(path_2d + 'seattle_street.npy')
@@ -526,8 +526,8 @@ def main():
             #   POI_hospitals_arr, POI_publicservices_arr, POI_recreation_arr, POI_school_arr,
             #   POI_transportation_arr, seattle_street_arr, total_flow_count_arr, transit_routes_arr,
             #   transit_signals_arr]
-            datalist_2d = [house_price_arr,POI_business_arr, POI_food_arr, POI_government_arr,
-                POI_publicservices_arr, POI_recreation_arr, POI_school_arr,
+            datalist_2d = [house_price_arr,POI_business_arr, POI_food_arr,
+                POI_school_arr,
               seattle_street_arr]
             data_2d = np.concatenate(datalist_2d, axis=2)
             globals()['NUM_2D_FEA']  = data_2d.shape[-1]
