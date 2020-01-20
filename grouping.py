@@ -124,7 +124,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     # 3D VS 1D
                     if ds_name2 in keys_3d:
                         temp_arr2 = feature_map_dict[ds_name2] # 3d, e.g. (32, 20, 3)
-                        temp_1d_dup = np.moveaxis(temp_1d_dup,0, -1) # (32, 20, 3)
+                        #temp_1d_dup = np.moveaxis(temp_1d_dup,0, -1) # (32, 20, 3)
                         print('temp_1d_dup.shape ', temp_1d_dup.shape)
                         ave_SR = 0 # average spearman correlation
 
