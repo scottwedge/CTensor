@@ -29,6 +29,13 @@ import math
 from sklearn.cluster import AffinityPropagation
 
 
+# input a tensor [32, 20, n] or [n, 32, 20]
+# remove cells outside city, resulting in, e.g. [500, n]
+# return a flatten tensor of 500 * n
+def remove_outside_cells(tensor):
+    return tensor
+
+
 # TODO:  remove cells outside city
 def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat, all_keys, keys_1d, keys_2d, keys_3d):
     height = 32
@@ -165,8 +172,13 @@ def clustering(relation_all_df, all_keys,txt_name):
     for k, v in res_dict.items():
         print(k,v)
 
+    for key in res_dict.keys():
+        if type(key) is not str:
+            res_dict[str(key)] = res_dict[key]
+            del res_dict[key]
+
     with open(txt_name, 'w') as the_file:
-        # the_file.write(json.dumps(res_dict))
+        the_file.write(json.dumps(res_dict))
         for i in res_dict.keys():
             the_file.write(str(i) + " : " + ','.join([str(x) for x in res_dict[i]]) + "\n")
 
@@ -231,7 +243,7 @@ def main():
     print('begin grouping')
     relation_all_df = first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                 keys_list, keys_1d, keys_2d, keys_3d)
-    txt_name = encoding_dir + '_'+ level+  '_level'+ '_grouping_' + suffix + '.txt'
+    txt_name = encoding_dir +  level+  '_level'+ '_grouping_' + suffix + '.txt'
 
     clustering(relation_all_df, keys_list,txt_name)
 
