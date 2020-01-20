@@ -108,7 +108,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     if ds_name2 in keys_2d:
                         temp_arr2 = feature_map_dict[ds_name2]
                         temp_arr2_mean = np.mean(temp_arr2[n, :, :, :], axis = -1)  #
-                        temp_arr2_mean_dup = np.expand_dims(temp_arr2_mean, axis = 0)
+                        temp_arr2_mean_dup = np.expand_dims(temp_arr2_mean, axis = -1)
                         # 32, 20, 3
                         temp_arr2_mean_dup = np.repeat(temp_arr2_mean_dup, dim1, axis = -1)
                         compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr)
