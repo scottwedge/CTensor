@@ -111,6 +111,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         temp_arr2_mean_dup = np.expand_dims(temp_arr2_mean, axis = -1)
                         # 32, 20, 3
                         temp_arr2_mean_dup = np.repeat(temp_arr2_mean_dup, dim1, axis = -1)
+
                         compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr)
                         compress_arr1 = remove_outside_cells( temp_1d_dup, mask_arr)
 
@@ -143,8 +144,9 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                 temp_arr1 = feature_map_dict[ds_name1]
                 dim1 = temp_arr1.shape[-1]  # number of layers in the 2d data
                 temp_arr1_mean = np.mean(temp_arr1[n, :, :, :], axis = -1)
-                temp_arr1_mean_dup = np.expand_dims(temp_arr1_mean, axis = 0)
-                temp_arr1_mean_dup = np.repeat(temp_arr1_mean_dup, temp_arr2.shape[-1], axis = 0)
+                print('temp_arr1_mean.shape: ', temp_arr1_mean.shape)
+                # temp_arr1_mean_dup = np.expand_dims(temp_arr1_mean, axis = 0)
+                # temp_arr1_mean_dup = np.repeat(temp_arr1_mean_dup, temp_arr2.shape[-1], axis = 0)
 
                 for ds_name2 in all_keys:
                     # 2D Vs 1D
@@ -171,6 +173,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     # 2D VS 3D
                     if ds_name2 in keys_3d:
                         temp_arr2 = feature_map_dict[ds_name2]
+                        
                         compress_arr2 = remove_outside_cells( temp_arr2[n, :, :, :], mask_arr)
                         compress_arr1 = remove_outside_cells( temp_arr1_mean_dup, mask_arr)
 
