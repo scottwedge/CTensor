@@ -62,10 +62,13 @@ def remove_outside_cells(tensor, mask_arr):
             # [1, 32, 20, 1] -> [batchsize, 32, 20, 1]
             # batchsize = tf.shape(prediction)[0]
     demo_mask_arr_expanded = np.tile(demo_mask_arr_expanded, [1,1, tensor.shape[-1]])
+    print('demo_mask_arr_expanded.shape: ', demo_mask_arr_expanded.shape)
     # masked tensor, outside cells should be false / 0
     marr = np.ma.MaskedArray(tensor, mask= demo_mask_arr_expanded)
     print('masked array: ', marr)
-    compressed_arr = np.ma.compress_rows(marr)
+
+    compressed_arr = np.ma.compressed(marr)
+
     print('compressed arr: ', compressed_arr)
     print('compreessed shape: ', compressed_arr.shape)
     return compressed_arr
