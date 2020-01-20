@@ -120,6 +120,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
 
                         # compress 1D (32, 20, 3) duplicate to 32, 20, 1 by average,
                         temp_1d_mean = np.mean(temp_1d_dup, axis = -1)  #
+                        temp_1d_mean = np.expand_dims(temp_1d_mean, axis = -1) # 32, 20, 1
 
 
                         compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr)
