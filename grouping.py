@@ -197,9 +197,9 @@ def main():
                'total_flow_count', 'transit_routes', 'transit_signals', 'transit_stop', 'slope', 'bikelane']
     keys_3d = ['building_permit', 'collisions', 'seattle911calls']
     keys_list = []
-    keys_list.extend(rawdata_1d_dict.keys())
-    keys_list.extend(rawdata_2d_dict.keys())
-    keys_list.extend(rawdata_3d_dict.keys())
+    keys_list.extend(keys_1d)
+    keys_list.extend(keys_2d)
+    keys_list.extend(keys_3d)
     print('key list: ', keys_list)
 
     file = open(join(encoding_dir,'encoded_list'), 'rb')
@@ -234,7 +234,7 @@ def main():
     clustering(relation_all_df, txt_name)
 
 
-    
+
 
 if __name__ == '__main__':
     main()
