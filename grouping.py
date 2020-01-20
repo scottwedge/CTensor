@@ -68,13 +68,16 @@ def remove_outside_cells(tensor, mask_arr):
     # print('masked array: ', marr)
 
     compressed_arr = np.ma.compressed(marr)
-
     # print('compressed arr: ', compressed_arr)
-    print('compreessed shape: ', compressed_arr.shape)
+    # print('compreessed shape: ', compressed_arr.shape)
     return compressed_arr
 
 
-# TODO:  remove cells outside city
+# - removed outside cells
+# 1d feature map shape: [1, 3]
+# 2d feature map: [32, 20, 1]
+# 3d feature map: [32, 20, 3]
+# compare 2d and 1d: duplicate to 3d and flatten and compare
 def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
             mask_arr, all_keys, keys_1d, keys_2d, keys_3d):
     height = 32
@@ -104,16 +107,23 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
 
                     # 2D VS 1D
-                    # duplicate to 3d, flatten and compare
+                    # 2D:  32, 20, 1
+                    # 1D duplicate: 32, 20, 3
+                    # compress 1D duplicate to 32, 20, 1 by average,
+                    # then flatten and compare
                     if ds_name2 in keys_2d:
                         temp_arr2 = feature_map_dict[ds_name2]
                         temp_arr2_mean = np.mean(temp_arr2[n, :, :, :], axis = -1)  #
-                        temp_arr2_mean_dup = np.expand_dims(temp_arr2_mean, axis = -1)
+                        temp_arr2_mean_dup = np.expand_dims(temp_arr2_mean, axis = -1) # 32, 20, 1
                         # 32, 20, 3
-                        temp_arr2_mean_dup = np.repeat(temp_arr2_mean_dup, dim1, axis = -1)
+                        # temp_arr2_mean_dup = np.repeat(temp_arr2_mean_dup, dim1, axis = -1)
+
+                        # compress 1D (32, 20, 3) duplicate to 32, 20, 1 by average,
+                        temp_1d_mean = np.mean(temp_1d_dup, axis = -1)  #
+
 
                         compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr)
-                        compress_arr1 = remove_outside_cells( temp_1d_dup, mask_arr)
+                        compress_arr1 = remove_outside_cells( temp_1d_mean, mask_arr)
 
                         ave_SR = 0 # average spearman correlation
                         sim_sparse = cosine_similarity(compress_arr2.reshape(1, -1),
@@ -123,6 +133,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
 
                     # 3D VS 1D
+                    # duplicate 1D to 3D, flatten and compare
                     if ds_name2 in keys_3d:
                         temp_arr2 = feature_map_dict[ds_name2] # 3d, e.g. (32, 20, 3)
                         #temp_1d_dup = np.moveaxis(temp_1d_dup,0, -1) # (32, 20, 3)
@@ -175,6 +186,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     # 2D VS 3D
                     # for 2D feature maps, output 3rd dimension of feature map is 1.
                     # for 3D feature maps, output 3rd dimension is 3
+                    # average 3D feature map by 3rd dimension
                     # flatten and compare
                     if ds_name2 in keys_3d:
                         temp_arr2 = feature_map_dict[ds_name2]
