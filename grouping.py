@@ -46,7 +46,7 @@ def generate_mask_array(intersect_pos_set):
 
     mask_arr = np.array(temp_image)
     mask_arr = np.rot90(mask_arr)
-    print('mask_arr: ', mask_arr)
+    # print('mask_arr: ', mask_arr)
     # rawdata_arr = np.moveaxis(rawdata_arr, 0, -1)
     # boolean mask
     return mask_arr
@@ -65,11 +65,11 @@ def remove_outside_cells(tensor, mask_arr):
     print('demo_mask_arr_expanded.shape: ', demo_mask_arr_expanded.shape)
     # masked tensor, outside cells should be false / 0
     marr = np.ma.MaskedArray(tensor, mask= demo_mask_arr_expanded)
-    print('masked array: ', marr)
+    # print('masked array: ', marr)
 
     compressed_arr = np.ma.compressed(marr)
 
-    print('compressed arr: ', compressed_arr)
+    # print('compressed arr: ', compressed_arr)
     print('compreessed shape: ', compressed_arr.shape)
     return compressed_arr
 
@@ -125,6 +125,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     if ds_name2 in keys_3d:
                         temp_arr2 = feature_map_dict[ds_name2] # 3d, e.g. (32, 20, 3)
                         temp_1d_dup = np.moveaxis(temp_1d_dup,0, -1) # (32, 20, 3)
+                        print('temp_1d_dup.shape ', temp_1d_dup.shape)
                         ave_SR = 0 # average spearman correlation
 
                         compress_arr2 = remove_outside_cells(temp_arr2[n,:,:,:], mask_arr)
