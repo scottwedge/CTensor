@@ -111,8 +111,8 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         temp_arr2_mean_dup = np.expand_dims(temp_arr2_mean, axis = 0)
                         # 32, 20, 3
                         temp_arr2_mean_dup = np.repeat(temp_arr2_mean_dup, dim1, axis = -1)
-                        compress_arr2 = remove_outside_cells(tensor, temp_arr2_mean_dup)
-                        compress_arr1 = remove_outside_cells(tensor, temp_1d_dup)
+                        compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr)
+                        compress_arr1 = remove_outside_cells( temp_1d_dup, mask_arr)
 
                         ave_SR = 0 # average spearman correlation
                         sim_sparse = cosine_similarity(compress_arr2.reshape(1, -1),
@@ -127,8 +127,8 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         temp_1d_dup = np.moveaxis(temp_1d_dup,0, -1) # (32, 20, 3)
                         ave_SR = 0 # average spearman correlation
 
-                        compress_arr2 = remove_outside_cells(tensor, temp_arr2[n,:,:,:])
-                        compress_arr1 = remove_outside_cells(tensor, temp_1d_dup)
+                        compress_arr2 = remove_outside_cells(temp_arr2[n,:,:,:], mask_arr)
+                        compress_arr1 = remove_outside_cells(temp_1d_dup, mask_arr)
 
                         sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
                                                 compress_arr2.reshape(1, -1))
@@ -157,8 +157,8 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         dim2 = temp_arr2.shape[-1]
                         temp_arr2_mean = np.mean(temp_arr2[n, :, :, :], axis = -1)
 
-                        compress_arr2 = remove_outside_cells(tensor, temp_arr2_mean)
-                        compress_arr1 = remove_outside_cells(tensor, temp_arr1_mean)
+                        compress_arr2 = remove_outside_cells(temp_arr2_mean, mask_arr)
+                        compress_arr1 = remove_outside_cells( temp_arr1_mean, mask_arr)
 
                         sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
                                     compress_arr2.reshape(1, -1))
@@ -170,8 +170,8 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     # 2D VS 3D
                     if ds_name2 in keys_3d:
                         temp_arr2 = feature_map_dict[ds_name2]
-                        compress_arr2 = remove_outside_cells(tensor, temp_arr2[n, :, :, :])
-                        compress_arr1 = remove_outside_cells(tensor, temp_arr1_mean_dup)
+                        compress_arr2 = remove_outside_cells( temp_arr2[n, :, :, :], mask_arr)
+                        compress_arr1 = remove_outside_cells( temp_arr1_mean_dup, mask_arr)
 
                         ave_SR = 0 # average spearman correlation
                         sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
@@ -197,8 +197,8 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         temp_arr2 = feature_map_dict[ds_name2]
                         ave_SR = 0 # average spearman correlation
     #                     for i in range(dim2):
-                        compress_arr2 = remove_outside_cells(tensor, temp_arr2[n, :, :, :])
-                        compress_arr1 = remove_outside_cells(tensor, temp_arr1[n, :, :, :])
+                        compress_arr2 = remove_outside_cells( temp_arr2[n, :, :, :], mask_arr)
+                        compress_arr1 = remove_outside_cells( temp_arr1[n, :, :, :], mask_arr)
 
                         sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
                                                                        compress_arr2.reshape(1, -1))
