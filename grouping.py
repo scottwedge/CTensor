@@ -177,6 +177,8 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     # flatten and compare
                     if ds_name2 in keys_3d:
                         temp_arr2 = feature_map_dict[ds_name2]
+                        print('temp_arr1.shape: ', temp_arr1.shape)
+                        print('temp_arr2.shape: ', temp_arr2.shape)
 
                         compress_arr2 = remove_outside_cells( temp_arr2[n, :, :, :], mask_arr)
                         compress_arr1 = remove_outside_cells( temp_arr1[n, :, :, :], mask_arr)
