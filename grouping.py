@@ -150,7 +150,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat, all_ke
 
 
 
-def clustering(relation_all_df, encoding_dir):
+def clustering(relation_all_df, txt_name):
     print('begin clustering')
     data = relation_all_df.iloc[:, :].values
     clustering = AffinityPropagation(damping=0.8).fit(data)
@@ -165,7 +165,6 @@ def clustering(relation_all_df, encoding_dir):
     for k, v in res_dict.items():
         print(k,v)
 
-    txt_name = encoding_dir + '_'+ level+  '_level'+ '_grouping_' + timer + '.txt'
     with open(txt_name, 'w') as the_file:
         the_file.write(json.dumps(res_dict))
 
@@ -174,6 +173,8 @@ def clustering(relation_all_df, encoding_dir):
 
 def parse_args():
     parser = argparse.ArgumentParser()
+    parser.add_argument('-s',   '--suffix',
+                     action="store", help = 'save path suffix', default = '')
     parser.add_argument('-d',   '--encoding_dir',
                      action="store", help = 'dir containing checkpoints and feature maps', default = '')
     parser.add_argument('-l',   '--level',
@@ -185,6 +186,7 @@ def main():
     args = parse_args()
     encoding_dir = args.encoding_dir
     level = args.level
+    suffix = args.suffix
     print("encoding_dir: ", encoding_dir)
     print("levelh: ", level)
 
@@ -227,5 +229,6 @@ def main():
     print('begin grouping')
     relation_all_df = first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                 keys_list, keys_1d, keys_2d, keys_3d)
+    txt_name = encoding_dir + '_'+ level+  '_level'+ '_grouping_' + suffix + '.txt'
 
-    clustering(relation_all_df, encoding_dir)
+    clustering(relation_all_df, txt_name)
