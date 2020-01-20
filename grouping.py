@@ -42,7 +42,7 @@ def generate_mask_array(intersect_pos_set):
         for j in range(WIDTH):
             temp_str = str(j)+'_'+str(i)
             if temp_str in intersect_pos_set:
-                temp_image[r][c] = 1
+                temp_image[i][j] = 1
     mask_arr = np.array(temp_image)
     # rawdata_arr = np.moveaxis(rawdata_arr, 0, -1)
     # boolean mask
