@@ -28,12 +28,44 @@ from sklearn.metrics.pairwise import cosine_similarity
 import math
 from sklearn.cluster import AffinityPropagation
 
+HEIGHT = 32
+WIDTH = 20
+
+
+
+# if inside city, assign 1.
+# if outside city, assign 0
+# turn into numpy array mask, True/ False
+def generate_mask_array(intersect_pos_set):
+    temp_image = [[0 for i in range(HEIGHT)] for j in range(WIDTH)]
+    for i in range(HEIGHT):
+        for j in range(WIDTH):
+            temp_str = str(j)+'_'+str(i)
+            if temp_str in intersect_pos_set:
+                temp_image[r][c] = 1
+    mask_arr = np.array(temp_image)
+    # rawdata_arr = np.moveaxis(rawdata_arr, 0, -1)
+    # boolean mask
+    return mask_arr
+
+
 
 # input a tensor [32, 20, n] or [n, 32, 20]
 # remove cells outside city, resulting in, e.g. [500, n]
 # return a flatten tensor of 500 * n
-def remove_outside_cells(tensor):
-    return tensor
+def remove_outside_cells(tensor, mask_arr):
+    demo_mask_arr_expanded = tf.expand_dims(mask_arr, 2)  # [1, 2]
+            # [1, 32, 20, 1]  -> [1, 1, 32, 20, 1]
+            # [1, 32, 20, 1] -> [batchsize, 32, 20, 1]
+            # batchsize = tf.shape(prediction)[0]
+    demo_mask_arr_expanded = tf.tile(demo_mask_arr_expanded, [1,1, tf.shape(tensor)[-1]])
+    # masked tensor, outside cells should be false / 0
+    marr = np.ma.MaskedArray(tensor, mask= demo_mask_arr_expanded)
+    print('masked array: ', marr)
+    compressed_arr = np.ma.compress_rows(marr)
+    print('compressed arr: ', compressed_arr)
+    print('compreessed shape: ', compressed_arr.shape)
+    return compressed_arr
 
 
 # TODO:  remove cells outside city
@@ -241,12 +273,24 @@ def main():
     intersect_pos = pd.read_csv('./auxillary_data/intersect_pos_32_20.csv')
     intersect_pos_set = set(intersect_pos['0'].tolist())
 
-    print('begin grouping')
-    relation_all_df = first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
-                keys_list, keys_1d, keys_2d, keys_3d)
-    txt_name = encoding_dir +  level+  '_level'+ '_grouping_' + suffix + '.txt'
+    # ----  test removing outside cells ----- #
+    print(encoded_list_rearrange_concat[18][0].shape)
+    test_tensor = encoded_list_rearrange_concat[18][0]  # should be [ 32, 20, dim]
+    mask_arr = generate_mask_array(intersect_pos_set)
+    compressed_arr = remove_outside_cells(test_tensor, mask_arr)
 
-    clustering(relation_all_df, keys_list,txt_name)
+
+
+
+
+
+    # ----- uncomment -----------------
+    # print('begin grouping')
+    # relation_all_df = first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
+    #             keys_list, keys_1d, keys_2d, keys_3d)
+    # txt_name = encoding_dir +  level+  '_level'+ '_grouping_' + suffix + '.txt'
+    #
+    # clustering(relation_all_df, keys_list,txt_name)
 
 
 
