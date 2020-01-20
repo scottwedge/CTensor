@@ -55,11 +55,11 @@ def generate_mask_array(intersect_pos_set):
 # remove cells outside city, resulting in, e.g. [500, n]
 # return a flatten tensor of 500 * n
 def remove_outside_cells(tensor, mask_arr):
-    demo_mask_arr_expanded = tf.expand_dims(mask_arr, 2)  # [1, 2]
+    demo_mask_arr_expanded = np.expand_dims(mask_arr, 2)  # [1, 2]
             # [1, 32, 20, 1]  -> [1, 1, 32, 20, 1]
             # [1, 32, 20, 1] -> [batchsize, 32, 20, 1]
             # batchsize = tf.shape(prediction)[0]
-    demo_mask_arr_expanded = tf.tile(demo_mask_arr_expanded, [1,1, tf.shape(tensor)[-1]])
+    demo_mask_arr_expanded = np.tile(demo_mask_arr_expanded, [1,1, tensor.shape[-1]])
     # masked tensor, outside cells should be false / 0
     marr = np.ma.MaskedArray(tensor, mask= demo_mask_arr_expanded)
     print('masked array: ', marr)
