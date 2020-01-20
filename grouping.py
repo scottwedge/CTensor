@@ -143,9 +143,9 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
             if ds_name1 in keys_2d:
                 temp_arr1 = feature_map_dict[ds_name1]
                 dim1 = temp_arr1.shape[-1]  # number of layers in the 2d data
-                temp_arr1_mean = np.mean(temp_arr1[n, :, :, :], axis = -1)
-                print('temp_arr1_mean.shape: ', temp_arr1_mean.shape)
-                # temp_arr1_mean_dup = np.expand_dims(temp_arr1_mean, axis = 0)
+                temp_arr1_mean = np.mean(temp_arr1[n, :, :, :], axis = -1)  #[32, 20]
+                # print('temp_arr1_mean.shape: ', temp_arr1_mean.shape)
+                temp_arr1_mean_dup = np.expand_dims(temp_arr1_mean, axis = -1) #[32, 20, 1]
                 # temp_arr1_mean_dup = np.repeat(temp_arr1_mean_dup, temp_arr2.shape[-1], axis = 0)
 
                 for ds_name2 in all_keys:
@@ -159,9 +159,10 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         temp_arr2 = feature_map_dict[ds_name2]
                         dim2 = temp_arr2.shape[-1]
                         temp_arr2_mean = np.mean(temp_arr2[n, :, :, :], axis = -1)
+                        temp_arr2_mean_dup = np.expand_dims(temp_arr2_mean, axis = -1) #[32, 20, 1]
 
-                        compress_arr2 = remove_outside_cells(temp_arr2_mean, mask_arr)
-                        compress_arr1 = remove_outside_cells( temp_arr1_mean, mask_arr)
+                        compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr)
+                        compress_arr1 = remove_outside_cells( temp_arr1_mean_dup, mask_arr)
 
                         sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
                                     compress_arr2.reshape(1, -1))
@@ -173,7 +174,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     # 2D VS 3D
                     if ds_name2 in keys_3d:
                         temp_arr2 = feature_map_dict[ds_name2]
-                        
+
                         compress_arr2 = remove_outside_cells( temp_arr2[n, :, :, :], mask_arr)
                         compress_arr1 = remove_outside_cells( temp_arr1_mean_dup, mask_arr)
 
