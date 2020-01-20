@@ -44,6 +44,7 @@ def generate_mask_array(intersect_pos_set):
             if temp_str in intersect_pos_set:
                 temp_image[i][j] = 1
     mask_arr = np.array(temp_image)
+    print('mask_arr: ', mask_arr)
     # rawdata_arr = np.moveaxis(rawdata_arr, 0, -1)
     # boolean mask
     return mask_arr
