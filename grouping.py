@@ -173,14 +173,21 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         relation_all_df.loc[ds_name1, ds_name2] += ave_SR
 
                     # 2D VS 3D
-                    # for 2D feature maps, 3rd dimension is 3.
+                    # for 2D feature maps, output 3rd dimension of feature map is 1.
+                    # for 3D feature maps, output 3rd dimension is 3
                     # flatten and compare
                     if ds_name2 in keys_3d:
                         temp_arr2 = feature_map_dict[ds_name2]
                         print('temp_arr1.shape: ', temp_arr1.shape)
                         print('temp_arr2.shape: ', temp_arr2.shape)
+                        # for 3d data, original feature map [32, 20, 3]
+                        # to compare with 2d: [32, 20, 1]
+                        # average along third dimension
+                        temp_arr2_mean = np.mean(temp_arr2[n, :, :, :], axis = -1)
+                        temp_arr2_mean_dup = np.expand_dims(temp_arr2_mean, axis = -1) #[32, 20, 1]
 
-                        compress_arr2 = remove_outside_cells( temp_arr2[n, :, :, :], mask_arr)
+
+                        compress_arr2 = remove_outside_cells( temp_arr2_mean_dup, mask_arr)
                         compress_arr1 = remove_outside_cells( temp_arr1[n, :, :, :], mask_arr)
 
                         ave_SR = 0 # average spearman correlation
