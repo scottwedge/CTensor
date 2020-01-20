@@ -150,7 +150,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat, all_ke
 
 
 
-def clustering(relation_all_df, txt_name):
+def clustering(relation_all_df, all_keys,txt_name):
     print('begin clustering')
     data = relation_all_df.iloc[:, :].values
     clustering = AffinityPropagation(damping=0.8).fit(data)
@@ -231,7 +231,7 @@ def main():
                 keys_list, keys_1d, keys_2d, keys_3d)
     txt_name = encoding_dir + '_'+ level+  '_level'+ '_grouping_' + suffix + '.txt'
 
-    clustering(relation_all_df, txt_name)
+    clustering(relation_all_df, keys_list,txt_name)
 
 
 
