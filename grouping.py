@@ -179,7 +179,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         temp_arr2 = feature_map_dict[ds_name2]
 
                         compress_arr2 = remove_outside_cells( temp_arr2[n, :, :, :], mask_arr)
-                        compress_arr1 = remove_outside_cells( temp_arr1, mask_arr)
+                        compress_arr1 = remove_outside_cells( temp_arr1[n, :, :, :], mask_arr)
 
                         ave_SR = 0 # average spearman correlation
                         sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
