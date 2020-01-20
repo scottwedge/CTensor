@@ -166,7 +166,9 @@ def clustering(relation_all_df, all_keys,txt_name):
         print(k,v)
 
     with open(txt_name, 'w') as the_file:
-        the_file.write(json.dumps(res_dict))
+        # the_file.write(json.dumps(res_dict))
+        for i in res_dict.keys():
+            the_file.write(str(i) + " : " + ','.join([str(x) for x in res_dict[i]]) + "\n")
 
 
 
