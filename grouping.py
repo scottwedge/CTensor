@@ -232,3 +232,9 @@ def main():
     txt_name = encoding_dir + '_'+ level+  '_level'+ '_grouping_' + suffix + '.txt'
 
     clustering(relation_all_df, txt_name)
+
+
+    
+
+if __name__ == '__main__':
+    main()
