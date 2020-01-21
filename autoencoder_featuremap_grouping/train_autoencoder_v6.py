@@ -441,16 +441,16 @@ def main():
 
     # construct dictionary
     print('use dictionary to organize data')
-    # rawdata_1d_dict = {
-    #  'weather': weather_arr,
-    # 'airquality': airquality_arr,
-    # }
     rawdata_1d_dict = {
-     'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
-    'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
-    'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+     'weather': weather_arr,
     'airquality': airquality_arr,
     }
+    # rawdata_1d_dict = {
+    #  'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
+    # 'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
+    # 'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+    # 'airquality': airquality_arr,
+    # }
 
     rawdata_2d_dict = {
          'house_price': house_price_arr,
