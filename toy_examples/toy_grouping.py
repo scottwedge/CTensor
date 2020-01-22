@@ -79,7 +79,7 @@ def remove_outside_cells(tensor, mask_arr):
 # 3d feature map: [32, 20, 3]
 # compare 2d and 1d: duplicate to 3d and flatten and compare
 def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
-            mask_arr, all_keys, keys_1d, keys_2d, keys_3d):
+            mask_arr, all_keys, keys_1d, keys_2d, keys_3d =  []):
     height = 32
     width = 20
     relation_all_df = pd.DataFrame(0, columns = all_keys, index = all_keys)
@@ -337,7 +337,7 @@ def main():
 
     print('begin grouping')
     relation_all_df = first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
-                mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
+                mask_arr, keys_list, keys_1d, keys_2d)
     txt_name = encoding_dir +  level+  '_level'+ '_grouping_' + suffix + '.txt'
 
     clustering(relation_all_df, keys_list,txt_name)
