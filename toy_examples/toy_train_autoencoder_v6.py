@@ -482,8 +482,8 @@ def main():
 
     # --- TOY CASE GROUPING ----------------- #
     grouping_dict = {
-        'group_1': ['precipitation', 'temperature'],
-        'group_2': ['seattle_street', 'bikelane'],
+        'group_1': ['weather'],
+        'group_2': ['slope', 'bikelane'],
 
     }
 
