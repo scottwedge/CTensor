@@ -329,8 +329,8 @@ def main():
     intersect_pos_set = set(intersect_pos['0'].tolist())
 
     # ----  test removing outside cells ----- #
-    print(encoded_list_rearrange_concat[18][0].shape)
-    test_tensor = encoded_list_rearrange_concat[18][0]  # should be [ 32, 20, dim]
+    print(encoded_list_rearrange_concat[1][0].shape)
+    test_tensor = encoded_list_rearrange_concat[1][0]  # should be [ 32, 20, dim]
     mask_arr = generate_mask_array(intersect_pos_set)
 
     # compressed_arr = remove_outside_cells(test_tensor, mask_arr)
