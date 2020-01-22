@@ -36,7 +36,7 @@ import datetime
 from datetime import timedelta
 import datetime_utils
 
-import autoencoder_v6
+import toy_autoencoder_v6
 from matplotlib import pyplot as plt
 import random
 
