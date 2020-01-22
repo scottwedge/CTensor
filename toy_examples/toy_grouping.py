@@ -325,7 +325,7 @@ def main():
     feature_map_dict = dict(zip(keys_list, encoded_list_rearrange_concat))
     # encoded_list: (num_dataset, # of data points, 32, 20, dim)
 
-    intersect_pos = pd.read_csv('./auxillary_data/intersect_pos_32_20.csv')
+    intersect_pos = pd.read_csv('../auxillary_data/intersect_pos_32_20.csv')
     intersect_pos_set = set(intersect_pos['0'].tolist())
 
     # ----  test removing outside cells ----- #
