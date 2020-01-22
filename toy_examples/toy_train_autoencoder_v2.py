@@ -502,7 +502,7 @@ def main():
     if resume_training == False:
     # Model fusion without fairness
         print('Train Model')
-        latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
+        latent_representation = toy_autoencoder_v2.Autoencoder_entry(train_obj,
                                 rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                  demo_mask_arr,  save_path, dim,
                             HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE
@@ -510,7 +510,7 @@ def main():
     else:
          # resume training
         print('resume trainging from : ', train_dir)
-        latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
+        latent_representation = toy_autoencoder_v2.Autoencoder_entry(train_obj,
                             rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                          demo_mask_arr,
                             train_dir, dim,
