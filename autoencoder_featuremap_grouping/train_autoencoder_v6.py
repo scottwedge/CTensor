@@ -688,6 +688,15 @@ def main():
         the_file.write(str(dim) + '\n')
         the_file.write('learning rate\n')
         the_file.write(str(LEARNING_RATE) + '\n')
+        the_file.write('use checkpoint or not\n')
+        the_file.write(str(pretrained_checkpoint) + '\n')
+        the_file.write('checkpoint\n')
+        the_file.write(str(checkpoint) + '\n')
+
+        the_file.write('grouping strategy\n')
+        for i in grouping_dict.keys():
+            the_file.write(str(i) + '\n')
+            the_file.write(','.join([str(x) for x in grouping_dict[i]]) + "\n")
 
         the_file.close()
 
