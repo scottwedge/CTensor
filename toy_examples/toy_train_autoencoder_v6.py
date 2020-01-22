@@ -443,16 +443,16 @@ def main():
 
     # construct dictionary
     print('use dictionary to organize data')
-    # rawdata_1d_dict = {
-    #  'weather': weather_arr,
-    # 'airquality': airquality_arr,
-    # }
     rawdata_1d_dict = {
-     'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
-    'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
-    # 'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+     'weather': weather_arr,
     # 'airquality': airquality_arr,
     }
+    # rawdata_1d_dict = {
+    #  'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
+    # 'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
+    # # 'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+    # # 'airquality': airquality_arr,
+    # }
 
     rawdata_2d_dict = {
         #  'house_price': house_price_arr,
@@ -464,12 +464,12 @@ def main():
         # 'POI_recreation': POI_recreation_arr,
         # 'POI_school': POI_school_arr,
         # 'POI_transportation': POI_transportation_arr,
-        'seattle_street': seattle_street_arr,
+        # 'seattle_street': seattle_street_arr,
         # 'total_flow_count': total_flow_count_arr,
         # 'transit_routes': transit_routes_arr,
         # 'transit_signals': transit_signals_arr,
         # 'transit_stop':transit_stop_arr,
-        # 'slope': slope_arr,
+        'slope': slope_arr,
         'bikelane': bikelane_arr,
         }
 
