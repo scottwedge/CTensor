@@ -245,7 +245,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
 def clustering(relation_all_df, all_keys,txt_name):
     print('begin clustering')
     data = relation_all_df.iloc[:, :].values
-    clustering = AffinityPropagation(damping=0.8).fit(data)
+    clustering = AffinityPropagation(damping=0.5).fit(data)
     res_dict = dict()
     for i in range(len(clustering.labels_)):
         if clustering.labels_[i] not in res_dict:
