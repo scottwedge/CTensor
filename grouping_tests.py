@@ -113,25 +113,26 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     # then flatten and compare
                     # This means that there is no temporal variations for 2D
                     if ds_name2 in keys_2d:
-                        # temp_arr2 = feature_map_dict[ds_name2]
-                        # temp_arr2_mean = np.mean(temp_arr2[n, :, :, :], axis = -1)  #
-                        # temp_arr2_mean_dup = np.expand_dims(temp_arr2_mean, axis = -1) # 32, 20, 1
-                        # # 32, 20, 3
-                        # temp_arr2_mean_dup = np.repeat(temp_arr2_mean_dup, dim1, axis = -1)
-                        #
-                        # # compress 1D (32, 20, 3) duplicate to 32, 20, 1 by average,
-                        # # temp_1d_mean = np.mean(temp_1d_dup, axis = -1)  #
-                        # # temp_1d_mean = np.expand_dims(temp_1d_mean, axis = -1) # 32, 20, 1
-                        #
-                        # compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr)
-                        # compress_arr1 = remove_outside_cells( temp_1d_dup, mask_arr)
-                        #
-                        # ave_SR = 0
-                        # sim_sparse = cosine_similarity(compress_arr2.reshape(1, -1),
-                        #                                            compress_arr1.reshape(1, -1))
-                        #
-                        # ave_SR = sim_sparse[0][0]
-                        relation_all_df.loc[ds_name1, ds_name2]  += 0
+                        temp_arr2 = feature_map_dict[ds_name2]
+                        temp_arr2_mean = np.mean(temp_arr2[n, :, :, :], axis = -1)  #
+                        temp_arr2_mean_dup = np.expand_dims(temp_arr2_mean, axis = -1) # 32, 20, 1
+                        # 32, 20, 3
+                        temp_arr2_mean_dup = np.repeat(temp_arr2_mean_dup, dim1, axis = -1)
+
+                        # compress 1D (32, 20, 3) duplicate to 32, 20, 1 by average,
+                        # temp_1d_mean = np.mean(temp_1d_dup, axis = -1)  #
+                        # temp_1d_mean = np.expand_dims(temp_1d_mean, axis = -1) # 32, 20, 1
+
+                        compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr)
+                        compress_arr1 = remove_outside_cells( temp_1d_dup, mask_arr)
+
+                        ave_SR = 0
+                        sim_sparse = cosine_similarity(compress_arr2.reshape(1, -1),
+                                                                   compress_arr1.reshape(1, -1))
+
+                        ave_SR = sim_sparse[0][0]
+                        relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
+                        # relation_all_df.loc[ds_name1, ds_name2]  += 0
 
                     # 3D VS 1D
                     # duplicate 1D to 3D, flatten and compare
@@ -187,26 +188,34 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     # 2D VS 3D
                     # for 2D feature maps, output 3rd dimension of feature map is 1.
                     # for 3D feature maps, output 3rd dimension is 3
-                    # average 3D feature map by 3rd dimension
+                    # duplicate 2D to 3D
                     # flatten and compare
                     if ds_name2 in keys_3d:
                         temp_arr2 = feature_map_dict[ds_name2]
+
                         # print('temp_arr1.shape: ', temp_arr1.shape)
                         # print('temp_arr2.shape: ', temp_arr2.shape)
                         # for 3d data, original feature map [32, 20, 3]
                         # to compare with 2d: [32, 20, 1]
                         # average along third dimension
-                        temp_arr2_mean = np.mean(temp_arr2[n, :, :, :], axis = -1)
-                        temp_arr2_mean_dup = np.expand_dims(temp_arr2_mean, axis = -1) #[32, 20, 1]
+                        # temp_arr2_mean = np.mean(temp_arr2[n, :, :, :], axis = -1)
+                        # temp_arr2_mean_dup = np.expand_dims(temp_arr2_mean, axis = -1) #[32, 20, 1]
 
 
-                        compress_arr2 = remove_outside_cells( temp_arr2_mean_dup, mask_arr)
-                        compress_arr1 = remove_outside_cells( temp_arr1[n, :, :, :], mask_arr)
+
+                        temp_arr1_mean = np.mean(temp_arr1[n, :, :, :], axis = -1)  #
+                        temp_arr1_mean_dup = np.expand_dims(temp_arr1_mean, axis = -1) # 32, 20, 1
+                        # 32, 20, 3
+                        temp_arr1_mean_dup = np.repeat(temp_arr1_mean_dup, temp_arr2.shape[-1], axis = -1)
+
+
+                        compress_arr1 = remove_outside_cells( temp_arr1_mean_dup, mask_arr)
+                        compress_arr2 = remove_outside_cells( temp_arr2, mask_arr)
 
                         ave_SR = 0 # average spearman correlation
                         sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
                                    compress_arr2.reshape(1, -1))
-                        ave_SR = sim_sparse[0][0]
+                        ave_SR = float(sim_sparse[0][0])
                         relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
 
             # 3D
@@ -220,7 +229,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     if ds_name2 in keys_2d:
                         temp_arr2 = feature_map_dict[ds_name2]
 
-                        relation_all_df.loc[ds_name1, ds_name2]  += relation_all_df.loc[ds_name2, ds_name1]
+                        relation_all_df.loc[ds_name1, ds_name2]  = relation_all_df.loc[ds_name2, ds_name1]
 
                     # 3D VS 3D
                     # flatten and compare. Because 3rd dimension contains
@@ -339,8 +348,8 @@ def main():
     print('relation_all_df')
     print(relation_all_df)
 
-    relation_all_df.to_csv(encoding_dir+  level+  '_level'+ '_grouping_hardset0_' + suffix + '.csv')
-    txt_name = encoding_dir +  level+  '_level'+ '_grouping_hardset0_' + suffix + '.txt'
+    relation_all_df.to_csv(encoding_dir+  level+  '_level'+ '_grouping_fix2d3d_' + suffix + '.csv')
+    txt_name = encoding_dir +  level+  '_level'+ '_grouping_fix2d3d_' + suffix + '.txt'
 
     clustering(relation_all_df, keys_list,txt_name)
 
