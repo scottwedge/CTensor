@@ -1,6 +1,5 @@
 # first-level and second-level grouping
 # output a dict of grouping result
-# cells outside city boundary are excluded
 # updated Jan 20, 2020
 
 import numpy as np
@@ -124,12 +123,12 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         # temp_1d_mean = np.mean(temp_1d_dup, axis = -1)  #
                         # temp_1d_mean = np.expand_dims(temp_1d_mean, axis = -1) # 32, 20, 1
 
-                        compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr)
-                        compress_arr1 = remove_outside_cells( temp_1d_dup, mask_arr)
+                        # compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr)
+                        # compress_arr1 = remove_outside_cells( temp_1d_dup, mask_arr)
 
                         ave_SR = 0
-                        sim_sparse = cosine_similarity(compress_arr2.reshape(1, -1),
-                                                                   compress_arr1.reshape(1, -1))
+                        sim_sparse = cosine_similarity(temp_arr2_mean_dup.reshape(1, -1),
+                                                                   temp_1d_dup.reshape(1, -1))
 
                         ave_SR = sim_sparse[0][0]
                         relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
@@ -142,11 +141,11 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         # print('temp_1d_dup.shape ', temp_1d_dup.shape)
                         ave_SR = 0 # average spearman correlation
 
-                        compress_arr2 = remove_outside_cells(temp_arr2[n,:,:,:], mask_arr)
-                        compress_arr1 = remove_outside_cells(temp_1d_dup, mask_arr)
+                        # compress_arr2 = remove_outside_cells(temp_arr2[n,:,:,:], mask_arr)
+                        # compress_arr1 = remove_outside_cells(temp_1d_dup, mask_arr)
 
-                        sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
-                                                compress_arr2.reshape(1, -1))
+                        sim_sparse = cosine_similarity(temp_1d_dup.reshape(1, -1),
+                                                temp_arr2[n,:,:,:].reshape(1, -1))
 
                         ave_SR = sim_sparse[0][0]
                         relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
@@ -175,11 +174,11 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         temp_arr2_mean = np.mean(temp_arr2[n, :, :, :], axis = -1)
                         temp_arr2_mean_dup = np.expand_dims(temp_arr2_mean, axis = -1) #[32, 20, 1]
 
-                        compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr)
-                        compress_arr1 = remove_outside_cells( temp_arr1_mean_dup, mask_arr)
+                        # compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr)
+                        # compress_arr1 = remove_outside_cells( temp_arr1_mean_dup, mask_arr)
 
-                        sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
-                                    compress_arr2.reshape(1, -1))
+                        sim_sparse = cosine_similarity(temp_arr1_mean_dup.reshape(1, -1),
+                                    temp_arr2_mean_dup.reshape(1, -1))
     #                             pearson_coef, p_value = stats.pearsonr(temp_arr1[ :, :, i].ravel(), temp_arr2[ :, :, j].ravel())
 
                         ave_SR = sim_sparse[0][0]
@@ -201,12 +200,12 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         temp_arr2_mean_dup = np.expand_dims(temp_arr2_mean, axis = -1) #[32, 20, 1]
 
 
-                        compress_arr2 = remove_outside_cells( temp_arr2_mean_dup, mask_arr)
-                        compress_arr1 = remove_outside_cells( temp_arr1[n, :, :, :], mask_arr)
+                        # compress_arr2 = remove_outside_cells( temp_arr2_mean_dup, mask_arr)
+                        # compress_arr1 = remove_outside_cells( temp_arr1[n, :, :, :], mask_arr)
 
                         ave_SR = 0 # average spearman correlation
-                        sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
-                                   compress_arr2.reshape(1, -1))
+                        sim_sparse = cosine_similarity(temp_arr1[n, :, :, :].reshape(1, -1),
+                                   temp_arr2_mean_dup.reshape(1, -1))
                         ave_SR = sim_sparse[0][0]
                         relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
 
@@ -230,11 +229,11 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         temp_arr2 = feature_map_dict[ds_name2]
                         ave_SR = 0 # average spearman correlation
     #                     for i in range(dim2):
-                        compress_arr2 = remove_outside_cells( temp_arr2[n, :, :, :], mask_arr)
-                        compress_arr1 = remove_outside_cells( temp_arr1[n, :, :, :], mask_arr)
+                        # compress_arr2 = remove_outside_cells( temp_arr2[n, :, :, :], mask_arr)
+                        # compress_arr1 = remove_outside_cells( temp_arr1[n, :, :, :], mask_arr)
 
-                        sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
-                                                                       compress_arr2.reshape(1, -1))
+                        sim_sparse = cosine_similarity( temp_arr1[n, :, :, :].reshape(1, -1),
+                                                                       temp_arr2[n, :, :, :].reshape(1, -1))
 
                         ave_SR = float(sim_sparse[0][0])
                         relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
@@ -337,7 +336,7 @@ def main():
     print('begin grouping')
     relation_all_df = first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                 mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
-    txt_name = encoding_dir +  level+  '_level'+ '_grouping_' + suffix + '.txt'
+    txt_name = encoding_dir +  level+  '_level'+ '_grouping_allcells_' + suffix + '.txt'
 
     clustering(relation_all_df, keys_list,txt_name)
 
