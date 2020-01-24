@@ -280,7 +280,7 @@ def clustering(relation_all_df, all_keys, txt_name, method = 'AffinityPropagatio
     with open(txt_name, 'w') as the_file:
         # the_file.write(json.dumps(list(res_dict.items())))
         if method = 'AgglomerativeClustering':
-            the_file.write('nclusters: \n')
+            the_file.write('n_clusters: \n')
             the_file.write(str(n_clusters) + '\n')
         for i in res_dict.keys():
             the_file.write(str(i) + '\n')
@@ -308,7 +308,10 @@ def parse_args():
                      action="store", help = 'Which level to group: first, second, ...', default = 'First')
     parser.add_argument('-m',   '--method',
                      action="store",
-                     help = 'clustering method...AgglomerativeClustering, or AffinityPropagation', default = 'AffinityPropagation')
+                     help = 'clustering method...AgglomerativeClustering, or AffinityPropagation',
+                     default = 'AffinityPropagation')
+    parser.add_argument('-n',   '--n_clusters',  type=int,
+                     action="store", help = 'number of clusters', default = 5)
     return parser.parse_args()
 
 
@@ -318,6 +321,7 @@ def main():
     level = args.level
     suffix = args.suffix
     method = args.method
+    n_clusters = args.n_clusters
     print("encoding_dir: ", encoding_dir)
     print("levelh: ", level)
 
@@ -373,7 +377,7 @@ def main():
 
     relation_all_df.to_csv(encoding_dir+  level+  '_level'+ '_grouping_' + suffix + '.csv')
     txt_name = encoding_dir + '_'+ method+'_' level+  '_level'+ '_grouping_' + suffix + '.txt'
-    clustering(relation_all_df, keys_list,txt_name)
+    clustering(relation_all_df, keys_list,txt_name,method, n_clusters)
 
     print('plotting')
     plot_name = encoding_dir + '_'+ method+'_' level+  '_level'+ '_grouping_' + suffix + '.png'
