@@ -27,6 +27,8 @@ from numpy import transpose
 from sklearn.metrics.pairwise import cosine_similarity
 import math
 from sklearn.cluster import AffinityPropagation
+from sklearn.cluster import AgglomerativeClustering
+import scipy.cluster.hierarchy as shc
 
 HEIGHT = 32
 WIDTH = 20
@@ -249,11 +251,16 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
     return relation_all_df
 
 
-
-def clustering(relation_all_df, all_keys,txt_name):
+# default AffinityPropagation
+def clustering(relation_all_df, all_keys, txt_name, method = 'AffinityPropagation', n_clusters= 5):
     print('begin clustering')
     data = relation_all_df.iloc[:, :].values
-    clustering = AffinityPropagation(damping=0.8).fit(data)
+    if method = 'AffinityPropagation':
+        clustering = AffinityPropagation(damping=0.8).fit(data)
+    if method = 'AgglomerativeClustering':
+        clustering = AgglomerativeClustering(n_clusters=n_clusters, affinity='euclidean', linkage='ward')
+        clustering.fit_predict(data)
+
     res_dict = dict()
     for i in range(len(clustering.labels_)):
         if clustering.labels_[i] not in res_dict:
@@ -272,9 +279,21 @@ def clustering(relation_all_df, all_keys,txt_name):
 
     with open(txt_name, 'w') as the_file:
         # the_file.write(json.dumps(list(res_dict.items())))
+        if method = 'AgglomerativeClustering':
+            the_file.write('nclusters: \n')
+            the_file.write(str(n_clusters) + '\n')
         for i in res_dict.keys():
             the_file.write(str(i) + '\n')
             the_file.write(','.join([str(x) for x in res_dict[i]]) + "\n")
+
+
+def plot_grouping(relation_all_df, plot_name):
+    data = relation_all_df.iloc[:, :].values
+    plt.figure(figsize=(10, 7))
+    # plt.title("Customer Dendograms")
+    dend = shc.dendrogram(shc.linkage(data, method='ward'),
+        labels =relation_all_df.index, orientation = 'left' )
+    plt.savefig(plotname)
 
 
 
@@ -287,6 +306,9 @@ def parse_args():
                      action="store", help = 'dir containing checkpoints and feature maps', default = '')
     parser.add_argument('-l',   '--level',
                      action="store", help = 'Which level to group: first, second, ...', default = 'First')
+    parser.add_argument('-m',   '--method',
+                     action="store",
+                     help = 'clustering method...AgglomerativeClustering, or AffinityPropagation', default = 'AffinityPropagation')
     return parser.parse_args()
 
 
@@ -295,6 +317,7 @@ def main():
     encoding_dir = args.encoding_dir
     level = args.level
     suffix = args.suffix
+    method = args.method
     print("encoding_dir: ", encoding_dir)
     print("levelh: ", level)
 
@@ -347,10 +370,15 @@ def main():
     print('relation_all_df')
     print(relation_all_df)
 
-    relation_all_df.to_csv(encoding_dir+  level+  '_level'+ '_grouping_fix2d3d_' + suffix + '.csv')
-    txt_name = encoding_dir +  level+  '_level'+ '_grouping_fix2d3d_' + suffix + '.txt'
 
+    relation_all_df.to_csv(encoding_dir+  level+  '_level'+ '_grouping_' + suffix + '.csv')
+    txt_name = encoding_dir + '_'+ method+'_' level+  '_level'+ '_grouping_' + suffix + '.txt'
     clustering(relation_all_df, keys_list,txt_name)
+
+    print('plotting')
+    plot_name = encoding_dir + '_'+ method+'_' level+  '_level'+ '_grouping_' + suffix + '.png'
+    plot_grouping(relation_all_df, plot_name)
+    print('plot saved to :', plot_name)
 
 
 
