@@ -293,7 +293,7 @@ def plot_grouping(relation_all_df, plot_name):
     # plt.title("Customer Dendograms")
     dend = shc.dendrogram(shc.linkage(data, method='ward'),
         labels =relation_all_df.index, orientation = 'left' )
-    plt.savefig(plotname)
+    plt.savefig(plot_name)
 
 
 
@@ -323,7 +323,7 @@ def main():
     method = args.method
     n_clusters = args.n_clusters
     print("encoding_dir: ", encoding_dir)
-    print("levelh: ", level)
+    print("level: ", level)
 
     keys_1d = ['weather', 'airquality']
     keys_2d = ['house_price', 'POI_business', 'POI_food', 'POI_government',
