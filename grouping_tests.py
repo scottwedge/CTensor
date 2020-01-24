@@ -255,9 +255,9 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
 def clustering(relation_all_df, all_keys, txt_name, method = 'AffinityPropagation', n_clusters= 5):
     print('begin clustering')
     data = relation_all_df.iloc[:, :].values
-    if method = 'AffinityPropagation':
+    if method == 'AffinityPropagation':
         clustering = AffinityPropagation(damping=0.8).fit(data)
-    if method = 'AgglomerativeClustering':
+    if method == 'AgglomerativeClustering':
         clustering = AgglomerativeClustering(n_clusters=n_clusters, affinity='euclidean', linkage='ward')
         clustering.fit_predict(data)
 
@@ -279,7 +279,7 @@ def clustering(relation_all_df, all_keys, txt_name, method = 'AffinityPropagatio
 
     with open(txt_name, 'w') as the_file:
         # the_file.write(json.dumps(list(res_dict.items())))
-        if method = 'AgglomerativeClustering':
+        if method == 'AgglomerativeClustering':
             the_file.write('n_clusters: \n')
             the_file.write(str(n_clusters) + '\n')
         for i in res_dict.keys():
