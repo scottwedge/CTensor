@@ -376,11 +376,11 @@ def main():
 
 
     relation_all_df.to_csv(encoding_dir+  level+  '_level'+ '_grouping_' + suffix + '.csv')
-    txt_name = encoding_dir + '_'+ method+'_' level+  '_level'+ '_grouping_' + suffix + '.txt'
+    txt_name = encoding_dir + '_'+ method+'_' +level+  '_level'+ '_grouping_' + suffix + '.txt'
     clustering(relation_all_df, keys_list,txt_name,method, n_clusters)
 
     print('plotting')
-    plot_name = encoding_dir + '_'+ method+'_' level+  '_level'+ '_grouping_' + suffix + '.png'
+    plot_name = encoding_dir + '_'+ method+'_' +level+  '_level'+ '_grouping_' + suffix + '.png'
     plot_grouping(relation_all_df, plot_name)
     print('plot saved to :', plot_name)
 
