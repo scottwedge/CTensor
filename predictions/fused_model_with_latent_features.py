@@ -659,6 +659,25 @@ class Conv3DPredictor:
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
 
+            # ---- if resume training -----
+            if resume_training:
+                if checkpoint_path is not None:
+                    saver.restore(sess, checkpoint_path)
+                else:
+                    saver.restore(sess, tf.train.latest_checkpoint(save_folder_path))
+                # check global step
+                print("global step: ", sess.run([self.global_step]))
+                print("Model restore finished, current globle step: %d" % self.global_step.eval())
+
+                # get new epoch num
+                print("int(len(x_train_data) / batch_size +1): ", int(len(x_train_data) / batch_size +1))
+                start_epoch_num = tf.div(self.global_step, int(len(x_train_data) / batch_size +1))
+                #self.global_step/ (len(x_train_data) / batch_size +1) -1
+                print("start_epoch_num: ", start_epoch_num.eval())
+                start_epoch = start_epoch_num.eval()
+            else:
+                start_epoch = 0
+
 
             start_time = datetime.datetime.now()
             # iterations = int(len(x_train_data)/batch_size) + 1
@@ -669,7 +688,7 @@ class Conv3DPredictor:
             # run epochs
             # global step = epoch * len(x_train_data) + itr
 
-            for epoch in range(epochs):
+            for epoch in range(start_epoch,epochs):
 
                 print('Epoch', epoch, 'started', end='')
                 epoch_loss = 0
