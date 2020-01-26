@@ -258,21 +258,21 @@ def second_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
     num_data = len(encoded_list_rearrange_concat[0])
 
     for n in range(num_data):
-    print('n: ', n)
-    for ds_name1 in all_keys:
-        temp_arr1 = feature_map_dict[ds_name1]
+        print('n: ', n)
+        for ds_name1 in all_keys:
+            temp_arr1 = feature_map_dict[ds_name1]
 
-        for ds_name2 in all_keys:
-            temp_arr2 = feature_map_dict[ds_name2]
-            compress_arr2 = remove_outside_cells( temp_arr2[n, :, :, :], mask_arr)
-            compress_arr1 = remove_outside_cells( temp_arr1[n, :, :, :], mask_arr)
+            for ds_name2 in all_keys:
+                temp_arr2 = feature_map_dict[ds_name2]
+                compress_arr2 = remove_outside_cells( temp_arr2[n, :, :, :], mask_arr)
+                compress_arr1 = remove_outside_cells( temp_arr1[n, :, :, :], mask_arr)
 
-            ave_SR = 0
-            sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
-                                                        compress_arr2.reshape(1, -1))
+                ave_SR = 0
+                sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
+                                                            compress_arr2.reshape(1, -1))
 
-            ave_SR = float(sim_sparse[0][0])
-            relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
+                ave_SR = float(sim_sparse[0][0])
+                relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
 
     relation_all_df = relation_all_df / num_data
     return relation_all_df
