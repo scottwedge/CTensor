@@ -605,6 +605,7 @@ class Conv3DPredictor:
                      # data_2d_train, data_1d_train, data_2d_test, data_1d_test,
                      latent_train_series,latent_test_series,
                       save_folder_path,
+                      resume_training = False, checkpoint_path = None,
                       # beta = math.e,
                       keep_rate=0.7, epochs=10, batch_size=64):
 
@@ -1578,10 +1579,10 @@ class Conv3D:
     def run_resume_training(self):
         tf.reset_default_graph()
         # self, channel, time_steps, height, width
-        predictor = Conv3DPredictor(self.intersect_pos_set, self.demo_sensitive, self.demo_pop,
-                                    self.pop_g1, self.pop_g2,self.grid_g1, self.grid_g2, self.fairloss,
+        predictor = Conv3DPredictor(self.intersect_pos_set,
+                                    # self.pop_g1, self.pop_g2,self.grid_g1, self.grid_g2, self.fairloss,
                                     # self.data_2d, self.data_1d.X, self.data_2d, self.data_1d_test.X,
-                                     self.lamda, self.demo_mask_arr, channel=BIKE_CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH,
+                                    self.demo_mask_arr, channel=BIKE_CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH,
                                     )
         #data = data_loader.load_series('international-airline-passengers.csv')
         # rawdata, timesteps, batchsize
@@ -1591,30 +1592,19 @@ class Conv3D:
         self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
         print('test_data.y.shape', self.test_data.y.shape)
 
-        if self.train_arr_1d is not None:
-            self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
-            self.test_data_1d = generateData_1d(self.test_arr_1d, TIMESTEPS, BATCH_SIZE)
-            print('test_data_1d.y.shape', self.test_data_1d.y.shape)
-            predicted_vals = predictor.train_from_checkpoint(self.train_data.X, self.train_data.y,
-                        self.test_data.X, self.test_data.y,
-                        self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
-                        self.grid_g1, self.grid_g2, self.fairloss,
-                        self.lamda, self.demo_mask_arr,
-                        self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
-                          self.train_dir,self.beta, self.checkpoint_path,
-                     epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
-        else:
-            print('No 1d feature')
-            self.train_data_1d = None
-            self.test_data_1d = None
-            predicted_vals = predictor.train_from_checkpoint(self.train_data.X, self.train_data.y,
-                        self.test_data.X, self.test_data.y,
-                        self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
-                        self.grid_g1, self.grid_g2, self.fairloss,
-                        self.lamda, self.demo_mask_arr,
-                        self.data_2d, None, self.data_2d, None,
-                          self.train_dir,self.beta,self.checkpoint_path,
-                     epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
+        predicted_vals = predictor.train_neural_network(self.train_data.X, self.train_data.y,
+                self.test_data.X, self.test_data.y,
+                # self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
+                #  self.grid_g1, self.grid_g2, self.fairloss,
+                # self.lamda,
+                self.demo_mask_arr,
+                # self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
+                self.latent_train_series, self.latent_test_series,
+                  self.save_path,
+                  self.train_dir, self.checkpoint_path,
+                  # self.beta,
+             epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
+
 
         predicted = predicted_vals.flatten()
         y = self.test_data.y.flatten()
