@@ -404,6 +404,7 @@ def main():
         keys_list = []
         for i in range(1, n_groups+1):
             keys_list.append('group_' + str(i))
+        feature_map_dict = dict(zip(keys_list, encoded_list_rearrange_concat))
         relation_all_df = second_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     mask_arr, keys_list)
 
