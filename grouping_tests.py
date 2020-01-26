@@ -251,6 +251,35 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
     return relation_all_df
 
 
+# group
+def second_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
+            mask_arr, all_keys):
+    relation_all_df = pd.DataFrame(0, columns = all_keys, index = all_keys)
+    num_data = len(encoded_list_rearrange_concat[0])
+
+    for n in range(num_data):
+    print('n: ', n)
+    for ds_name1 in all_keys:
+        temp_arr1 = feature_map_dict[ds_name1]
+
+        for ds_name2 in all_keys:
+            temp_arr2 = feature_map_dict[ds_name2]
+            compress_arr2 = remove_outside_cells( temp_arr2[n, :, :, :], mask_arr)
+            compress_arr1 = remove_outside_cells( temp_arr1[n, :, :, :], mask_arr)
+
+            ave_SR = 0
+            sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
+                                                        compress_arr2.reshape(1, -1))
+
+            ave_SR = float(sim_sparse[0][0])
+            relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
+
+    relation_all_df = relation_all_df / num_data
+    return relation_all_df
+
+
+
+
 # default AffinityPropagation
 def clustering(relation_all_df, all_keys, txt_name, method = 'AffinityPropagation', n_clusters= 5):
     print('begin clustering')
@@ -305,13 +334,15 @@ def parse_args():
     parser.add_argument('-d',   '--encoding_dir',
                      action="store", help = 'dir containing checkpoints and feature maps', default = '')
     parser.add_argument('-l',   '--level',
-                     action="store", help = 'Which level to group: first, second, ...', default = 'First')
+                     action="store", help = 'Which level to group: first, second, ...', default = 'first')
     parser.add_argument('-m',   '--method',
                      action="store",
                      help = 'clustering method...AgglomerativeClustering, or AffinityPropagation',
                      default = 'AffinityPropagation')
     parser.add_argument('-n',   '--n_clusters',  type=int,
                      action="store", help = 'number of clusters', default = 5)
+    parser.add_argument('-g',   '--n_groups',  type=int,
+                     action="store", help = 'number of groups to be grouped', default = 7)
     return parser.parse_args()
 
 
@@ -322,23 +353,11 @@ def main():
     suffix = args.suffix
     method = args.method
     n_clusters = args.n_clusters
+    n_groups = args.n_groups
     print("encoding_dir: ", encoding_dir)
     print("level: ", level)
 
-    keys_1d = ['weather', 'airquality']
-    keys_2d = ['house_price', 'POI_business', 'POI_food', 'POI_government',
-               'POI_hospitals', 'POI_publicservices', 'POI_recreation', 'POI_school',
-               'POI_transportation', 'seattle_street',
-               'total_flow_count', 'transit_routes', 'transit_signals', 'transit_stop', 'slope', 'bikelane']
-    keys_3d = ['building_permit', 'collisions', 'seattle911calls']
-    keys_list = []
-    keys_list.extend(keys_1d)
-    keys_list.extend(keys_2d)
-    keys_list.extend(keys_3d)
-    print('key list: ', keys_list)
-
     file = open(join(encoding_dir,'encoded_list'), 'rb')
-
     # dump information to that file
     encoded_list = pickle.load(file)
     print(len(encoded_list[0]))
@@ -355,27 +374,45 @@ def main():
 
     encoded_list_rearrange_concat = [np.concatenate(batch, axis = 0) for batch in encoded_list_rearrange]
 
-    feature_map_dict = dict(zip(keys_list, encoded_list_rearrange_concat))
-    # encoded_list: (num_dataset, # of data points, 32, 20, dim)
-
     intersect_pos = pd.read_csv('./auxillary_data/intersect_pos_32_20.csv')
     intersect_pos_set = set(intersect_pos['0'].tolist())
-
     # ----  test removing outside cells ----- #
-    print(encoded_list_rearrange_concat[18][0].shape)
-    test_tensor = encoded_list_rearrange_concat[18][0]  # should be [ 32, 20, dim]
     mask_arr = generate_mask_array(intersect_pos_set)
 
-    # compressed_arr = remove_outside_cells(test_tensor, mask_arr)
 
-    print('begin grouping')
-    relation_all_df = first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
-                mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
+    if level == 'first':
+        keys_1d = ['weather', 'airquality']
+        keys_2d = ['house_price', 'POI_business', 'POI_food', 'POI_government',
+                   'POI_hospitals', 'POI_publicservices', 'POI_recreation', 'POI_school',
+                   'POI_transportation', 'seattle_street',
+                   'total_flow_count', 'transit_routes', 'transit_signals', 'transit_stop', 'slope', 'bikelane']
+        keys_3d = ['building_permit', 'collisions', 'seattle911calls']
+        keys_list = []
+        keys_list.extend(keys_1d)
+        keys_list.extend(keys_2d)
+        keys_list.extend(keys_3d)
+        print('key list: ', keys_list)
+
+        feature_map_dict = dict(zip(keys_list, encoded_list_rearrange_concat))
+        # encoded_list: (num_dataset, # of data points, 32, 20, dim)
+        print('begin grouping')
+        relation_all_df = first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
+                    mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
+
+
+    if level == 'second':
+        keys_list = []
+        for i in range(1, n_groups+1):
+            keys_list.append('group_' + str(i))
+        relation_all_df = second_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
+                    mask_arr, keys_list)
+
+
+
     print('relation_all_df')
     print(relation_all_df)
-
-
     relation_all_df.to_csv(encoding_dir+  level+  '_level'+ '_grouping_' + suffix + '.csv')
+
     txt_name = encoding_dir + '_'+ method+'_' +level+  '_level'+ '_grouping_' + suffix + '.txt'
     clustering(relation_all_df, keys_list,txt_name,method, n_clusters)
 
