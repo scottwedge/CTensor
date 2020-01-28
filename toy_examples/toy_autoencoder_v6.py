@@ -1273,6 +1273,7 @@ class Autoencoder:
         if not os.path.exists(save_folder_path):
             os.makedirs(save_path)
 
+        save_folder_path = os.path.join(save_folder_path, 'inference/')
 
         saver = tf.train.Saver()
 
@@ -1655,8 +1656,17 @@ class Autoencoder_entry:
         else:
             # inference only
             print('get inference results')
-            self.latent_representation  = self.run_inference_autoencoder()
-            np.save(self.save_path +'autoencoder_inference_arr.npy', self.latent_representation)
+            self.train_lat_rep, self.test_lat_rep, encoded_list, keys_list  = self.run_inference_autoencoder()
+            infer_path = os.path.join(self.save_path + 'inference/')
+            np.save(infer_path +'train_lat_rep.npy', self.train_lat_rep)
+            np.save(infer_path +'test_lat_rep.npy', self.test_lat_rep)
+            file = open(infer_path + 'encoded_list', 'wb')
+            # dump information to that file
+            # number of batches, num_dataset, batchsize, h, w, dim
+            print('dumping encoded_list to pickle')
+            pickle.dump(encoded_list, file)
+            file.close()
+
 
 
         # calculate performance using only cells that intersect with city boundary
