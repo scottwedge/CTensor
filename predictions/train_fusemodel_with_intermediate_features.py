@@ -579,7 +579,7 @@ def main():
         encoded_list_rearrange_concat = [np.concatenate(batch, axis = 0) for batch in encoded_list_rearrange]
 
         keys_list = []
-        n_groups = 2
+        n_groups = 7
         for i in range(1, n_groups+1):
             keys_list.append('group_' + str(i))
         feature_map_dict = dict(zip(keys_list, encoded_list_rearrange_concat))
@@ -600,10 +600,10 @@ def main():
             }
         '''
         temp_arr1 = feature_map_dict['group_1']  # train_hours, 32, 20, dim
-        # temp_arr2 = feature_map_dict['group_4']
-        # temp_arr3 = feature_map_dict['group_5']
-        # latent_rep= np.concatenate([temp_arr1,temp_arr2, temp_arr3], axis=-1)
-        latent_rep= temp_arr1
+        temp_arr2 = feature_map_dict['group_4']
+        temp_arr3 = feature_map_dict['group_5']
+        latent_rep= np.concatenate([temp_arr1,temp_arr2, temp_arr3], axis=-1)
+        #latent_rep= temp_arr1
 
 
         # latent_rep = np.load(latent_rep_path)
