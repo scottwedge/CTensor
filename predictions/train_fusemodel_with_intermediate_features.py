@@ -561,7 +561,7 @@ def main():
         # latent_rep_path = '/home/ubuntu/CTensor/predictions/autoencoder_v1_Seattle/inference/infer_latent_representation.npy'
         # latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/train_lat_rep.npy'
         latent_rep_path = '/home/ubuntu/CTensor//home/ubuntu/CTensor/toy_examples/toy_autoencoder_v6_cos_dim3_trail/encoded_list'
-
+        file = open(latent_rep_path, 'rb')
         encoded_list = pickle.load(file)
         print(len(encoded_list[0]))
         # close the file
