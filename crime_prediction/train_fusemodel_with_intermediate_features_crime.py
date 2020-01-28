@@ -525,6 +525,9 @@ def main():
         file = open(latent_rep_test_path, 'rb')
         test_encoded_list = pickle.load(file)
         print(len(test_encoded_list[0]))
+        print(len(test_encoded_list))
+        print(test_encoded_list[0][0].shape)
+
         file.close()
         test_encoded_list_rearrange = [[None for j in range(len(test_encoded_list))] for i in range(len(test_encoded_list[0]))]
         for i, batch in enumerate(test_encoded_list_rearrange):
