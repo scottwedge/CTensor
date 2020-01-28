@@ -521,7 +521,7 @@ def main():
         print('encoded_list_rearrange_concat[0].shape', encoded_list_rearrange_concat[0].shape)
 
 
-        latent_rep_test_path = '/home/ubuntu/CTensor/autoencoder_featuremap_grouping/autoencoder_v6_cos_dim5_firstlevel_from50_ag_1d2dcalc_n7/inference/test_encoded_listy'
+        latent_rep_test_path = '/home/ubuntu/CTensor/autoencoder_featuremap_grouping/autoencoder_v6_cos_dim5_firstlevel_from50_ag_1d2dcalc_n7/inference/test_encoded_list'
         file = open(latent_rep_test_path, 'rb')
         test_encoded_list = pickle.load(file)
         print(len(test_encoded_list[0]))
