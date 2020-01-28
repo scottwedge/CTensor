@@ -1749,7 +1749,7 @@ class Autoencoder_entry:
                         self.checkpoint_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
-        return train_lat_rep, test_lat_rep, encoded_list, keys_list
+        return train_lat_rep, test_lat_rep, test_encoded_list, encoded_list, keys_list
 
 
 
