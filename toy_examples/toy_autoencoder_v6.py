@@ -1269,6 +1269,7 @@ class Autoencoder:
         train_result = list()
         test_result = list()
         encoded_list = list()  # output last layer of encoded for further grouping
+        test_encoded_list = list()
 
         if not os.path.exists(save_folder_path):
             os.makedirs(save_path)
@@ -1347,9 +1348,7 @@ class Autoencoder:
                 batch_output, batch_encoded_list = sess.run([latent_fea, second_order_encoder_list], feed_dict= feed_dict_all)
                 final_output.extend(batch_output)
 
-                # record results every 50 iterations, that is about 900 samples
-                if itr% 50 == 0:
-                    final_encoded_list.append(batch_encoded_list)
+                final_encoded_list.append(batch_encoded_list)
 
                 epoch_loss += batch_cost
                 for k, v in epoch_subloss.items():
@@ -1402,6 +1401,7 @@ class Autoencoder:
 
             test_cost = 0
             test_final_output = list()
+            test_final_encoded_list = list()
             test_subloss = {}  # ave loss for each dataset
             test_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
@@ -1453,8 +1453,10 @@ class Autoencoder:
                 test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict= test_feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
-                test_batch_output = sess.run([latent_fea], feed_dict= test_feed_dict_all)
+                test_batch_output, test_batch_encoded_list = sess.run([latent_fea, second_order_encoder_list], feed_dict= test_feed_dict_all)
                 test_final_output.extend(test_batch_output)
+
+                test_final_encoded_list.append(test_batch_encoded_list)
 
                 for k, v in test_subloss.items():
                     test_subloss[k] += test_batch_loss_dict[k]
@@ -1563,10 +1565,11 @@ class Autoencoder:
             test_final_output = np.array(test_final_output)
             test_result.extend(test_final_output)
             encoded_list.extend(final_encoded_list)
+            test_encoded_list.extend(test_final_encoded_list)
 
 
 
-            # encoded_res = np.array(test_result)
+            print('saving output_arr ....')
             train_encoded_res = train_result
             train_output_arr = train_encoded_res[0]
             for i in range(1,len(train_encoded_res)):
@@ -1579,7 +1582,7 @@ class Autoencoder:
 
         print('train_output_arr.shape: ', train_output_arr.shape)
         # This is the latent representation (9337, 1, 32, 20, 1) of training
-        return train_output_arr, test_output_arr, encoded_list, keys_list
+        return train_output_arr, test_output_arr, encoded_list, test_encoded_list,keys_list
 
 
 
@@ -1655,6 +1658,7 @@ class Autoencoder_entry:
             file.close()
         else:
             # inference only
+            # dumpint test / train encoding part to pickle
             print('get inference results')
             self.train_lat_rep, self.test_lat_rep, encoded_list, keys_list  = self.run_inference_autoencoder()
             infer_path = os.path.join(self.save_path + 'inference/')
@@ -1666,6 +1670,14 @@ class Autoencoder_entry:
             print('dumping encoded_list to pickle')
             pickle.dump(encoded_list, file)
             file.close()
+
+            test_file = open(infer_path + 'test_encoded_list', 'wb')
+            # dump information to that file
+            # number of batches, num_dataset, batchsize, h, w, dim
+            print('dumping test_encoded_list to pickle')
+            pickle.dump(test_encoded_list, test_file)
+            test_file.close()
+
 
 
 
@@ -1731,7 +1743,7 @@ class Autoencoder_entry:
                      self.demo_mask_arr, self.dim, self.grouping_dict,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
-        train_lat_rep, test_lat_rep, encoded_list, keys_list = predictor.inference_autoencoder(
+        train_lat_rep, test_lat_rep, encoded_list, test_encoded_list, keys_list = predictor.inference_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim, self.grouping_dict,
                         self.checkpoint_path,
