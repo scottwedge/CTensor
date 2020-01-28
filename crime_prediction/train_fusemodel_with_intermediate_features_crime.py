@@ -530,7 +530,7 @@ def main():
 
         file.close()
         test_encoded_list_rearrange = [[None for j in range(len(test_encoded_list))] for i in range(len(test_encoded_list[0]))]
-        print('test_encoded_list_rearrange.shape', test_encoded_list_rearrange.shape)
+        # print('test_encoded_list_rearrange.shape', len(test_encoded_list_rearrange.shape)
         for i, batch in enumerate(test_encoded_list_rearrange):
 
             for j, ds in enumerate(batch):
