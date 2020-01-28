@@ -331,6 +331,8 @@ def parse_args():
     				help="A boolean value whether or not to start from pretrained model")
     parser.add_argument('-pc',   '--pretrained_checkpoint',
                      action="store", help = 'checkpoint path to pretrained model', default = None)
+    parser.add_argument("-i","--inference", type=bool, default=False,
+    				help="inference")
 
 
     return parser.parse_args()
@@ -348,6 +350,7 @@ def main():
     epoch = args.epoch
     learning_rate= args.learning_rate
     dim = args.dim
+    inference = args.inference
 
     use_pretrained = args.use_pretrained
     pretrained_checkpoint = args.pretrained_checkpoint
@@ -580,18 +583,30 @@ def main():
     # ------    featuremap_similarity_cosine-expansion-formal-flatten_comparison --- #
 
 
+    # grouping_dict = {
+    #     'group_1': ['precipitation'],
+    #     'group_2': ['temperature', 'pressure', 'airquality', 'house_price', 'POI_government'],
+    #     'group_3': ['POI_business', 'POI_food', 'POI_hospitals', 'POI_publicservices',
+    #             'POI_recreation', 'POI_transportation', 'total_flow_count',
+    #             'transit_routes', 'transit_signals', 'transit_stop', 'bikelane'],
+    #     'group_4': ['POI_school', 'seattle_street', 'slope'],
+    #     'group_5': ['building_permit'],
+    #     'group_6': ['collisions'],
+    #     'group_7': ['seattle911calls'],
+    #
+    # }
     grouping_dict = {
-        'group_1': ['precipitation'],
-        'group_2': ['temperature', 'pressure', 'airquality', 'house_price', 'POI_government'],
-        'group_3': ['POI_business', 'POI_food', 'POI_hospitals', 'POI_publicservices',
-                'POI_recreation', 'POI_transportation', 'total_flow_count',
-                'transit_routes', 'transit_signals', 'transit_stop', 'bikelane'],
-        'group_4': ['POI_school', 'seattle_street', 'slope'],
-        'group_5': ['building_permit'],
-        'group_6': ['collisions'],
-        'group_7': ['seattle911calls'],
+         'group_1':['weather', 'house_price', 'POI_business', 'POI_food',
+            'POI_government', 'POI_publicservices', 'POI_recreation', 'POI_transportation', 'transit_routes'],
+        'group_2': ['airquality'],
+        'group_3': ['POI_hospitals', 'building_permit', 'collisions', 'seattle911calls'],
+        'group_4':['POI_school', 'slope'],
+         'group_5': ['seattle_street', 'bikelane'],
+        'group_6':['total_flow_count'],
+        'group_7':['transit_signals', 'transit_stop']
+        }
 
-    }
+
 
 
 
@@ -655,14 +670,23 @@ def main():
 
     timer = str(time.time())
     if resume_training == False:
+        if inference == False:
     # Model fusion without fairness
-        print('Train Model')
-        latent_representation = autoencoder_v6.Autoencoder_entry(train_obj,
-                                rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
-                                 demo_mask_arr,  save_path, dim, grouping_dict,
-                            HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
-                            use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
-                    ).train_lat_rep
+            print('Train Model')
+            latent_representation = autoencoder_v6.Autoencoder_entry(train_obj,
+                                    rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+                                     demo_mask_arr,  save_path, dim, grouping_dict,
+                                HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
+                                use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
+                        ).train_lat_rep
+        else:
+            latent_representation = toy_autoencoder_v6.Autoencoder_entry(train_obj,
+                                    rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+                                     demo_mask_arr,  save_path, dim, grouping_dict,
+                                HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
+                                True, checkpoint, False, train_dir,
+                                use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
+                        ).train_lat_rep
     else:
          # resume training
         print('resume trainging from : ', train_dir)
