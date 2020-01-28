@@ -530,8 +530,11 @@ def main():
 
         file.close()
         test_encoded_list_rearrange = [[None for j in range(len(test_encoded_list))] for i in range(len(test_encoded_list[0]))]
+        print('test_encoded_list_rearrange.shape', test_encoded_list_rearrange.shape)
         for i, batch in enumerate(test_encoded_list_rearrange):
+
             for j, ds in enumerate(batch):
+                print('i, j', i, j)
                 test_encoded_list_rearrange[j][i] = test_encoded_list[i][j]
 
         test_encoded_list_rearrange_concat = [np.concatenate(batch, axis = 0) for batch in test_encoded_list_rearrange]
