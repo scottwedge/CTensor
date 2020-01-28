@@ -598,9 +598,9 @@ def main():
 
             }
         '''
-        temp_arr1 = feature_map_dict[group_1]  # train_hours, 32, 20, dim
-        temp_arr2 = feature_map_dict[group_4]
-        temp_arr3 = feature_map_dict[group_5]
+        temp_arr1 = feature_map_dict['group_1']  # train_hours, 32, 20, dim
+        temp_arr2 = feature_map_dict['group_4']
+        temp_arr3 = feature_map_dict['group_5']
         latent_rep= np.concatenate([temp_arr1,temp_arr2, temp_arr3], axis=-1)
 
         # latent_rep = np.load(latent_rep_path)
