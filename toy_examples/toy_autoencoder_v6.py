@@ -1450,7 +1450,7 @@ class Autoencoder:
                     # is_training: True
                 test_feed_dict_all[self.is_training] = True
 
-                test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict,  _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict= test_feed_dict_all)
+                test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict= test_feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                 test_batch_output = sess.run([latent_fea], feed_dict= test_feed_dict_all)
