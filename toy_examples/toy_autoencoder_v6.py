@@ -1660,7 +1660,7 @@ class Autoencoder_entry:
             # inference only
             # dumpint test / train encoding part to pickle
             print('get inference results')
-            self.train_lat_rep, self.test_lat_rep, encoded_list, keys_list  = self.run_inference_autoencoder()
+            self.train_lat_rep, self.test_lat_rep, encoded_list, test_encoded_list, keys_list  = self.run_inference_autoencoder()
             infer_path = os.path.join(self.save_path + 'inference/')
             np.save(infer_path +'train_lat_rep.npy', self.train_lat_rep)
             np.save(infer_path +'test_lat_rep.npy', self.test_lat_rep)
