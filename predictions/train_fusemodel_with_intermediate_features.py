@@ -17,7 +17,7 @@ from os.path import basename   # get file name
 import collections
 import matplotlib.pyplot as plt
 import argparse
-
+import pickle
 
 import time
 import datetime
@@ -562,7 +562,7 @@ def main():
         # latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/train_lat_rep.npy'
         latent_rep_path = '/home/ubuntu/CTensor//home/ubuntu/CTensor/toy_examples/toy_autoencoder_v6_cos_dim3_trail/encoded_list'
 
-        ncoded_list = pickle.load(file)
+        encoded_list = pickle.load(file)
         print(len(encoded_list[0]))
         # close the file
         file.close()
@@ -708,9 +708,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './bike_latentfea_model_'+ str(dim) + '/'
+        save_path =  './bike_intermediatefea_model_'+ str(dim) + '/'
     else:
-        save_path = './bike_latentfea_model_'+ str(dim) + '_'+ suffix  +'/'
+        save_path = './bike_intermediatefea_model_'+ str(dim) + '_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir
