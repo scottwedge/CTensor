@@ -565,6 +565,7 @@ def main():
         file = open(latent_rep_path, 'rb')
         encoded_list = pickle.load(file)
         print(len(encoded_list[0]))
+
         # close the file
         file.close()
         # rearrange encoded_list
@@ -577,6 +578,7 @@ def main():
                 encoded_list_rearrange[j][i] = encoded_list[i][j]
 
         encoded_list_rearrange_concat = [np.concatenate(batch, axis = 0) for batch in encoded_list_rearrange]
+        print('encoded_list_rearrange_concat[0].shape', encoded_list_rearrange_concat[0].shape)
 
         keys_list = []
         n_groups = 7
