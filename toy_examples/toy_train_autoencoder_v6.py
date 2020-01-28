@@ -333,6 +333,8 @@ def parse_args():
     				help="A boolean value whether or not to start from pretrained model")
     parser.add_argument('-pc',   '--pretrained_checkpoint',
                      action="store", help = 'checkpoint path to pretrained model', default = None)
+    parser.add_argument("-i","--inference", type=bool, default=False,
+    				help="inference")
 
 
     return parser.parse_args()
@@ -350,6 +352,7 @@ def main():
     epoch = args.epoch
     learning_rate= args.learning_rate
     dim = args.dim
+    inference = args.inference
 
     use_pretrained = args.use_pretrained
     pretrained_checkpoint = args.pretrained_checkpoint
@@ -365,6 +368,7 @@ def main():
 
     print('whether to use pretrained model: ', use_pretrained)
     print('pretrained_checkpoint: ', pretrained_checkpoint)
+    print('inference or not: ', inference)
 
     if pretrained_checkpoint is not None:
         print('pick up pretrained model: ', pretrained_checkpoint)
@@ -667,15 +671,29 @@ def main():
 
 
     timer = str(time.time())
+
+
+
     if resume_training == False:
-    # Model fusion without fairness
-        print('Train Model')
-        latent_representation = toy_autoencoder_v6.Autoencoder_entry(train_obj,
-                                rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
-                                 demo_mask_arr,  save_path, dim, grouping_dict,
-                            HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
-                            use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
-                    ).train_lat_rep
+
+        if inference == False:
+            # Model fusion without fairness
+            print('Train Model')
+            latent_representation = toy_autoencoder_v6.Autoencoder_entry(train_obj,
+                                    rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+                                     demo_mask_arr,  save_path, dim, grouping_dict,
+                                HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
+                                use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
+                        ).train_lat_rep
+        else: # inference
+            latent_representation = toy_autoencoder_v6.Autoencoder_entry(train_obj,
+                                    rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+                                     demo_mask_arr,  save_path, dim, grouping_dict,
+                                HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
+                                True, checkpoint, False, train_dir
+                                use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
+                        ).train_lat_rep
+
     else:
          # resume training
         print('resume trainging from : ', train_dir)
