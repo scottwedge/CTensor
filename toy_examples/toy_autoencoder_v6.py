@@ -1360,7 +1360,7 @@ class Autoencoder:
 
 
                 if itr%10 == 0:
-                    print("Iter/Epoch: {}/{}...".format(itr, epoch),
+                    print("Iter: {}...".format(itr),
                             "Training loss: {:.4f}".format(batch_cost))
                     for k, v in batch_loss_dict.items():
                         print('loss for k :', k, v)
@@ -1368,7 +1368,7 @@ class Autoencoder:
 
             # report loss per epoch
             epoch_loss = epoch_loss/ iterations
-            print('epoch: ', epoch, 'Trainig Set Epoch total Cost: ',epoch_loss)
+            print('Trainig Set Epoch total Cost: ',epoch_loss)
             end_time = datetime.datetime.now()
             train_time_per_epoch = end_time - start_time
             train_time_per_sample = train_time_per_epoch/ train_hours
@@ -1377,20 +1377,20 @@ class Autoencoder:
 
             for k, v in epoch_subloss.items():
                 epoch_subloss[k] = v/iterations
-                print('epoch: ', epoch, 'k: ', k, 'mean train loss: ', epoch_subloss[k])
+                # print('epoch: ', epoch, 'k: ', k, 'mean train loss: ', epoch_subloss[k])
 
             for k, v in epoch_subrmse.items():
                 epoch_subrmse[k] = v/iterations
-                print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
+                # print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
 
 
-            save_path = saver.save(sess, save_folder_path +'autoencoder_v6_' +str(epoch)+'.ckpt', global_step=self.global_step)
+            save_path = saver.save(sess, save_folder_path +'infer_autoencoder_v6_' +'.ckpt', global_step=self.global_step)
                 # save_path = saver.save(sess, './autoencoder.ckpt')
             print('Model saved to {}'.format(save_path))
 
                 # Testing per epoch
                 # -----------------------------------------------------------------
-            print('testing per epoch, for epoch: ', epoch)
+            print('testing  ')
                 # train_hours  = 41616  # train_start_time = '2014-02-01',train_end_time = '2018-10-31'
             test_start = train_hours
             test_end = rawdata_1d_dict['weather'].shape[0] -168  # 45984 - 168
@@ -1464,7 +1464,7 @@ class Autoencoder:
 
 
                 if itr%10 == 0:
-                    print("Iter/Epoch: {}/{}...".format(itr, epoch),
+                    print("Iter: {}...".format(itr),
                             "testing loss: {:.4f}".format(test_batch_cost))
 
 
@@ -1472,7 +1472,7 @@ class Autoencoder:
                 test_cost += test_batch_cost
 ########
             test_epoch_loss = test_cost/ itrs
-            print('epoch: ', epoch, 'Test Set Epoch total Cost: ',test_epoch_loss)
+            print('Test Set Epoch total Cost: ',test_epoch_loss)
             test_end_time = datetime.datetime.now()
             test_time_per_epoch = test_end_time - test_start_time
             test_time_per_sample = test_time_per_epoch/ test_len
@@ -1480,12 +1480,12 @@ class Autoencoder:
 
             for k, v in test_subloss.items():
                 test_subloss[k] = v/itrs
-                print('epoch: ', epoch, 'k: ', k, 'mean test loss: ', test_subloss[k])
+                # print('epoch: ', epoch, 'k: ', k, 'mean test loss: ', test_subloss[k])
                 print('test loss for k :', k, v)
 
             for k, v in test_subrmse.items():
                 test_subrmse[k] = v/itrs
-                print('epoch: ', epoch, 'k: ', k, 'mean test rmse: ', test_subrmse[k])
+                # print('epoch: ', epoch, 'k: ', k, 'mean test rmse: ', test_subrmse[k])
                 print('test rmse for k :', k, v)
 
 
@@ -1535,8 +1535,8 @@ class Autoencoder:
             txt_name = save_folder_path + 'infer_AE_v6_df' +  '.txt'
             with open(txt_name, 'w') as the_file:
                     #the_file.write('Only account for grids that intersect with city boundary \n')
-                the_file.write('epoch\n')
-                the_file.write(str(epoch)+'\n')
+                # the_file.write('epoch\n')
+                # the_file.write(str(epoch)+'\n')
                 the_file.write('dim\n')
                 the_file.write(str(self.dim) + '\n')
                 the_file.write(' epoch_loss:\n')
