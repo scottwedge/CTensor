@@ -700,7 +700,7 @@ class Autoencoder:
             temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, v))
             rmse_dict[k] = temp_rmse
 
-            if ds == 'weather':
+            if k == 'weather':
                 temp_loss = 0.2 * temp_loss
                 cost += temp_loss
 
