@@ -756,6 +756,8 @@ class Autoencoder:
                     if ds == 'weather':
                         temp_loss = 0.2 * temp_loss
                         cost += temp_loss
+                    else:
+                        cost += temp_loss
 
                 if ds in keys_2d:
                     dim_2d = rawdata_2d_dict[ds].shape[-1]

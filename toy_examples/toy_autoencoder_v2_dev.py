@@ -703,6 +703,9 @@ class Autoencoder:
             if k == 'weather':
                 temp_loss = 0.2 * temp_loss
                 cost += temp_loss
+            else:
+                cost += temp_loss:
+
 
 
         for k, v in self.rawdata_2d_tf_y_dict.items():
