@@ -704,7 +704,7 @@ class Autoencoder:
                 temp_loss = 0.2 * temp_loss
                 cost += temp_loss
             else:
-                cost += temp_loss:
+                cost += temp_loss
 
 
 
