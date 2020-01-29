@@ -701,7 +701,7 @@ class Autoencoder:
             rmse_dict[k] = temp_rmse
 
             if k == 'weather':
-                temp_loss = 0.01 * temp_loss
+                temp_loss = 0.001 * temp_loss
                 cost += temp_loss
             else:
                 cost += temp_loss
