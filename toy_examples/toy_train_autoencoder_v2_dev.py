@@ -523,7 +523,7 @@ def main():
     # np.save(save_path +'latent_representation_train.npy', latent_representation)
 
 
-    txt_name = save_path + 'autoencoder_v2_' + 'dim_' + str(dim) +'_'  + timer + '.txt'
+    txt_name = save_path + 'autoencoder_v2_dev_' + 'dim_' + str(dim) +'_'  + timer + '.txt'
     with open(txt_name, 'w') as the_file:
         the_file.write('Only account for grids that intersect with city boundary \n')
         the_file.write('place\n')
