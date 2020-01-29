@@ -1141,7 +1141,7 @@ class Autoencoder:
                 print('saving train_test plots')
                 train_test = pd.read_csv(save_folder_path  + 'autoencoder_ecoch_res_df' +'.csv')
                 # train_test = train_test.loc[:, ~train_test.columns.str.contains('^Unnamed')]
-                train_test[['train_loss', 'test_loss']].plot()
+                train_test[['train_cost', 'test_cost']].plot()
                 plt.savefig(save_folder_path + 'total_loss_inprogress.png')
                 # train_test[['train_acc', 'test_acc']].plot()
                 # plt.savefig(save_folder_path + 'acc_loss_inprogress.png')
