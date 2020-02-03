@@ -41,7 +41,7 @@ import tensorflow.contrib.keras as keras
 from tensorflow.python.keras import backend as K
 
 import pickle
-
+import copy
 
 HEIGHT = 32
 WIDTH = 20
@@ -1173,6 +1173,7 @@ class Autoencoder:
 
 
     # output all intermediate latent representations in encoding part
+    # Temp: output reconstructed datasets for the first 10 hours
     def inference_autoencoder(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, train_hours,
                      demo_mask_arr, save_folder_path, dim, grouping_dict,
                     checkpoint_path = None,
@@ -1247,6 +1248,9 @@ class Autoencoder:
         keys_3d = rawdata_3d_dict.keys()
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 1)
 
+        # temp reconstruction dictionary
+        reconstruction_dict = dict()  # {dataset name:  reconstruction for this batch}
+
         for grp, data_list in grouping_dict.items():
             for ds in data_list:
                 # reconstruct each
@@ -1260,6 +1264,13 @@ class Autoencoder:
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
 
+                    print('reconstruction_1d.shape: ', reconstruction_1d.shape)
+                    # if ds not in reconstruction_dict:
+                    #     reconstruction_dict[ds] = []
+                    # else:
+                    reconstruction_dict[ds] = reconstruction_1d
+
+
                 if ds in keys_2d:
                     dim_2d = rawdata_2d_dict[ds].shape[-1]
                     reconstruction_2d = self.reconstruct_2d(first_level_decode[grp], dim_2d, self.is_training)
@@ -1268,6 +1279,11 @@ class Autoencoder:
                     loss_dict[ds] = temp_loss
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
+
+                    # if ds not in reconstruction_dict:
+                    #     reconstruction_dict[ds] = []
+                    # else:
+                    reconstruction_dict[ds] = reconstruction_2d
 
             #     if ds in keys_3d:
             #         timestep_3d = self.rawdata_3d_tf_y_dict[ds].shape[1]
@@ -1291,6 +1307,7 @@ class Autoencoder:
         test_result = list()
         encoded_list = list()  # output last layer of encoded for further grouping
         test_encoded_list = list()
+        final_reconstruction_dict = {} # temp: only first batch
 
         if not os.path.exists(save_folder_path):
             os.makedirs(save_path)
@@ -1327,6 +1344,7 @@ class Autoencoder:
 
             final_output = list()
             final_encoded_list = list()
+
 
             # mini batch
             for itr in range(iterations):
@@ -1367,9 +1385,17 @@ class Autoencoder:
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                 batch_output, batch_encoded_list = sess.run([latent_fea, second_order_encoder_list], feed_dict= feed_dict_all)
+
+
                 final_output.extend(batch_output)
 
                 final_encoded_list.append(batch_encoded_list)
+
+                # temp, only ouput the first batch of reconstruction
+                if itr == 0:
+                    batch_reconstruction_dict = sess.run([reconstruction_dict], feed_dict= feed_dict_all)
+                    final_reconstruction_dict = copy.deepcopy(batch_reconstruction_dict)
+
 
                 epoch_loss += batch_cost
                 for k, v in epoch_subloss.items():
@@ -1589,7 +1615,6 @@ class Autoencoder:
             test_encoded_list.extend(test_final_encoded_list)
 
 
-
             print('saving output_arr ....')
             train_encoded_res = train_result
             train_output_arr = train_encoded_res[0]
@@ -1603,7 +1628,7 @@ class Autoencoder:
 
         print('train_output_arr.shape: ', train_output_arr.shape)
         # This is the latent representation (9337, 1, 32, 20, 1) of training
-        return train_output_arr, test_output_arr, encoded_list, test_encoded_list,keys_list
+        return train_output_arr, test_output_arr, encoded_list, test_encoded_list,keys_list, final_reconstruction_dict
 
 
 
