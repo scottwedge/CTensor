@@ -1804,7 +1804,7 @@ class Autoencoder_entry:
                      self.demo_mask_arr, self.dim, self.grouping_dict,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
-        train_lat_rep, test_lat_rep, encoded_list, test_encoded_list, keys_list = predictor.inference_autoencoder(
+        train_lat_rep, test_lat_rep, encoded_list, test_encoded_list, keys_list, final_reconstruction_dict = predictor.inference_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim, self.grouping_dict,
                         self.checkpoint_path,
