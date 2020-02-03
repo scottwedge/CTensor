@@ -1264,6 +1264,12 @@ class Autoencoder:
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
 
+                    # if ds == 'weather':
+                    #     temp_loss = 1 * temp_loss
+                    #     cost += temp_loss
+                    # else:
+                    #     cost += temp_loss
+
                     print('reconstruction_1d.shape: ', reconstruction_1d.shape)
                     # if ds not in reconstruction_dict:
                     #     reconstruction_dict[ds] = []
