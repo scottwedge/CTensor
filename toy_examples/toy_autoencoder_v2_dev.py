@@ -692,6 +692,9 @@ class Autoencoder:
         cost = 0
         loss_dict = {} # {dataset name: loss}
         rmse_dict = {}
+
+        reconstruction_dict = dict()  # {dataset name:  reconstruction for this batch}
+
         for k, v in self.rawdata_1d_tf_y_dict.items():
             dim_1d = rawdata_1d_dict[k].shape[-1]
             reconstruction_1d = self.reconstruct_1d(latent_fea, dim_1d, self.is_training)
@@ -703,10 +706,12 @@ class Autoencoder:
             rmse_dict[k] = temp_rmse
 
             if k == 'weather':
-                temp_loss = 1 * temp_loss
+                temp_loss = 1000 * temp_loss
                 cost += temp_loss
             else:
                 cost += temp_loss
+
+            reconstruction_dict[k] = reconstruction_1d
 
 
 
@@ -720,6 +725,7 @@ class Autoencoder:
             rmse_dict[k] = temp_rmse
 
             cost += temp_loss
+            reconstruction_dict[k] = reconstruction_2d
 
 
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 1)
@@ -755,6 +761,9 @@ class Autoencoder:
         encoded_list = list()
         # random sampling to calculate dataset similarity
         # sample_index = random.sample(range(0, train_hours), num_samples)
+        final_reconstruction_dict = {} # temp: only first batch
+
+
 
         if not os.path.exists(save_folder_path):
             os.makedirs(save_path)
@@ -804,6 +813,7 @@ class Autoencoder:
 
 
                 final_output = list()
+
                 final_encoded_list = list()
 
                 # mini batch
@@ -848,6 +858,11 @@ class Autoencoder:
                     batch_output, batch_encoded_list = sess.run([latent_fea, first_order_encoder_list], feed_dict= feed_dict_all)
                     #print('batch_output.shape, : ', batch_output.shape)
                     final_output.extend(batch_output)
+
+                    # temp, only ouput the first batch of reconstruction
+                    if itr == 0:
+                        batch_reconstruction_dict = sess.run([reconstruction_dict], feed_dict= feed_dict_all)
+                        final_reconstruction_dict = copy.deepcopy(batch_reconstruction_dict)
 
 
                     # record results every 50 iterations, that is about 900 samples
@@ -1121,7 +1136,7 @@ class Autoencoder:
                 test_output_arr = np.concatenate((test_output_arr, test_encoded_res[i]), axis=0)
 
         # This is the latent representation (9337, 1, 32, 20, 1) of training
-        return train_output_arr, test_output_arr, encoded_list, keys_list
+        return train_output_arr, test_output_arr, encoded_list, keys_list, final_reconstruction_dict
 
 
 
@@ -1613,12 +1628,12 @@ class Autoencoder_entry:
                     # get prediction results
                     print('training from scratch, and get prediction results')
                     # predicted_vals: (552, 30, 30, 1)
-                    self.train_lat_rep, self.test_lat_rep, encoded_list, keys_list = self.run_autoencoder()
+                    self.train_lat_rep, self.test_lat_rep, encoded_list, keys_list, final_reconstruction_dict = self.run_autoencoder()
 
             else:
                     # resume training
                     print("resume training, and get prediction results")
-                    self.train_lat_rep, self.test_lat_rep, encoded_list, keys_list = self.run_resume_training()
+                    self.train_lat_rep, self.test_lat_rep, encoded_list, keys_list, final_reconstruction_dict = self.run_resume_training()
             np.save(self.save_path +'train_lat_rep.npy', self.train_lat_rep)
             np.save(self.save_path +'test_lat_rep.npy', self.test_lat_rep)
             file = open(self.save_path + 'encoded_list', 'wb')
@@ -1627,6 +1642,14 @@ class Autoencoder_entry:
             print('dumping encoded_list to pickle')
             pickle.dump(encoded_list, file)
             file.close()
+
+            # dump pickle
+            recon_file = open(self.save_path + 'final_reconstruction_dict', 'wb')
+            # dump information to that file
+            # number of batches, num_dataset, batchsize, h, w, dim
+            print('dumping final_reconstruction_dict to pickle')
+            pickle.dump(final_reconstruction_dict, recon_file)
+            recon_file.close()
         else:
             # inference only
             print('get inference results')
@@ -1669,12 +1692,12 @@ class Autoencoder_entry:
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
         # (9337, 1, 32, 20, 1)
-        train_lat_rep, test_lat_rep, encoded_list, keys_list = predictor.train_autoencoder(
+        train_lat_rep, test_lat_rep, encoded_list, keys_list, final_reconstruction_dict = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
-        return train_lat_rep, test_lat_rep, encoded_list, keys_list
+        return train_lat_rep, test_lat_rep, encoded_list, keys_list, final_reconstruction_dict
 
 
 
@@ -1688,7 +1711,7 @@ class Autoencoder_entry:
                      self.demo_mask_arr, self.dim,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
-        train_lat_rep, test_lat_rep, encoded_list, keys_list = predictor.train_autoencoder(
+        train_lat_rep, test_lat_rep, encoded_list, keys_list, final_reconstruction_dict = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim,
                          True, self.checkpoint_path,
@@ -1700,7 +1723,7 @@ class Autoencoder_entry:
         #                  self.demo_mask_arr, self.save_path, self.dim, self.checkpoint_path,
         #              epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
-        return train_lat_rep, test_lat_rep, encoded_list, keys_list
+        return train_lat_rep, test_lat_rep, encoded_list, keys_list, final_reconstruction_dict
 
 
 
