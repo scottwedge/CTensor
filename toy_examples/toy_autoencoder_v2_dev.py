@@ -37,6 +37,8 @@ import tensorflow.python.keras
 import tensorflow.contrib.keras as keras
 from tensorflow.python.keras import backend as K
 
+import copy
+
 
 HEIGHT = 32
 WIDTH = 20
