@@ -1127,13 +1127,14 @@ class Autoencoder:
             print('train_encoded_res.len: ', len(train_encoded_res))
             train_output_arr = train_encoded_res[0]
             print('train_encoded_res[0].shape: ', train_encoded_res[0].shape)
-            for i in range(1,len(train_encoded_res)):
-                train_output_arr = np.concatenate((train_output_arr, train_encoded_res[i]), axis=0)
+            # Temp mute
+            # for i in range(1,len(train_encoded_res)):
+            #     train_output_arr = np.concatenate((train_output_arr, train_encoded_res[i]), axis=0)
 
             test_encoded_res = test_result
             test_output_arr = test_encoded_res[0]
-            for i in range(1,len(test_encoded_res)):
-                test_output_arr = np.concatenate((test_output_arr, test_encoded_res[i]), axis=0)
+            # for i in range(1,len(test_encoded_res)):
+            #     test_output_arr = np.concatenate((test_output_arr, test_encoded_res[i]), axis=0)
 
         # This is the latent representation (9337, 1, 32, 20, 1) of training
         return train_output_arr, test_output_arr, encoded_list, keys_list, final_reconstruction_dict
