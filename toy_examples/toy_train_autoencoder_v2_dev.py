@@ -505,7 +505,7 @@ def main():
 
     timer = str(time.time())
     if resume_training == False:
-        if if inference == False:
+        if inference == False:
     # Model fusion without fairness
             print('Train Model')
             latent_representation = toy_autoencoder_v2_dev.Autoencoder_entry(train_obj,
