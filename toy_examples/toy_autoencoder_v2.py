@@ -1264,7 +1264,7 @@ class Autoencoder_entry:
             file.close()
 
             # dump pickle
-            recon_file = open(infer_path + 'final_reconstruction_dict', 'wb')
+            recon_file = open(self.save_path + 'final_reconstruction_dict', 'wb')
             # dump information to that file
             # number of batches, num_dataset, batchsize, h, w, dim
             print('dumping final_reconstruction_dict to pickle')
