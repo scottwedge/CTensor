@@ -662,11 +662,11 @@ class Autoencoder:
             keys_list.append(k)
             first_order_encoder_list.append(prediction_1d)
 
-        for k, v in self.rawdata_2d_tf_x_dict.items():
-            prediction_2d = self.cnn_2d_model(v, self.is_training, k)
-            keys_list.append(k)
-            first_level_output[k] = prediction_2d
-            first_order_encoder_list.append(prediction_2d)
+        # for k, v in self.rawdata_2d_tf_x_dict.items():
+        #     prediction_2d = self.cnn_2d_model(v, self.is_training, k)
+        #     keys_list.append(k)
+        #     first_level_output[k] = prediction_2d
+        #     first_order_encoder_list.append(prediction_2d)
 
         # for k, v in self.rawdata_3d_tf_x_dict.items():
         #     prediction_3d = self.cnn_model(v, self.is_training, k)
@@ -707,16 +707,16 @@ class Autoencoder:
             reconstruction_dict[k] = reconstruction_1d
 
 
-        for k, v in self.rawdata_2d_tf_y_dict.items():
-            dim_2d = rawdata_2d_dict[k].shape[-1]
-            reconstruction_2d = self.reconstruct_2d(latent_fea, dim_2d, self.is_training)
-            temp_loss = tf.losses.absolute_difference(reconstruction_2d, v, weight)
-            total_loss += temp_loss
-            loss_dict[k] = temp_loss
-            temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, v, weight))
-            rmse_dict[k] = temp_rmse
-
-            reconstruction_dict[k] = reconstruction_2d
+        # for k, v in self.rawdata_2d_tf_y_dict.items():
+        #     dim_2d = rawdata_2d_dict[k].shape[-1]
+        #     reconstruction_2d = self.reconstruct_2d(latent_fea, dim_2d, self.is_training)
+        #     temp_loss = tf.losses.absolute_difference(reconstruction_2d, v, weight)
+        #     total_loss += temp_loss
+        #     loss_dict[k] = temp_loss
+        #     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, v, weight))
+        #     rmse_dict[k] = temp_rmse
+        #
+        #     reconstruction_dict[k] = reconstruction_2d
 
 
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 1)
@@ -823,10 +823,10 @@ class Autoencoder:
                         feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
 
                     # create batches for 2d
-                    for k, v in rawdata_2d_dict.items():
-                        temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
-                        feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
-                        feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
+                    # for k, v in rawdata_2d_dict.items():
+                    #     temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
+                    #     feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+                    #     feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
 
                      # create batches for 3d
     #                 for k, v in rawdata_3d_dict.items():
@@ -938,10 +938,10 @@ class Autoencoder:
                         test_feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
 
                     # create batches for 2d
-                    for k, v in rawdata_2d_dict.items():
-                        temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
-                        test_feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
-                        test_feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
+                    # for k, v in rawdata_2d_dict.items():
+                    #     temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
+                    #     test_feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+                    #     test_feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
 
                      # create batches for 3d
     #                 for k, v in rawdata_3d_dict.items():

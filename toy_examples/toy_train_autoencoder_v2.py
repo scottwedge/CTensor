@@ -456,8 +456,8 @@ def main():
         # 'transit_routes': transit_routes_arr,
         # 'transit_signals': transit_signals_arr,
         # 'transit_stop':transit_stop_arr,
-        'slope': slope_arr,
-        'bikelane': bikelane_arr,
+        # 'slope': slope_arr,
+        # 'bikelane': bikelane_arr,
         }
 
     rawdata_3d_dict = {
