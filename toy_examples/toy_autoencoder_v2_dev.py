@@ -1175,6 +1175,8 @@ class Autoencoder:
         cost = 0
         loss_dict = {} # {dataset name: loss}
         rmse_dict = {}
+        reconstruction_dict = dict()  # {dataset name:  reconstruction for this batch}
+
         for k, v in self.rawdata_1d_tf_y_dict.items():
             dim_1d = rawdata_1d_dict[k].shape[-1]
             reconstruction_1d = self.reconstruct_1d(latent_fea, dim_1d, self.is_training)
@@ -1186,6 +1188,7 @@ class Autoencoder:
             rmse_dict[k] = temp_rmse
 
             cost += temp_loss
+            reconstruction_dict[ds] = reconstruction_1d
 
             # if k == 'weather':
             #     temp_loss = 0.001 * temp_loss
@@ -1205,6 +1208,7 @@ class Autoencoder:
             rmse_dict[k] = temp_rmse
 
             cost += temp_loss
+            reconstruction_dict[ds] = reconstruction_2d
 
 
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 1)
