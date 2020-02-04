@@ -331,6 +331,10 @@ def parse_args():
     parser.add_argument('-l',   '--learning_rate',  type=float,
                      action="store", help = 'epochs to train', default = 0.001)
 
+    parser.add_argument("-i","--inference", type=bool, default=False,
+    				help="inference")
+
+
 
     return parser.parse_args()
 
@@ -347,6 +351,7 @@ def main():
     epoch = args.epoch
     learning_rate= args.learning_rate
     dim = args.dim
+    inference = args.inference
 
     print("resume_training: ", resume_training)
     print("training dir path: ", train_dir)
@@ -500,13 +505,22 @@ def main():
 
     timer = str(time.time())
     if resume_training == False:
+        if if inference == False:
     # Model fusion without fairness
-        print('Train Model')
-        latent_representation = toy_autoencoder_v2_dev.Autoencoder_entry(train_obj,
-                                rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
-                                 demo_mask_arr,  save_path, dim,
-                            HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE
-                    ).train_lat_rep
+            print('Train Model')
+            latent_representation = toy_autoencoder_v2_dev.Autoencoder_entry(train_obj,
+                                    rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+                                     demo_mask_arr,  save_path, dim,
+                                HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE
+                        ).train_lat_rep
+        else:
+            latent_representation = toy_autoencoder_v6_dev.Autoencoder_entry(train_obj,
+                                    rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+                                     demo_mask_arr,  save_path, dim,
+                                HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
+                                True, checkpoint, False, train_dir,
+                                use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
+                        ).train_lat_rep
     else:
          # resume training
         print('resume trainging from : ', train_dir)

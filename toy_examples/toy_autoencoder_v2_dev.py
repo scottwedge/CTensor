@@ -701,7 +701,7 @@ class Autoencoder:
             rmse_dict[k] = temp_rmse
 
             if k == 'weather':
-                temp_loss = 0.001 * temp_loss
+                temp_loss = 1 * temp_loss
                 cost += temp_loss
             else:
                 cost += temp_loss
@@ -1307,7 +1307,7 @@ class Autoencoder:
                 batch_cost, batch_loss_dict, batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
-                batch_output, batch_encoded_list = sess.run([latent_fea, second_order_encoder_list], feed_dict= feed_dict_all)
+                batch_output, batch_encoded_list = sess.run([latent_fea, first_order_encoder_list], feed_dict= feed_dict_all)
 
 
                 final_output.extend(batch_output)
@@ -1353,7 +1353,7 @@ class Autoencoder:
                 # print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
 
 
-            save_path = saver.save(sess, save_folder_path +'infer_autoencoder_v6_' +'.ckpt', global_step=self.global_step)
+            save_path = saver.save(sess, save_folder_path +'infer_autoencoder_v2_' +'.ckpt', global_step=self.global_step)
                 # save_path = saver.save(sess, './autoencoder.ckpt')
             print('Model saved to {}'.format(save_path))
 
@@ -1423,7 +1423,7 @@ class Autoencoder:
                 test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict= test_feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
-                test_batch_output, test_batch_encoded_list = sess.run([latent_fea, second_order_encoder_list], feed_dict= test_feed_dict_all)
+                test_batch_output, test_batch_encoded_list = sess.run([latent_fea, first_order_encoder_list], feed_dict= test_feed_dict_all)
                 test_final_output.extend(test_batch_output)
 
                 test_final_encoded_list.append(test_batch_encoded_list)
@@ -1504,7 +1504,7 @@ class Autoencoder:
 
 
             # save results to txt
-            txt_name = save_folder_path + 'infer_AE_v6_df' +  '.txt'
+            txt_name = save_folder_path + 'infer_AE_v2_df' +  '.txt'
             with open(txt_name, 'w') as the_file:
                     #the_file.write('Only account for grids that intersect with city boundary \n')
                 # the_file.write('epoch\n')
@@ -1624,16 +1624,34 @@ class Autoencoder_entry:
         else:
             # inference only
             print('get inference results')
-            self.latent_representation  = self.run_inference_autoencoder()
-            np.save(self.save_path +'autoencoder_inference_arr.npy', self.latent_representation)
+            self.train_lat_rep, self.test_lat_rep, encoded_list, test_encoded_list, keys_list, final_reconstruction_dict  = self.run_inference_autoencoder()
+            infer_path = os.path.join(self.save_path + 'inference/')
+            np.save(infer_path +'train_lat_rep.npy', self.train_lat_rep)
+            np.save(infer_path +'test_lat_rep.npy', self.test_lat_rep)
+            file = open(infer_path + 'encoded_list', 'wb')
+            # dump information to that file
+            # number of batches, num_dataset, batchsize, h, w, dim
+            print('dumping encoded_list to pickle')
+            pickle.dump(encoded_list, file)
+            file.close()
+
+            test_file = open(infer_path + 'test_encoded_list', 'wb')
+            # dump information to that file
+            # number of batches, num_dataset, batchsize, h, w, dim
+            print('dumping test_encoded_list to pickle')
+            pickle.dump(test_encoded_list, test_file)
+            test_file.close()
+
+            # dump pickle
+            recon_file = open(infer_path + 'final_reconstruction_dict', 'wb')
+            # dump information to that file
+            # number of batches, num_dataset, batchsize, h, w, dim
+            print('dumping final_reconstruction_dict to pickle')
+            pickle.dump(final_reconstruction_dict, recon_file)
+            recon_file.close()
 
 
-        # calculate performance using only cells that intersect with city boundary
-        # do evaluation using matrix format
-        # self.evaluation()
 
-        # convert predicted_vals to pandas dataframe with timestamps
-        # self.conv3d_predicted = self.arr_to_df()
 
 
     def run_autoencoder(self):
@@ -1684,17 +1702,18 @@ class Autoencoder_entry:
     # run inference only
     def run_inference_autoencoder(self):
         tf.reset_default_graph()
-        predictor = Autoencoder(self.intersect_pos_set,
+        predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
+                        self.intersect_pos_set,
                      self.demo_mask_arr, self.dim,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
-        # (9337, 1, 32, 20, 1)
-        latent_representation = predictor.inference_autoencoder(
-                        self.data_1d, self.data_2d, self.data_3d, self.train_hours,
-                         self.demo_mask_arr, self.save_path, self.checkpoint_path,
+        train_lat_rep, test_lat_rep, encoded_list, test_encoded_list, keys_list, final_reconstruction_dict = predictor.inference_autoencoder(
+                        self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
+                         self.demo_mask_arr, self.save_path, self.dim,
+                        self.checkpoint_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
-        return latent_representation
+        return train_lat_rep, test_lat_rep, test_encoded_list, encoded_list, keys_list, final_reconstruction_dict
 
 
 
