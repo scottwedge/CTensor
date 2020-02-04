@@ -1189,7 +1189,7 @@ class Autoencoder:
             temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, v))
             rmse_dict[k] = temp_rmse
 
-            cost += temp_loss
+            # cost += temp_loss
             reconstruction_dict[k] = reconstruction_1d
 
             # if k == 'weather':
@@ -1209,7 +1209,7 @@ class Autoencoder:
             temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, v, weight))
             rmse_dict[k] = temp_rmse
 
-            cost += temp_loss
+            # cost += temp_loss
             reconstruction_dict[k] = reconstruction_2d
 
 
@@ -1232,7 +1232,7 @@ class Autoencoder:
 
 
         print('total_loss: ', total_loss)
-        # cost = total_loss
+        cost = total_loss
 
         train_result = list()
         test_result = list()
