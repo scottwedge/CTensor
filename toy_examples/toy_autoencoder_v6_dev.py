@@ -1476,13 +1476,13 @@ class Autoencoder:
                 print('testing: start_idx, end_idx', start_idx, end_idx)
                     # create feed_dict
                 test_feed_dict_all = {}  # tf_var:  tensor
-                    # create batches for 1d
+                # create batches for 1d
                 for k, v in rawdata_1d_dict.items():
                     temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
                     test_feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
                     test_feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
 
-                    # create batches for 2d
+                # create batches for 2d
                 for k, v in rawdata_2d_dict.items():
                     temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
                     test_feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch

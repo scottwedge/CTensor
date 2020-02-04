@@ -1125,89 +1125,436 @@ class Autoencoder:
 
 
     # Temp: output reconstructed datasets for the first 10 hours
-    def inference_autoencoder(self, data_1d, data_2d, data_3d, train_hours,
-                     demo_mask_arr, save_folder_path,checkpoint_path,
+    def inference_autoencoder(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, train_hours,
+                     demo_mask_arr, save_folder_path, dim,
+                     checkpoint_path = None,
                        epochs=1, batch_size=32):
-        # starter_learning_rate = LEARNING_RATE
-        # learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
-        #                                5000, 0.96, staircase=True)
-        reconstructed, encoded = self.vanilla_autoencoder(self.x)
 
+        keys_list = []
+        first_order_encoder_list = []
+        # first level output [dataset name: output]
+        first_level_output = dict()
+
+        for k, v in self.rawdata_1d_tf_x_dict.items():
+            prediction_1d = self.cnn_1d_model(v, self.is_training, k)
+            prediction_1d = tf.expand_dims(prediction_1d, 1)
+            prediction_1d = tf.expand_dims(prediction_1d, 1)
+            prediction_1d_expand = tf.tile(prediction_1d, [1, HEIGHT,
+                                                    WIDTH ,1])
+            first_level_output[k] = prediction_1d_expand
+            keys_list.append(k)
+            first_order_encoder_list.append(prediction_1d)
+
+        for k, v in self.rawdata_2d_tf_x_dict.items():
+            prediction_2d = self.cnn_2d_model(v, self.is_training, k)
+            keys_list.append(k)
+            first_level_output[k] = prediction_2d
+            first_order_encoder_list.append(prediction_2d)
+
+        # for k, v in self.rawdata_3d_tf_x_dict.items():
+        #     prediction_3d = self.cnn_model(v, self.is_training, k)
+        #     keys_list.append(k)
+        #     first_level_output[k] = prediction_3d
+        #     first_order_encoder_list.append(prediction_3d)
+
+
+        # dim: latent fea dimension
+        # latent_fea = self.model_fusion(med_res_3d, med_res_2d, med_res_1d, dim, self.is_training)
+        latent_fea = self.fuse_and_train(list(first_level_output.values()),  self.is_training, '1', dim)
+        print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 3)
+        # recontruction
+        print('recontruction')
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr, 0)  # [1, 2]
-        # [1, 32, 20, 1]  -> [1, 1, 32, 20, 1]
-        demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 0)
-        # [1, 32, 20, 1] -> [batchsize, 32, 20, 1]
-        # batchsize = tf.shape(prediction)[0]
-        demo_mask_arr_expanded = tf.tile(demo_mask_arr_expanded, [tf.shape(reconstructed)[0],TIMESTEPS,1,1, CHANNEL])
-
+                # [1, 32, 20, 1]  -> [1, 1, 32, 20, 1]
+                # [1, 32, 20, 1] -> [batchsize, 32, 20, 1]
+                # batchsize = tf.shape(prediction)[0]
+        demo_mask_arr_expanded = tf.tile(demo_mask_arr_expanded, [tf.shape(latent_fea)[0],1,1,1])
         weight = tf.cast(tf.greater(demo_mask_arr_expanded, 0), tf.float32)
-        acc_loss = tf.losses.absolute_difference(reconstructed, self.y, weight)
-        cost = acc_loss
 
-        saver = tf.train.Saver()
+        total_loss = 0
+        cost = 0
+        loss_dict = {} # {dataset name: loss}
+        rmse_dict = {}
+        for k, v in self.rawdata_1d_tf_y_dict.items():
+            dim_1d = rawdata_1d_dict[k].shape[-1]
+            reconstruction_1d = self.reconstruct_1d(latent_fea, dim_1d, self.is_training)
+            temp_loss = tf.losses.absolute_difference(reconstruction_1d, v)
+            total_loss += temp_loss
+    #         loss_dict.append(temp_loss)
+            loss_dict[k] = temp_loss
+            temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, v))
+            rmse_dict[k] = temp_rmse
+
+            cost += temp_loss
+
+            # if k == 'weather':
+            #     temp_loss = 0.001 * temp_loss
+            #     cost += temp_loss
+            # else:
+            #     cost += temp_loss
+
+
+
+        for k, v in self.rawdata_2d_tf_y_dict.items():
+            dim_2d = rawdata_2d_dict[k].shape[-1]
+            reconstruction_2d = self.reconstruct_2d(latent_fea, dim_2d, self.is_training)
+            temp_loss = tf.losses.absolute_difference(reconstruction_2d, v, weight)
+            total_loss += temp_loss
+            loss_dict[k] = temp_loss
+            temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, v, weight))
+            rmse_dict[k] = temp_rmse
+
+            cost += temp_loss
+
+
+        demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 1)
+            # (?, 1, 32, 20, 1) -> (?, 7, 32, 20, 1)
+
+
+    #     for k, v in self.rawdata_3d_tf_y_dict.items():
+    #         timestep_3d = v.shape[1]
+    #         reconstruction_3d = self.reconstruct_3d(latent_fea, timestep_3d)
+    # #         print('reconstruction_3d.shape: ', reconstruction_3d.shape) # (?, 7, 32, 20, 1)
+    #         # 3d weight: (?, 32, 20, 1) -> (?, 7, 32, 20, 1)
+    #         demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
+    #         weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
+    #         temp_loss = tf.losses.absolute_difference(reconstruction_3d, v, weight_3d)
+    #         total_loss += temp_loss
+    #         loss_dict[k] = temp_loss
+    #         temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, v, weight_3d))
+    #         rmse_dict[k] = temp_rmse
+
+
+        print('total_loss: ', total_loss)
+        # cost = total_loss
+
+        train_result = list()
         test_result = list()
-        test_cost = 0
-        final_output = list()
+        encoded_list = list()  # output last layer of encoded for further grouping
+        test_encoded_list = list()
+        final_reconstruction_dict = {} # temp: only first batch
 
-        reconstruction_dict = dict()  # {dataset name:  reconstruction for this batch}
-
+        save_folder_path = os.path.join(save_folder_path, 'inference/')
         if not os.path.exists(save_folder_path):
-            os.makedirs(save_path)
+            os.makedirs(save_folder_path)
+        saver = tf.train.Saver()
 
-
+        ########### start session ########################
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
-            saver.restore(sess, checkpoint_path)
-            print("global step: ", sess.run([self.global_step]))
-            print("Model restore finished, current globle step: %d" % self.global_step.eval())
+            # ---- if resume training -----
+            if checkpoint_path is not None:
+                saver.restore(sess, checkpoint_path)
+            else:
+                saver.restore(sess, tf.train.latest_checkpoint(save_folder_path))
+                # check global step
 
-            start_time = datetime.datetime.now()
-
+            # temporary
+            # train_hours = 200
+            # train_hours: train_start_time = '2014-02-01',train_end_time = '2018-10-31',
             if train_hours%batch_size ==0:
                 iterations = int(train_hours/batch_size)
             else:
                 iterations = int(train_hours/batch_size) + 1
 
-                            # mini batch
-            for itr in range(iterations):
+            start_time = datetime.datetime.now()
+            epoch_loss = 0
+            epoch_subloss = {}  # ave loss for each dataset
+            epoch_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
+            epoch_subrmse = {}  # ave loss for each dataset
+            epoch_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+
+            final_output = list()
+            final_encoded_list = list()
+
+
+            # mini batch
+            for itr in range(iterations):
                 start_idx = itr*batch_size
                 if train_hours < (itr+1)*batch_size:
                     end_idx = train_hours
                 else:
                     end_idx = (itr+1)*batch_size
-                print('start_idx, end_idx', start_idx, end_idx)
-                mini_batch_x = self.create_mini_batch(start_idx, end_idx, data_1d, data_2d, data_3d)
+                print('itr, start_idx, end_idx', itr, start_idx, end_idx)
 
-                batch_cost = sess.run(cost, feed_dict={self.x: mini_batch_x,
-                                                                    self.y: mini_batch_x})
+                # create feed_dict
+                feed_dict_all = {}  # tf_var:  tensor
+                    # create batches for 1d
+                for k, v in rawdata_1d_dict.items():
+                    temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
+                    feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
+                    feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
+
+                    # create batches for 2d
+                for k, v in rawdata_2d_dict.items():
+                    temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
+                    feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+                    feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
+
+                     # create batches for 3d
+    #                 for k, v in rawdata_3d_dict.items():
+    #                     if k == 'seattle911calls':
+    #                         timestep = 168
+    #                     else:
+    #                         timestep = 7
+    #                     temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
+    # #                     print('3d temp_batch.shape: ',temp_batch.shape)
+    #                     feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+    #                     feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+                    # is_training: True
+                feed_dict_all[self.is_training] = True
+                batch_cost, batch_loss_dict, batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
-                batch_output = sess.run([encoded], feed_dict={self.x: mini_batch_x,
-                                                                    self.y: mini_batch_x})
+                batch_output, batch_encoded_list = sess.run([latent_fea, second_order_encoder_list], feed_dict= feed_dict_all)
+
+
                 final_output.extend(batch_output)
-                test_cost += batch_cost
 
-                # epoch_loss += batch_cost
+                final_encoded_list.append(batch_encoded_list)
+
+                # temp, only ouput the first batch of reconstruction
+                if itr == 0:
+                    batch_reconstruction_dict = sess.run([reconstruction_dict], feed_dict= feed_dict_all)
+                    final_reconstruction_dict = copy.deepcopy(batch_reconstruction_dict)
+
+
+                epoch_loss += batch_cost
+                for k, v in epoch_subloss.items():
+                    epoch_subloss[k] += batch_loss_dict[k]
+
+                for k, v in epoch_subrmse.items():
+                    epoch_subrmse[k] += batch_rmse_dict[k]
+
+
                 if itr%10 == 0:
-                        print("Epoch: {}...".format(itr),
+                    print("Iter: {}...".format(itr),
                             "Training loss: {:.4f}".format(batch_cost))
+                    for k, v in batch_loss_dict.items():
+                        print('loss for k :', k, v)
 
-                # report loss per epoch
-            test_cost = test_cost/ iterations
-            print('Trainig Set total Cost: ',test_cost)
+
+            # report loss per epoch
+            epoch_loss = epoch_loss/ iterations
+            print('Trainig Set Epoch total Cost: ',epoch_loss)
+            end_time = datetime.datetime.now()
+            train_time_per_epoch = end_time - start_time
+            train_time_per_sample = train_time_per_epoch/ train_hours
+
+            print(' Training Time per epoch: ', str(train_time_per_epoch), 'Time per sample: ', str(train_time_per_sample))
+
+            for k, v in epoch_subloss.items():
+                epoch_subloss[k] = v/iterations
+                # print('epoch: ', epoch, 'k: ', k, 'mean train loss: ', epoch_subloss[k])
+
+            for k, v in epoch_subrmse.items():
+                epoch_subrmse[k] = v/iterations
+                # print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
+
+
+            save_path = saver.save(sess, save_folder_path +'infer_autoencoder_v6_' +'.ckpt', global_step=self.global_step)
+                # save_path = saver.save(sess, './autoencoder.ckpt')
+            print('Model saved to {}'.format(save_path))
+
+                # Testing per epoch
+                # -----------------------------------------------------------------
+            print('testing  ')
+                # train_hours  = 41616  # train_start_time = '2014-02-01',train_end_time = '2018-10-31'
+            test_start = train_hours
+            test_end = rawdata_1d_dict['weather'].shape[0] -168  # 45984 - 168
+            test_len = test_end - test_start  # 4200
+            print('test_start: ', test_start) # 41616
+            print('test_end: ', test_end)
+            print('test_len: ', test_len) #  4200
+            test_start_time = datetime.datetime.now()
+
+            test_cost = 0
+            test_final_output = list()
+            test_final_encoded_list = list()
+            test_subloss = {}  # ave loss for each dataset
+            test_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+
+            test_subrmse = {}  # ave loss for each dataset
+            test_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+
+
+            if test_len%batch_size ==0:
+                itrs = int(test_len/batch_size)
+            else:
+                itrs = int(test_len/batch_size) + 1
+
+            for itr in range(itrs):
+                start_idx = itr*batch_size + test_start
+                if test_len < (itr+1)*batch_size:
+                    end_idx = test_end
+                else:
+                    end_idx = (itr+1)*batch_size + test_start
+                print('testing: start_idx, end_idx', start_idx, end_idx)
+                    # create feed_dict
+                test_feed_dict_all = {}  # tf_var:  tensor
+                    # create batches for 1d
+                for k, v in rawdata_1d_dict.items():
+                    temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
+                    test_feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
+                    test_feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
+
+                    # create batches for 2d
+                for k, v in rawdata_2d_dict.items():
+                    temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
+                    test_feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+                    test_feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
+
+                     # create batches for 3d
+    #                 for k, v in rawdata_3d_dict.items():
+    #                     if k == 'seattle911calls':
+    #                         timestep = 168
+    #                     else:
+    #                         timestep = 7
+    #                     temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
+    # #                     print('3d temp_batch.shape: ',temp_batch.shape)
+    #                     test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+    #                     test_feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+
+
+                    # is_training: True
+                test_feed_dict_all[self.is_training] = True
+
+                test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict= test_feed_dict_all)
+                    # get encoded representation
+                    # # [None, 1, 32, 20, 1]
+                test_batch_output, test_batch_encoded_list = sess.run([latent_fea, second_order_encoder_list], feed_dict= test_feed_dict_all)
+                test_final_output.extend(test_batch_output)
+
+                test_final_encoded_list.append(test_batch_encoded_list)
+
+                for k, v in test_subloss.items():
+                    test_subloss[k] += test_batch_loss_dict[k]
+
+                for k, v in test_subrmse.items():
+                    test_subrmse[k] += test_batch_rmse_dict[k]
+
+
+                if itr%10 == 0:
+                    print("Iter: {}...".format(itr),
+                            "testing loss: {:.4f}".format(test_batch_cost))
+
+
+
+                test_cost += test_batch_cost
+########
+            test_epoch_loss = test_cost/ itrs
+            print('Test Set Epoch total Cost: ',test_epoch_loss)
+            test_end_time = datetime.datetime.now()
+            test_time_per_epoch = test_end_time - test_start_time
+            test_time_per_sample = test_time_per_epoch/ test_len
+            print(' test Time elapse: ', str(test_time_per_epoch), 'test Time per sample: ', str(test_time_per_sample))
+
+            for k, v in test_subloss.items():
+                test_subloss[k] = v/itrs
+                # print('epoch: ', epoch, 'k: ', k, 'mean test loss: ', test_subloss[k])
+                print('test loss for k :', k, v)
+
+            for k, v in test_subrmse.items():
+                test_subrmse[k] = v/itrs
+                # print('epoch: ', epoch, 'k: ', k, 'mean test rmse: ', test_subrmse[k])
+                print('test rmse for k :', k, v)
+
+
+                # -----------------------------------------------------------------------
+
+
+                # save epoch statistics to csv
+            ecoch_res_df = pd.DataFrame([[epoch_loss, test_epoch_loss]],
+                    columns=[ 'train_loss', 'test_loss'])
+            res_csv_path = save_folder_path + 'autoencoder_ecoch_res_df' +'.csv'
+            with open(res_csv_path, 'a') as f:
+                    # Add header if file is being created, otherwise skip it
+                ecoch_res_df.to_csv(f, header=f.tell()==0)
+
+
+            train_sub_res_df = pd.DataFrame([list(epoch_subloss.values())],
+                    columns= list(epoch_subloss.keys()))
+            train_sub_res_csv_path = save_folder_path + 'autoencoder_train_sub_res' +'.csv'
+            with open(train_sub_res_csv_path, 'a') as f:
+                train_sub_res_df.to_csv(f, header=f.tell()==0)
+
+
+
+            test_sub_res_df = pd.DataFrame([list(test_subloss.values())],
+                                columns= list(test_subloss.keys()))
+            test_sub_res_csv_path = save_folder_path + 'autoencoder_test_sub_res' +'.csv'
+            with open(test_sub_res_csv_path, 'a') as f:
+                test_sub_res_df.to_csv(f, header=f.tell()==0)
+
+
+                # --- rmse ------
+            train_sub_rmse_df = pd.DataFrame([list(epoch_subrmse.values())],
+                    columns= list(epoch_subrmse.keys()))
+            train_sub_rmse_csv_path = save_folder_path + 'autoencoder_train_sub_rmse' +'.csv'
+            with open(train_sub_rmse_csv_path, 'a') as f:
+                train_sub_rmse_df.to_csv(f, header=f.tell()==0)
+
+            test_sub_rmse_df = pd.DataFrame([list(test_subrmse.values())],
+                                columns= list(test_subrmse.keys()))
+            test_sub_rmse_csv_path = save_folder_path + 'autoencoder_test_sub_rmse' +'.csv'
+            with open(test_sub_rmse_csv_path, 'a') as f:
+                test_sub_rmse_df.to_csv(f, header=f.tell()==0)
+
+
+
+            # save results to txt
+            txt_name = save_folder_path + 'infer_AE_v6_df' +  '.txt'
+            with open(txt_name, 'w') as the_file:
+                    #the_file.write('Only account for grids that intersect with city boundary \n')
+                # the_file.write('epoch\n')
+                # the_file.write(str(epoch)+'\n')
+                the_file.write('dim\n')
+                the_file.write(str(self.dim) + '\n')
+                the_file.write(' epoch_loss:\n')
+                the_file.write(str(epoch_loss) + '\n')
+                the_file.write(' test_epoch_loss:\n')
+                the_file.write(str(test_epoch_loss) + '\n')
+                the_file.write('\n')
+                the_file.write('total time of last train epoch\n')
+                the_file.write(str(train_time_per_epoch) + '\n')
+                the_file.write('time per sample for train\n')
+                the_file.write(str(train_time_per_sample) + '\n')
+                the_file.write('total time of last test epoch\n')
+                the_file.write(str(test_time_per_epoch) + '\n')
+                the_file.write('time per sample for test\n')
+                the_file.write(str(test_time_per_sample) + '\n')
+                the_file.write('keys_list\n')
+                for item in keys_list:
+                    the_file.write("%s\n" % item)
+                the_file.close()
+
 
             final_output = np.array(final_output)
-            test_result.extend(final_output)
+            train_result.extend(final_output)
+            test_final_output = np.array(test_final_output)
+            test_result.extend(test_final_output)
+            encoded_list.extend(final_encoded_list)
+            test_encoded_list.extend(test_final_encoded_list)
 
-            # encoded_res = np.array(test_result)
-            encoded_res = test_result
-            output_arr = encoded_res[0]
-            for i in range(1,len(encoded_res)):
-                output_arr = np.concatenate((output_arr, encoded_res[i]), axis=0)
 
-        # This is the latent representation (9337, 1, 32, 20, 1)
-        return output_arr
+            print('saving output_arr ....')
+            train_encoded_res = train_result
+            train_output_arr = train_encoded_res[0]
+            # for i in range(1,len(train_encoded_res)):
+            #     train_output_arr = np.concatenate((train_output_arr, train_encoded_res[i]), axis=0)
+
+            test_encoded_res = test_result
+            test_output_arr = test_encoded_res[0]
+            # for i in range(1,len(test_encoded_res)):
+            #     test_output_arr = np.concatenate((test_output_arr, test_encoded_res[i]), axis=0)
+
+        print('train_output_arr.shape: ', train_output_arr.shape)
+        # This is the latent representation (9337, 1, 32, 20, 1) of training
+        return train_output_arr, test_output_arr, encoded_list, test_encoded_list,keys_list, final_reconstruction_dict
+
+
+
 
 
 
