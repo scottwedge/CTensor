@@ -437,7 +437,7 @@ def main():
     print('use dictionary to organize data')
     rawdata_1d_dict = {
      'weather': weather_arr,
-    # 'airquality': airquality_arr,
+     'airquality': airquality_arr,
     }
     # rawdata_1d_dict = {
     #  'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
@@ -468,7 +468,7 @@ def main():
     rawdata_3d_dict = {
         #   'building_permit': building_permit_arr_seq_extend,
         # 'collisions': collisions_arr_seq_extend,  # (7, 45840, 32, 20)
-        # 'seattle911calls': seattle911calls_arr # (45984, 32, 20)
+        'seattle911calls': seattle911calls_arr # (45984, 32, 20)
         }
 
 

@@ -668,11 +668,11 @@ class Autoencoder:
             first_level_output[k] = prediction_2d
             first_order_encoder_list.append(prediction_2d)
 
-        # for k, v in self.rawdata_3d_tf_x_dict.items():
-        #     prediction_3d = self.cnn_model(v, self.is_training, k)
-        #     keys_list.append(k)
-        #     first_level_output[k] = prediction_3d
-        #     first_order_encoder_list.append(prediction_3d)
+        for k, v in self.rawdata_3d_tf_x_dict.items():
+            prediction_3d = self.cnn_model(v, self.is_training, k)
+            keys_list.append(k)
+            first_level_output[k] = prediction_3d
+            first_order_encoder_list.append(prediction_3d)
 
 
         # dim: latent fea dimension
@@ -706,7 +706,7 @@ class Autoencoder:
             rmse_dict[k] = temp_rmse
 
             if k == 'weather':
-                temp_loss = 1000 * temp_loss
+                temp_loss = temp_loss
                 cost += temp_loss
             else:
                 cost += temp_loss
@@ -732,18 +732,23 @@ class Autoencoder:
             # (?, 1, 32, 20, 1) -> (?, 7, 32, 20, 1)
 
 
-    #     for k, v in self.rawdata_3d_tf_y_dict.items():
-    #         timestep_3d = v.shape[1]
-    #         reconstruction_3d = self.reconstruct_3d(latent_fea, timestep_3d)
-    # #         print('reconstruction_3d.shape: ', reconstruction_3d.shape) # (?, 7, 32, 20, 1)
-    #         # 3d weight: (?, 32, 20, 1) -> (?, 7, 32, 20, 1)
-    #         demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
-    #         weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
-    #         temp_loss = tf.losses.absolute_difference(reconstruction_3d, v, weight_3d)
-    #         total_loss += temp_loss
-    #         loss_dict[k] = temp_loss
-    #         temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, v, weight_3d))
-    #         rmse_dict[k] = temp_rmse
+        for k, v in self.rawdata_3d_tf_y_dict.items():
+            timestep_3d = v.shape[1]
+            reconstruction_3d = self.reconstruct_3d(latent_fea, timestep_3d)
+    #         print('reconstruction_3d.shape: ', reconstruction_3d.shape) # (?, 7, 32, 20, 1)
+            # 3d weight: (?, 32, 20, 1) -> (?, 7, 32, 20, 1)
+            demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
+            weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
+            temp_loss = tf.losses.absolute_difference(reconstruction_3d, v, weight_3d)
+            total_loss += temp_loss
+            loss_dict[k] = temp_loss
+            temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, v, weight_3d))
+            rmse_dict[k] = temp_rmse
+
+            cost += temp_loss
+            reconstruction_dict[k] = reconstruction_3d
+
+
 
 
         print('total_loss: ', total_loss)
@@ -840,15 +845,15 @@ class Autoencoder:
                         feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
 
                      # create batches for 3d
-    #                 for k, v in rawdata_3d_dict.items():
-    #                     if k == 'seattle911calls':
-    #                         timestep = 168
-    #                     else:
-    #                         timestep = 7
-    #                     temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
-    # #                     print('3d temp_batch.shape: ',temp_batch.shape)
-    #                     feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
-    #                     feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+                    for k, v in rawdata_3d_dict.items():
+                        if k == 'seattle911calls':
+                            timestep = 168
+                        else:
+                            timestep = 7
+                        temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
+    #                     print('3d temp_batch.shape: ',temp_batch.shape)
+                        feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+                        feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
 
                     # is_training: True
                     feed_dict_all[self.is_training] = True
@@ -962,15 +967,15 @@ class Autoencoder:
                         test_feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
 
                      # create batches for 3d
-    #                 for k, v in rawdata_3d_dict.items():
-    #                     if k == 'seattle911calls':
-    #                         timestep = 168
-    #                     else:
-    #                         timestep = 7
-    #                     temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
-    # #                     print('3d temp_batch.shape: ',temp_batch.shape)
-    #                     test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
-    #                     test_feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+                    for k, v in rawdata_3d_dict.items():
+                        if k == 'seattle911calls':
+                            timestep = 168
+                        else:
+                            timestep = 7
+                        temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
+    #                     print('3d temp_batch.shape: ',temp_batch.shape)
+                        test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+                        test_feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
                     # is_training: True
                     test_feed_dict_all[self.is_training] = True
 
