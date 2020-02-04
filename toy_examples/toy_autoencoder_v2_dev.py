@@ -1188,7 +1188,7 @@ class Autoencoder:
             rmse_dict[k] = temp_rmse
 
             cost += temp_loss
-            reconstruction_dict[ds] = reconstruction_1d
+            reconstruction_dict[k] = reconstruction_1d
 
             # if k == 'weather':
             #     temp_loss = 0.001 * temp_loss
@@ -1208,7 +1208,7 @@ class Autoencoder:
             rmse_dict[k] = temp_rmse
 
             cost += temp_loss
-            reconstruction_dict[ds] = reconstruction_2d
+            reconstruction_dict[k] = reconstruction_2d
 
 
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 1)
