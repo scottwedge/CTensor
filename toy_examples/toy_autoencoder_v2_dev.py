@@ -170,24 +170,24 @@ class Autoencoder:
             self.rawdata_2d_tf_y_dict[k] = tf.placeholder(tf.float32, shape=[None, height, width, dim])
 
         # -------- 3d --------------#
-        # building_permit_x = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
-        # building_permit_y = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
-        # collisions_x = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
-        # collisions_y = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
-        # seattle911calls_x = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
-        # seattle911calls_y = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
-        #
-        # self.rawdata_3d_tf_x_dict = {
-        #     'building_permit': building_permit_x,
-        #     'collisions': collisions_x,
-        #     'seattle911calls': seattle911calls_x
-        #
-        # }
-        # self.rawdata_3d_tf_y_dict = {
-        #       'building_permit': building_permit_y,
-        #     'collisions': collisions_y,
-        #     'seattle911calls': seattle911calls_y
-        # }
+        building_permit_x = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
+        building_permit_y = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
+        collisions_x = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
+        collisions_y = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
+        seattle911calls_x = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+        seattle911calls_y = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+
+        self.rawdata_3d_tf_x_dict = {
+            'building_permit': building_permit_x,
+            'collisions': collisions_x,
+            'seattle911calls': seattle911calls_x
+
+        }
+        self.rawdata_3d_tf_y_dict = {
+              'building_permit': building_permit_y,
+            'collisions': collisions_y,
+            'seattle911calls': seattle911calls_y
+        }
 
 
 
