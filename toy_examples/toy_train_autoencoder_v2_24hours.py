@@ -440,7 +440,7 @@ def main():
     rawdata_1d_dict = {
      'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
     'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
-    # 'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+    'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
     # 'airquality': airquality_arr,
     }
 
