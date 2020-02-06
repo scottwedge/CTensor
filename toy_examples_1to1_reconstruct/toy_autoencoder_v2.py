@@ -526,7 +526,7 @@ class Autoencoder:
         return conv3
 
 
-        # [None, 32, 20, dim ] -> recontruct to [None,168, dim_1d]
+    # [None, 32, 20, dim ] -> recontruct to [None,168, dim_1d]
     def reconstruct_1d(self, latent_fea, dim_1d, is_training):
         padding = 'SAME'
         stride = [1]
