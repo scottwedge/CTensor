@@ -1,4 +1,27 @@
 # TOY CASE
+
+# 1 hour data reconstruct to 1 hour latent representation
+# Strategy 1) :
+# The inut data will be non-overlapping 168 or 24 hours with no sliding windows.
+# meaning the latent rep should be the same ST shape as input 168 , 32, 20, dim.
+# when used with downstream, the tensor should be treated
+# like a 3D dataset
+
+# Strategy 2):
+# The input data is overlapping 168 hour like before,
+# but output shape of 168 , 32, 20, dim.
+# When used with downstream, compress encode each of the 168-h tensor
+# then fused with downstream output
+
+# Strategy 3): preferred currently
+# Train with overlapping 168 hours, and latent rep keeps 168 , 32, 20, dim.
+# But when producing City Tensor, do inference on NON-overlapping training
+# and test data. Report MAE for all situations.
+# So the data creation process remains the same, but network struture should change
+# to make sure the latent rep is maintained as 168 , 32, 20, dim.
+
+
+
 # v2: all_to_all autoencoder, still flat structure
 # train autoencoder for urban features
 # for each week's data, learn a
@@ -430,16 +453,16 @@ def main():
 
     # construct dictionary
     print('use dictionary to organize data')
-    rawdata_1d_dict = {
-     'weather': weather_arr,
-    # 'airquality': airquality_arr,
-    }
     # rawdata_1d_dict = {
-    #  'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
-    # 'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
-    # # 'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+    #  'weather': weather_arr,
     # # 'airquality': airquality_arr,
     # }
+    rawdata_1d_dict = {
+     'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
+    'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
+    # 'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+    # 'airquality': airquality_arr,
+    }
 
     rawdata_2d_dict = {
         #  'house_price': house_price_arr,
@@ -456,14 +479,14 @@ def main():
         # 'transit_routes': transit_routes_arr,
         # 'transit_signals': transit_signals_arr,
         # 'transit_stop':transit_stop_arr,
-        # 'slope': slope_arr,
-        # 'bikelane': bikelane_arr,
+        'slope': slope_arr,
+        'bikelane': bikelane_arr,
         }
 
     rawdata_3d_dict = {
         #   'building_permit': building_permit_arr_seq_extend,
         # 'collisions': collisions_arr_seq_extend,  # (7, 45840, 32, 20)
-        # 'seattle911calls': seattle911calls_arr # (45984, 32, 20)
+        'seattle911calls': seattle911calls_arr # (45984, 32, 20)
         }
 
 
