@@ -797,8 +797,8 @@ class Autoencoder:
         for k, v in self.rawdata_1d_tf_x_dict.items():
             # (batchsize, 168, # of features) should expand to (batchsize, 168, 32, 20, # of features)
             prediction_1d = self.cnn_1d_model(v, self.is_training, k)
-            prediction_1d = tf.expand_dims(prediction_1d, 1)
-            prediction_1d = tf.expand_dims(prediction_1d, 1)
+            prediction_1d = tf.expand_dims(prediction_1d, 2)
+            prediction_1d = tf.expand_dims(prediction_1d, 2)
             prediction_1d_expand = tf.tile(prediction_1d, [1, 1, HEIGHT,
                                                     WIDTH ,1])
             first_level_output[k] = prediction_1d_expand
@@ -809,10 +809,10 @@ class Autoencoder:
             # [None, height, width, 1] -> [None, 168, height, width, 1]
             prediction_2d = self.cnn_2d_model(v, self.is_training, k)
             prediction_2d = tf.expand_dims(prediction_2d, 1)
-            prediction_2d = tf.tile(prediction_2d, [1, 168, 1,
+            prediction_2d_expand = tf.tile(prediction_2d, [1, 168, 1,
                                                     1 ,1])
             keys_list.append(k)
-            first_level_output[k] = prediction_2d
+            first_level_output[k] = prediction_2d_expand
             first_order_encoder_list.append(prediction_2d)
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
