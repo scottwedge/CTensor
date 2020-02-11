@@ -913,7 +913,7 @@ class Autoencoder:
         config.gpu_options.allow_growth=True
 
 
-        with tf.Session() as sess:
+        with tf.Session(config=config) as sess:
             sess.run(tf.global_variables_initializer())
 
             # ---- if resume training -----
