@@ -781,7 +781,7 @@ class Autoencoder:
     def train_autoencoder(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, train_hours,
                      demo_mask_arr, save_folder_path, dim,
                      resume_training = False, checkpoint_path = None,
-                       epochs=1, batch_size=32):
+                       epochs=1, batch_size=16):
         starter_learning_rate = LEARNING_RATE
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
                                        5000, 0.96, staircase=True)
