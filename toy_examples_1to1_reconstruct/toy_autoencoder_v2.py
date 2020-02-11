@@ -907,6 +907,12 @@ class Autoencoder:
             os.makedirs(save_path)
 
 
+        config = tf.ConfigProto()
+        config.gpu_options.allocator_type ='BFC'
+        config.gpu_options.per_process_gpu_memory_fraction = 0.90
+        config.gpu_options.allow_growth=True
+
+
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
 
