@@ -295,7 +295,7 @@ class Autoencoder:
                       #reuse = tf.AUTO_REUSE
                 )
             out = conv3
-        # output size should be [height, width, 1]
+        # output size should be [None, height, width, 1]
         return out
 
 
@@ -806,7 +806,11 @@ class Autoencoder:
             first_order_encoder_list.append(prediction_1d)
 
         for k, v in self.rawdata_2d_tf_x_dict.items():
+            # [None, height, width, 1] -> [None, 168, height, width, 1]
             prediction_2d = self.cnn_2d_model(v, self.is_training, k)
+            prediction_2d = tf.expand_dims(prediction_2d, 1)
+            prediction_2d = tf.tile(prediction_2d, [1, 168, 1,
+                                                    1 ,1])
             keys_list.append(k)
             first_level_output[k] = prediction_2d
             first_order_encoder_list.append(prediction_2d)
