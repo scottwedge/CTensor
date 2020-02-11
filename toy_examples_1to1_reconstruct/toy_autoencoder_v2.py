@@ -422,7 +422,7 @@ class Autoencoder:
 
     # [batchsize, height, width, dim] -> recontruct to [None, DAILY_TIMESTEPS, height, width, 1]
     # update: [None, 168, 32, 20, dim_decode] -> recontruct to [None, DAILY_TIMESTEPS, height, width, 1]
-    def reconstruct_3d(self, latent_fea, timestep):
+    def reconstruct_3d(self, latent_fea, timestep, is_training):
         padding = 'SAME'
         stride = [1,1,1]
         # [batchsize, 32, 20, dim] -> [batchsize, 1, 32, 20, dim]
@@ -872,7 +872,7 @@ class Autoencoder:
 
         for k, v in self.rawdata_3d_tf_y_dict.items():
             timestep_3d = v.shape[1]
-            reconstruction_3d = self.reconstruct_3d(latent_fea, timestep_3d)
+            reconstruction_3d = self.reconstruct_3d(latent_fea, timestep_3d, self.is_training)
     #         print('reconstruction_3d.shape: ', reconstruction_3d.shape) # (?, 7, 32, 20, 1)
             # 3d weight: (?, 32, 20, 1) -> (?, 7, 32, 20, 1)
             demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
