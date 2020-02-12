@@ -69,7 +69,7 @@ TIMESTEPS = 24
 
 CHANNEL = 27  # number of all features
 
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 # actually epochs
 # TRAINING_STEPS = 200
 TRAINING_STEPS = 50
