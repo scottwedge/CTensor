@@ -81,7 +81,7 @@ def my_leaky_relu(x):
     return tf.nn.leaky_relu(x, alpha=0.2)
 
 
-def generate_fixlen_timeseries(rawdata_arr, timestep = 24):
+def generate_fixlen_timeseries(rawdata_arr, timestep = TIMESTEPS):
     raw_seq_list = list()
         # arr_shape: [# of timestamps, w, h]
     arr_shape = rawdata_arr.shape
@@ -104,7 +104,7 @@ def create_mini_batch_1d(start_idx, end_idx,  data_1d):
     test_size = end_idx - start_idx
 
     # test_data_1d = data_1d[start_idx:end_idx + 168 - 1,:]
-    test_data_1d = data_1d[start_idx:end_idx + 24 - 1,:]
+    test_data_1d = data_1d[start_idx:end_idx + TIMESTEPS - 1,:]
     test_data_1d_seq = generate_fixlen_timeseries(test_data_1d)
     test_data_1d_seq = np.swapaxes(test_data_1d_seq,0,1)
     # (168, batchsize, dim)
@@ -179,8 +179,8 @@ class Autoencoder:
             dim = v.shape[-1]
             tf_name_x = k+ '_' + 'x'
             tf_name_y = k+ '_' + 'y'
-            self.rawdata_1d_tf_x_dict[k] = tf.placeholder(tf.float32, shape=[None,24, dim])
-            self.rawdata_1d_tf_y_dict[k] = tf.placeholder(tf.float32, shape=[None,24, dim])
+            self.rawdata_1d_tf_x_dict[k] = tf.placeholder(tf.float32, shape=[None,TIMESTEPS, dim])
+            self.rawdata_1d_tf_y_dict[k] = tf.placeholder(tf.float32, shape=[None,TIMESTEPS, dim])
 
         # 2d
         self.rawdata_2d_tf_x_dict = {}
@@ -309,7 +309,7 @@ class Autoencoder:
     '''
     # update: keep the output shape [None, 168, output_dim]
     # (batchsize, 168, # of features)
-    def cnn_1d_model(self, x_1d_train_data, is_training, suffix = '', output_dim =3, seed=None):
+    def cnn_1d_model(self, x_1d_train_data, is_training, suffix = '', output_dim =1, seed=None):
         var_scope = "1d_data_process_" + suffix
         with tf.variable_scope(var_scope):
             # https://www.tensorflow.org/api_docs/python/tf/layers/conv1d
@@ -429,7 +429,7 @@ class Autoencoder:
         stride = [1,1,1]
         # [batchsize, 32, 20, dim] -> [batchsize, 1, 32, 20, dim]
         # latent_fea = tf.expand_dims(latent_fea, 1)
-        if timestep == 24:
+        if timestep == TIMESTEPS:
             # deconv1 = tf.layers.conv3d_transpose(inputs=latent_fea, filters=16, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
             # # [1, 32, 20, 32]
             # # https://www.tensorflow.org/api_docs/python/tf/keras/backend/resize_volumes
@@ -527,7 +527,7 @@ class Autoencoder:
 
         #Average Pooling  [None, 168, 32, 20, dim_decode] ->  (None, 1, 32, 20, dim_decode)
         # https://www.tensorflow.org/api_docs/python/tf/compat/v1/layers/average_pooling3d
-        conv1 = tf.layers.average_pooling3d(latent_fea, [24, 1, 1], [1,1,1], padding='valid')
+        conv1 = tf.layers.average_pooling3d(latent_fea, [TIMESTEPS, 1, 1], [1,1,1], padding='valid')
         # (None, 1, 32, 20, dim_decode)  -> (None,  32, 20, dim_decode)
         conv1 = tf.squeeze(conv1, axis = 1)
 
@@ -811,7 +811,7 @@ class Autoencoder:
             # [None, height, width, 1] -> [None, 168, height, width, 1]
             prediction_2d = self.cnn_2d_model(v, self.is_training, k)
             prediction_2d = tf.expand_dims(prediction_2d, 1)
-            prediction_2d_expand = tf.tile(prediction_2d, [1, 24, 1,
+            prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
                                                     1 ,1])
             keys_list.append(k)
             first_level_output[k] = prediction_2d_expand
@@ -884,6 +884,8 @@ class Autoencoder:
             loss_dict[k] = temp_loss
             temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, v, weight_3d))
             rmse_dict[k] = temp_rmse
+
+            reconstruction_dict[k] = reconstruction_3d
 
 
         print('total_loss: ', total_loss)
@@ -986,7 +988,7 @@ class Autoencoder:
                      # create batches for 3d
                     for k, v in rawdata_3d_dict.items():
                         if k == 'seattle911calls':
-                            timestep = 24
+                            timestep = TIMESTEPS
                         else:
                             timestep = 7
                         temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
@@ -1056,7 +1058,7 @@ class Autoencoder:
                 print('testing per epoch, for epoch: ', epoch)
                 # train_hours  = 41616  # train_start_time = '2014-02-01',train_end_time = '2018-10-31'
                 test_start = train_hours
-                test_end = rawdata_1d_dict[list(rawdata_1d_dict.keys())[0]].shape[0] -24  # 45984 - 168
+                test_end = rawdata_1d_dict[list(rawdata_1d_dict.keys())[0]].shape[0] -TIMESTEPS  # 45984 - 168
                 test_len = test_end - test_start  # 4200
                 print('test_start: ', test_start) # 41616
                 print('test_end: ', test_end)
@@ -1101,7 +1103,7 @@ class Autoencoder:
                      # create batches for 3d
                     for k, v in rawdata_3d_dict.items():
                         if k == 'seattle911calls':
-                            timestep = 24
+                            timestep = TIMESTEPS
                         else:
                             timestep = 7
                         temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
