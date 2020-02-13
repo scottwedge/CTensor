@@ -2088,7 +2088,7 @@ class Autoencoder:
 
         print('train_output_arr.shape: ', train_output_arr.shape)
         # This is the latent representation (9337, 1, 32, 20, 1) of training
-        return train_output_arr, keys_list
+        return train_output_arr
 
 
 
@@ -2193,6 +2193,15 @@ class Autoencoder_entry:
             pickle.dump(final_reconstruction_dict, recon_file)
             recon_file.close()
 
+            # ----------- get lat rep ---------------------- #
+            # run_inference_lat_rep(self):
+            print('get inference results')
+            self.final_lat_rep  = self.run_inference_lat_rep()
+            lat_rep_path = os.path.join(self.save_path + 'latent_rep/')
+            np.save(lat_rep_path +'final_lat_rep.npy', self.final_lat_rep)
+
+
+
 
 
 
@@ -2257,6 +2266,22 @@ class Autoencoder_entry:
 
         return train_lat_rep, test_lat_rep, test_encoded_list, encoded_list, keys_list, final_reconstruction_dict
 
+
+    # run inference to produce a consistent latent rep ready for downstream use
+    def run_inference_lat_rep(self):
+        tf.reset_default_graph()
+        predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
+                        self.intersect_pos_set,
+                     self.demo_mask_arr, self.dim,
+                     channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
+
+        train_lat_rep = predictor.get_latent_rep(
+                        self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
+                         self.demo_mask_arr, self.save_path, self.dim,
+                        self.checkpoint_path,
+                     epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
+
+        return train_lat_rep
 
 
 
