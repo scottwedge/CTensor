@@ -1589,7 +1589,7 @@ class Autoencoder:
             print('testing  ')
                 # train_hours  = 41616  # train_start_time = '2014-02-01',train_end_time = '2018-10-31'
             test_start = train_hours
-            test_end = rawdata_1d_dict['weather'].shape[0] -168  # 45984 - 168
+            test_end = rawdata_1d_dict[list(rawdata_1d_dict.keys())[0]].shape[0] -168  # 45984 - 168
             test_len = test_end - test_start  # 4200
             print('test_start: ', test_start) # 41616
             print('test_end: ', test_end)
@@ -1922,6 +1922,7 @@ class Autoencoder:
             print('test_end: ', test_end)
             print('test_len: ', test_len) #  4200
             total_len = test_len + train_hours
+            print('total_len: ', total_len)
             # nonoverlapping sequences
             # e.g., train_hours = 100. batchsize = 10, time = 5
             # iter = 2. if train_hours = 121. iter = 3. ignore the last 1 time_step
