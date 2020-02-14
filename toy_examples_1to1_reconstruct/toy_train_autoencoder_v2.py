@@ -538,7 +538,7 @@ def main():
                                 HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE
                         ).train_lat_rep
         else:
-            latent_representation = toy_autoencoder_v2_dev.Autoencoder_entry(train_obj,
+            latent_representation = toy_autoencoder_v2.Autoencoder_entry(train_obj,
                                         rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                          demo_mask_arr,  save_path, dim,
                                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
