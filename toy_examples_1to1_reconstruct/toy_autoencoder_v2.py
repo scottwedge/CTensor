@@ -1520,15 +1520,15 @@ class Autoencoder:
                     feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
 
                      # create batches for 3d
-                    for k, v in rawdata_3d_dict.items():
-                        if k == 'seattle911calls':
-                            timestep = TIMESTEPS
-                        else:
-                            timestep = 7
-                        temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
+                for k, v in rawdata_3d_dict.items():
+                    if k == 'seattle911calls':
+                        timestep = TIMESTEPS
+                    else:
+                        timestep = 7
+                    temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
-                        feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
-                        feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+                    feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+                    feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
                     # is_training: True
                 feed_dict_all[self.is_training] = True
                 batch_cost, batch_loss_dict, batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict=feed_dict_all)
@@ -1633,15 +1633,15 @@ class Autoencoder:
                     test_feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
 
                      # create batches for 3d
-                    for k, v in rawdata_3d_dict.items():
-                        if k == 'seattle911calls':
-                            timestep = TIMESTEPS
-                        else:
-                            timestep = 7
-                        temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
+                for k, v in rawdata_3d_dict.items():
+                    if k == 'seattle911calls':
+                        timestep = TIMESTEPS
+                    else:
+                        timestep = 7
+                    temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
-                        test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
-                        test_feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+                    test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+                    test_feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
 
 
                     # is_training: True
@@ -1969,16 +1969,16 @@ class Autoencoder:
                     feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
                     feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
 
-                     # create batches for 3d
-                    for k, v in rawdata_3d_dict.items():
-                        if k == 'seattle911calls':
-                            timestep = TIMESTEPS
-                        else:
-                            timestep = 7
-                        temp_batch = create_mini_batch_3d_nonoverlapping(start_idx, end_idx, v, timestep)
+                    # create batches for 3d
+                for k, v in rawdata_3d_dict.items():
+                    if k == 'seattle911calls':
+                        timestep = TIMESTEPS
+                    else:
+                        timestep = 7
+                    temp_batch = create_mini_batch_3d_nonoverlapping(start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
-                        feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
-                        feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+                    feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+                    feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
                     # is_training: True
                 feed_dict_all[self.is_training] = True
                 batch_cost, batch_loss_dict, batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict=feed_dict_all)
