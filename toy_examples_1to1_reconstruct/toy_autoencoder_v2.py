@@ -1926,10 +1926,11 @@ class Autoencoder:
             # nonoverlapping sequences
             # e.g., train_hours = 100. batchsize = 10, time = 5
             # iter = 2. if train_hours = 121. iter = 3. ignore the last 1 time_step
-            if total_len%batch_size ==0:
-                iterations = int(train_hours/batch_size * TIMESTEPS)
+            step = batch_size * TIMESTEPS  # 32 * 24 = 768
+            if total_len%step ==0:
+                iterations = int(train_hours/step)
             else:
-                iterations = int(train_hours/batch_size *TIMESTEPS) + 1
+                iterations = int(train_hours/step) + 1
 
             start_time = datetime.datetime.now()
             epoch_loss = 0
@@ -1946,11 +1947,11 @@ class Autoencoder:
             # mini batch
             for itr in range(iterations):
                 # e.g. itr = 1, start_idx = 50, end_idx = 100
-                start_idx = itr*batch_size
-                if total_len < (itr+1)*batch_size * TIMESTEPS:
+                start_idx = itr*step
+                if total_len < (itr+1)*step:
                     end_idx = total_len
                 else:
-                    end_idx = (itr+1)*batch_size * TIMESTEPS
+                    end_idx = (itr+1)*step
                 print('itr, start_idx, end_idx', itr, start_idx, end_idx)
 
                 # create feed_dict
