@@ -1441,7 +1441,7 @@ class Autoencoder:
 
         for k, v in self.rawdata_3d_tf_y_dict.items():
             timestep_3d = v.shape[1]
-            reconstruction_3d = self.reconstruct_3d(latent_fea, timestep_3d)
+            reconstruction_3d = self.reconstruct_3d(latent_fea, timestep_3d, self.is_training)
             demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
             weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
             temp_loss = tf.losses.absolute_difference(reconstruction_3d, v, weight_3d)
@@ -1879,7 +1879,7 @@ class Autoencoder:
 
         for k, v in self.rawdata_3d_tf_y_dict.items():
             timestep_3d = v.shape[1]
-            reconstruction_3d = self.reconstruct_3d(latent_fea, timestep_3d)
+            reconstruction_3d = self.reconstruct_3d(latent_fea, timestep_3d, self.is_training)
             demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
             weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
             temp_loss = tf.losses.absolute_difference(reconstruction_3d, v, weight_3d)
