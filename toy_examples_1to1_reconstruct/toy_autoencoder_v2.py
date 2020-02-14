@@ -2169,6 +2169,7 @@ class Autoencoder_entry:
             recon_file.close()
 
         else:
+            '''
             # inference only
             print('get inference results')
             self.train_lat_rep, self.test_lat_rep, encoded_list, test_encoded_list, keys_list, final_reconstruction_dict  = self.run_inference_autoencoder()
@@ -2196,6 +2197,8 @@ class Autoencoder_entry:
             print('dumping final_reconstruction_dict to pickle')
             pickle.dump(final_reconstruction_dict, recon_file)
             recon_file.close()
+            '''
+
 
             # ----------- get lat rep ---------------------- #
             # run_inference_lat_rep(self):
