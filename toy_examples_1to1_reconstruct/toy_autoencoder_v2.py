@@ -1919,10 +1919,11 @@ class Autoencoder:
             test_end = rawdata_1d_dict[list(rawdata_1d_dict.keys())[0]].shape[0] -TIMESTEPS  # 45984 - 168
             test_len = test_end - test_start  # 4200
             print('test_start: ', test_start) # 41616
-            print('test_end: ', test_end)
-            print('test_len: ', test_len) #  4200
+            print('test_end: ', test_end)  # 45960
+            print('test_len: ', test_len) #  4200 for 168, and 4344 for 24
             total_len = test_len + train_hours
-            print('total_len: ', total_len)
+            print('total_len: ', total_len)  # 45960
+
             # nonoverlapping sequences
             # e.g., train_hours = 100. batchsize = 10, time = 5
             # iter = 2. if train_hours = 121. iter = 3. ignore the last 1 time_step
