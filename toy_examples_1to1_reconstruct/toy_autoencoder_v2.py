@@ -1372,7 +1372,7 @@ class Autoencoder:
             prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
                                                     1 ,1])
             keys_list.append(k)
-            first_level_output[k] = prediction_2d
+            first_level_output[k] = prediction_2d_expand
             first_order_encoder_list.append(prediction_2d)
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
@@ -1810,7 +1810,7 @@ class Autoencoder:
             prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
                                                     1 ,1])
             keys_list.append(k)
-            first_level_output[k] = prediction_2d
+            first_level_output[k] = prediction_2d_expand
             first_order_encoder_list.append(prediction_2d)
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
