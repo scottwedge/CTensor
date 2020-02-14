@@ -544,7 +544,7 @@ def main():
                                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                                     True, checkpoint, False, train_dir
 
-                            ).train_lat_rep
+                            ).final_lat_rep
     else:
          # resume training
         print('resume trainging from : ', train_dir)
