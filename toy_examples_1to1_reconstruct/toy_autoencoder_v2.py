@@ -1346,8 +1346,9 @@ class Autoencoder:
 
 
 
-    def inference_autoencoder(self, data_1d, data_2d, data_3d, train_hours,
-                     demo_mask_arr, save_folder_path,checkpoint_path,
+    def inference_autoencoder(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, train_hours,
+                     demo_mask_arr, save_folder_path, dim,
+                     checkpoint_path = None,
                        epochs=1, batch_size=32):
 
         keys_list = []
@@ -1783,8 +1784,9 @@ class Autoencoder:
     # do inference using existing checkpoint
     # get latent representation for train and test data altogether
     # the input sequence (24 hours or 168 hours) should have no overlapps
-    def get_latent_rep(self, data_1d, data_2d, data_3d, train_hours,
-                     demo_mask_arr, save_folder_path,checkpoint_path,
+    def get_latent_rep(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, train_hours,
+                     demo_mask_arr, save_folder_path, dim,
+                     checkpoint_path = None,
                        epochs=1, batch_size=32):
 
         keys_list = []
