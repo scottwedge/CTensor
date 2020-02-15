@@ -296,7 +296,7 @@ def main():
     #            'POI_transportation', 'seattle_street',
     #            'total_flow_count', 'transit_routes', 'transit_signals', 'transit_stop', 'slope', 'bikelane']
     # keys_3d = ['building_permit', 'collisions', 'seattle911calls']
-    keys_1d = ['weather']
+    keys_1d = ['precipitation', 'temperature', 'pressure']
     keys_2d = ['slope', 'bikelane']
     keys_list = []
     keys_list.extend(keys_1d)
