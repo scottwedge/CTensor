@@ -74,9 +74,9 @@ def remove_outside_cells(tensor, mask_arr):
 
 
 # - removed outside cells
-# 1d feature map shape: [1, 3]
-# 2d feature map: [32, 20, 1]
-# 3d feature map: [32, 20, 3]
+# 1d feature map shape: [1, 3] -> (24, 1)
+# 2d feature map: [32, 20, 1] -> [32, 20, 1]
+# 3d feature map: [32, 20, 3]  -> [24, 32, 20, 1]
 # compare 2d and 1d: duplicate to 3d and flatten and compare
 def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
             mask_arr, all_keys, keys_1d, keys_2d, keys_3d =  []):

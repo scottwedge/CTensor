@@ -13,7 +13,7 @@
 # then fused with downstream output
 
 # Strategy 3): preferred currently
-# Train with overlapping 168 hours, and latent rep keeps 168 , 32, 20, dim.
+# Train with overlapping 168/24 hours, and latent rep keeps 168 , 32, 20, dim.
 # But when producing City Tensor, do inference on NON-overlapping training
 # and test data. Report MAE for all situations.
 # So the data creation process remains the same, but network struture should change

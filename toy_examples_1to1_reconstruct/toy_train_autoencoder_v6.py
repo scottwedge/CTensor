@@ -44,7 +44,7 @@ import random
 
 HEIGHT = 32
 WIDTH = 20
-TIMESTEPS = 168
+TIMESTEPS = 24
 
 CHANNEL = 27  # number of all features
 
@@ -447,16 +447,16 @@ def main():
 
     # construct dictionary
     print('use dictionary to organize data')
-    rawdata_1d_dict = {
-     'weather': weather_arr,
-    # 'airquality': airquality_arr,
-    }
     # rawdata_1d_dict = {
-    #  'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
-    # 'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
-    # # 'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+    #  'weather': weather_arr,
     # # 'airquality': airquality_arr,
     # }
+    rawdata_1d_dict = {
+     'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
+    'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
+     'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+    # 'airquality': airquality_arr,
+    }
 
     rawdata_2d_dict = {
         #  'house_price': house_price_arr,
@@ -486,7 +486,7 @@ def main():
 
     # --- TOY CASE GROUPING ----------------- #
     grouping_dict = {
-        'group_1': ['weather'],
+        'group_1': ['precipitation', 'temperature', 'pressure'],
         'group_2': ['slope', 'bikelane'],
 
     }
@@ -648,9 +648,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './toy_autoencoder_v6_cos_'+ 'dim'+ str(dim)  +'/'
+        save_path =  './toy_autoencoder_v6_1to1_'+ 'dim'+ str(dim)  +'/'
     else:
-        save_path = './toy_autoencoder_v6_cos_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
+        save_path = './toy_autoencoder_v6_1to1_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir
