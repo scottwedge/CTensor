@@ -97,7 +97,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
 
                 temp_1d_dup = np.squeeze(temp_1d_dup, axis = -1)  #[24, 32, 20,]
                 temp_1d_dup = np.moveaxis(temp_1d_dup, 0, -1) # (32, 20, 24)
-                print('temp_1d_dup.shape: ', temp_1d_dup.shape)
+
 
                 dim1 = temp_arr1.shape[0]  # number of layers in the 2d data
         #         dim1 = temp_arr1.shape[-1]  # number of layers in the 2d data
@@ -122,7 +122,6 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         temp_arr2 = feature_map_dict[ds_name2][n,:,:,:] # 32, 20, 1
                         # duplicate to [32, 20, 24]
                         temp_arr2_mean_dup = np.repeat(temp_arr2, dim1, axis = -1)
-                        print('temp_arr2_mean_dup.shape: ', temp_arr2_mean_dup.shape)
 
                         # compress 1D (32, 20, 3) duplicate to 32, 20, 1 by average,
                         # temp_1d_mean = np.mean(temp_1d_dup, axis = -1)  #
@@ -248,10 +247,16 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
 
 
 
-def clustering(relation_all_df, all_keys,txt_name):
+# default AffinityPropagation
+def clustering(relation_all_df, all_keys, txt_name, method = 'AffinityPropagation', n_clusters= 5):
     print('begin clustering')
     data = relation_all_df.iloc[:, :].values
-    clustering = AffinityPropagation(damping=0.8).fit(data)
+    if method == 'AffinityPropagation':
+        clustering = AffinityPropagation(damping=0.8).fit(data)
+    if method == 'AgglomerativeClustering':
+        clustering = AgglomerativeClustering(n_clusters=n_clusters, affinity='euclidean', linkage='ward')
+        clustering.fit_predict(data)
+
     res_dict = dict()
     for i in range(len(clustering.labels_)):
         if clustering.labels_[i] not in res_dict:
@@ -270,9 +275,13 @@ def clustering(relation_all_df, all_keys,txt_name):
 
     with open(txt_name, 'w') as the_file:
         # the_file.write(json.dumps(list(res_dict.items())))
+        if method == 'AgglomerativeClustering':
+            the_file.write('n_clusters: \n')
+            the_file.write(str(n_clusters) + '\n')
         for i in res_dict.keys():
             the_file.write(str(i) + '\n')
             the_file.write(','.join([str(x) for x in res_dict[i]]) + "\n")
+
 
 
 
@@ -285,6 +294,15 @@ def parse_args():
                      action="store", help = 'dir containing checkpoints and feature maps', default = './')
     parser.add_argument('-l',   '--level',
                      action="store", help = 'Which level to group: first, second, ...', default = 'First')
+
+    parser.add_argument('-m',   '--method',
+                     action="store",
+                     help = 'clustering method...AgglomerativeClustering, or AffinityPropagation',
+                     default = 'AffinityPropagation')
+    parser.add_argument('-n',   '--n_clusters',  type=int,
+                     action="store", help = 'number of clusters', default = 2)
+    parser.add_argument('-g',   '--n_groups',  type=int,
+                     action="store", help = 'number of groups to be grouped', default = 7)
     return parser.parse_args()
 
 
@@ -293,6 +311,9 @@ def main():
     encoding_dir = args.encoding_dir
     level = args.level
     suffix = args.suffix
+    method = args.method
+    n_clusters = args.n_clusters
+    n_groups = args.n_groups
     print("encoding_dir: ", encoding_dir)
     print("level: ", level)
 
@@ -341,12 +362,20 @@ def main():
 
     # compressed_arr = remove_outside_cells(test_tensor, mask_arr)
 
+
+    print('relation_all_df')
+    print(relation_all_df)
+    relation_all_df.to_csv(encoding_dir+  level+  '_level'+ '_grouping_' + suffix + '.csv')
+
+
     print('begin grouping')
     relation_all_df = first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                 mask_arr, keys_list, keys_1d, keys_2d)
     txt_name = encoding_dir +  level+  '_level'+ '_grouping_' + suffix + '.txt'
 
-    clustering(relation_all_df, keys_list,txt_name)
+    clustering(relation_all_df, keys_list,txt_name, method, n_clusters)
+
+
 
 
 
