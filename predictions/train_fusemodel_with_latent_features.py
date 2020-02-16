@@ -1,3 +1,8 @@
+# updated Feb. 15.
+# Treat latent representation as ordinary 3D dataset
+# which will go through 3D CNN to use the last 168 hours
+# to predict next hour
+
 # train fused model for fair / unfair models
 # The model consists of a 3d cnn network that uses
 # historical ST data to predict next hour bike demand
@@ -562,19 +567,28 @@ def main():
         print('loading latent representation')
         # latent_rep_path = '/home/ubuntu/CTensor/predictions/autoencoder_v1_Seattle/inference/infer_latent_representation.npy'
         # latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/train_lat_rep.npy'
-        latent_rep_path = '/home/ubuntu/CTensor/results/AE_v2/autoencoder_v2_dim1_aev2_dim1_epoch20/train_lat_rep.npy'
+        # latent_rep_path = '/home/ubuntu/CTensor/results/AE_v2/autoencoder_v2_dim1_aev2_dim1_epoch20/train_lat_rep.npy'
+        latent_rep_path = '/home/ubuntu/CTensor/toy_examples_1to1_reconstruct/toy_autoencoder_v2_1to1_dim3_alltoall_bikeshare_dim3_dim1d_1/latent_rep/final_lat_rep.npy'
+
         latent_rep = np.load(latent_rep_path)
-        #  (41616, 1, 32, 20, 1) for v1,  (41616, 32, 20, 1) for v2
-        print('latent_rep.shape: ', latent_rep.shape)
-        latent_rep =latent_rep.reshape((41616, 32, 20, 5))
+        # deprecated: (41616, 1, 32, 20, 1) for v1,  (41616, 32, 20, 1) for v2
+        print('latent_rep.shape: ', latent_rep.shape)  # should be [42240, 32, 20, 3]
+        # latent_rep =latent_rep.reshape((41616, 32, 20, 5))
 
 
-        latent_train_series = latent_rep[start_train_hour:end_train_hour,  :,:,:]
-        latent_test_series = latent_rep[end_train_hour:end_train_hour + test_len, :,:,:]
+        # latent_train_series = latent_rep[start_train_hour:end_train_hour,  :,:,:]
+        # latent_test_series = latent_rep[end_train_hour:end_train_hour + test_len, :,:,:]
+        latent_series = latent_rep[start_train_hour:end_train_hour + test_len,  :,:,:]
+
         # latent_train_series = np.squeeze(latent_train_series, axis=1)
         # latent_test_series = np.squeeze(latent_test_series, axis=1)
-        print('latent_test_series.shape: ',latent_test_series.shape)
-        dim  = latent_test_series.shape[-1]
+        print('latent_series.shape: ',latent_series.shape)
+        dim  = latent_series.shape[-1]
+
+        latent_seq_arr = train_obj.generate_fixlen_timeseries(latent_series)
+        train_latent_arr, test_latent_arr = train_obj.train_test_split(latent_seq_arr)
+        print('input train_latent_arr shape: ',train_latent_arr.shape )
+
         # ---------------------------------------------------------------
 
 
@@ -785,7 +799,7 @@ def main():
                                             # multi_demo_sensitive, demo_pop, multi_pop_g1, multi_pop_g2,
                                             # multi_grid_g1, multi_grid_g2, fairloss,
                                             # train_arr_1d, test_arr_1d, data_2d,
-                                            latent_train_series, latent_test_series,
+                                            train_latent_arr, test_latent_arr,
                                     demo_mask_arr,
                             save_path,
                             HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
@@ -796,7 +810,7 @@ def main():
         conv3d_predicted = fused_model_with_latent_features.Conv3D(train_obj, train_arr, test_arr, intersect_pos_set,
 
                                             # train_arr_1d, test_arr_1d, data_2d,
-                                            latent_train_series, latent_test_series,
+                                            train_latent_arr, test_latent_arr,
                                          demo_mask_arr,
                             train_dir,
                             HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
