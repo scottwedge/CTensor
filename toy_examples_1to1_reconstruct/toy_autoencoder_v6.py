@@ -66,7 +66,7 @@ def my_leaky_relu(x):
     return tf.nn.leaky_relu(x, alpha=0.2)
 
 
-def generate_fixlen_timeseries(rawdata_arr, timestep = 168):
+def generate_fixlen_timeseries(rawdata_arr, timestep = TIMESTEPS):
     raw_seq_list = list()
         # arr_shape: [# of timestamps, w, h]
     arr_shape = rawdata_arr.shape
