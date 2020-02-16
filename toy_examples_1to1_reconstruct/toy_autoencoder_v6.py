@@ -46,6 +46,7 @@ import tensorflow.contrib.keras as keras
 from tensorflow.python.keras import backend as K
 
 import pickle
+import copy
 
 
 HEIGHT = 32
