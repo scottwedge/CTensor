@@ -27,6 +27,9 @@ from numpy import transpose
 from sklearn.metrics.pairwise import cosine_similarity
 import math
 from sklearn.cluster import AffinityPropagation
+from sklearn.cluster import AgglomerativeClustering
+import scipy.cluster.hierarchy as shc
+
 
 HEIGHT = 32
 WIDTH = 20
