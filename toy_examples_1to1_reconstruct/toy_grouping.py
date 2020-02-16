@@ -94,8 +94,9 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                 # (24, 1) - > [32, 20, 24]
                 temp_1d_dup = np.repeat(temp_arr1[n,:], 32, axis = 1)
                 temp_1d_dup = np.repeat(temp_1d_dup, 20, axis = 2)  # 32, 20, 24, 1
-                temp_1d_dup = np.squeeze(temp_1d_dup, axis = -1)  #[32, 20, 24]
                 print('temp_1d_dup.shape: ', temp_1d_dup.shape)
+                temp_1d_dup = np.squeeze(temp_1d_dup, axis = -1)  #[32, 20, 24]
+
                 dim1 = temp_arr1.shape[0]  # number of layers in the 2d data
         #         dim1 = temp_arr1.shape[-1]  # number of layers in the 2d data
                 for ds_name2 in all_keys:
