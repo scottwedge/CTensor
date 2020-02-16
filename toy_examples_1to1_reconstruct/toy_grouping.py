@@ -74,7 +74,7 @@ def remove_outside_cells(tensor, mask_arr):
 
 
 # - removed outside cells
-# 1d feature map shape: [1, 3] -> (24, 1)
+# 1d feature map shape: [1, 3] -> (24, 1)   originally (24, 1, 1, 1)
 # 2d feature map: [32, 20, 1] -> [32, 20, 1]
 # 3d feature map: [32, 20, 3]  -> [24, 32, 20, 1]
 # compare 2d and 1d: duplicate to 3d and flatten and compare
@@ -90,11 +90,12 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
         for ds_name1 in all_keys:
             # 1D case
             if ds_name1 in keys_1d:
-                temp_arr1 = feature_map_dict[ds_name1]
+                temp_arr1 = feature_map_dict[ds_name1][n,:] # (24, 1, 1, 1)
                 # (24, 1) - > [32, 20, 24]
-                temp_1d_dup = np.repeat(temp_arr1[n,:], 32, axis = 0)
-                temp_1d_dup = np.repeat(temp_1d_dup, 20, axis = 1)  # 32, 20, 24, 1
+                temp_1d_dup = np.repeat(temp_arr1[n,:], 32, axis = 1)
+                temp_1d_dup = np.repeat(temp_1d_dup, 20, axis = 2)  # 32, 20, 24, 1
                 temp_1d_dup = np.squeeze(temp_1d_dup, axis = -1)  #[32, 20, 24]
+                print('temp_1d_dup.shape: ', temp_1d_dup.shape)
                 dim1 = temp_arr1.shape[0]  # number of layers in the 2d data
         #         dim1 = temp_arr1.shape[-1]  # number of layers in the 2d data
                 for ds_name2 in all_keys:
@@ -102,9 +103,9 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     if ds_name2 in keys_1d:
                         ave_SR = 0
         #                 print(ds_name1, ds_name2)
-                        temp_arr2 = feature_map_dict[ds_name2]
-                        sim_sparse = cosine_similarity(temp_arr1[n, :].reshape(1, -1),
-                               temp_arr2[n, :].reshape(1, -1))
+                        temp_arr2 = feature_map_dict[ds_name2][n, :]
+                        sim_sparse = cosine_similarity(temp_arr1.reshape(1, -1),
+                               temp_arr2.reshape(1, -1))
                         ave_SR = sim_sparse[0][0]
                         relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
 
@@ -118,6 +119,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         temp_arr2 = feature_map_dict[ds_name2][n,:,:,:] # 32, 20, 1
                         # duplicate to [32, 20, 24]
                         temp_arr2_mean_dup = np.repeat(temp_arr2, dim1, axis = -1)
+                        print('temp_arr2_mean_dup.shape: ', temp_arr2_mean_dup.shape)
 
                         # compress 1D (32, 20, 3) duplicate to 32, 20, 1 by average,
                         # temp_1d_mean = np.mean(temp_1d_dup, axis = -1)  #
