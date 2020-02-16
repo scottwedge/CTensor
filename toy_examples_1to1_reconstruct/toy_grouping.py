@@ -363,14 +363,15 @@ def main():
     # compressed_arr = remove_outside_cells(test_tensor, mask_arr)
 
 
-    print('relation_all_df')
-    print(relation_all_df)
-    relation_all_df.to_csv(encoding_dir+  level+  '_level'+ '_grouping_' + suffix + '.csv')
-
 
     print('begin grouping')
     relation_all_df = first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                 mask_arr, keys_list, keys_1d, keys_2d)
+
+    print('relation_all_df')
+    print(relation_all_df)
+    relation_all_df.to_csv(encoding_dir+  level+  '_level'+ '_grouping_' + suffix + '.csv')
+
     txt_name = encoding_dir +  level+  '_level'+ '_grouping_' + suffix + '.txt'
 
     clustering(relation_all_df, keys_list,txt_name, method, n_clusters)
