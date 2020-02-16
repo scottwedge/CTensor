@@ -92,7 +92,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
             if ds_name1 in keys_1d:
                 temp_arr1 = feature_map_dict[ds_name1][n,:] # (24, 1, 1, 1)
                 # (24, 1) - > [32, 20, 24]
-                temp_1d_dup = np.repeat(temp_arr1[n,:], 32, axis = 1)
+                temp_1d_dup = np.repeat(temp_arr1, 32, axis = 1)
                 temp_1d_dup = np.repeat(temp_1d_dup, 20, axis = 2)  # 32, 20, 24, 1
                 print('temp_1d_dup.shape: ', temp_1d_dup.shape)
                 temp_1d_dup = np.squeeze(temp_1d_dup, axis = -1)  #[32, 20, 24]
