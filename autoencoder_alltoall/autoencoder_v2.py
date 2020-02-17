@@ -853,9 +853,18 @@ class Autoencoder:
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
             prediction_3d = self.cnn_model(v, self.is_training, k)
+            if k == 'seattle911calls':
+                first_level_output[k] = prediction_3d
+                first_order_encoder_list.append(prediction_3d)
+            else:
+                # [None, 1, height, width, 1] -> [None, 24, height, width, 1]
+                
+
+
+
+
             keys_list.append(k)
-            first_level_output[k] = prediction_3d
-            first_order_encoder_list.append(prediction_3d)
+
 
 
         # dim: latent fea dimension

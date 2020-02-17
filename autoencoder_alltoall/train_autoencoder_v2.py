@@ -422,6 +422,8 @@ def main():
     building_permit_arr_seq_extend = np.repeat(building_permit_arr_seq, 24, axis =1)
     collisions_arr_seq = generate_fixlen_timeseries(collisions_arr, 1)
     collisions_arr_seq_extend = np.repeat(collisions_arr_seq, 24, axis =1)
+    print('building_permit_arr_seq.shape: ', building_permit_arr_seq.shape)
+    print('building_permit_arr_seq_extend.shape: ', building_permit_arr_seq_extend.shape)
 
     # construct dictionary
     print('use dictionary to organize data')
@@ -457,7 +459,7 @@ def main():
 
     rawdata_3d_dict = {
           'building_permit': building_permit_arr_seq_extend,
-        'collisions': collisions_arr_seq_extend,  # (24, 45840, 32, 20)
+        'collisions': collisions_arr_seq_extend,  # expect (1, 45840, 32, 20)
         # 'building_permit': building_permit_arr,
         # 'collisions':collisions_arr,
         'seattle911calls': seattle911calls_arr # (45984, 32, 20)
