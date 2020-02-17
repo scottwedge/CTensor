@@ -441,7 +441,7 @@ class Conv3DPredictor:
             # Convolution Layer with 32 filters and a kernel size of 5
             conv1 = tf.layers.conv2d(fuse_feature, 16, 3, padding='same',activation=my_leaky_relu)
 
-            conv2 = tf.layers.conv2d(conv1, 16, 3, padding='same',activation=my_leaky_relu)
+            conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=my_leaky_relu)
             #  Convolution Layer with 64 filters and a kernel size of 3
     #         conv2 = tf.layers.conv2d(conv1, 16, 3, padding='same',activation=my_leaky_relu)
             # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
