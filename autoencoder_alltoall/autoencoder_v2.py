@@ -522,7 +522,10 @@ class Autoencoder:
             # # (?, 168, 32, 20, 9)
             # print('output reconstruction 3d shape: ', output.shape)
 
-            conv1 = tf.layers.conv3d(inputs=latent_fea, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
+            # #Average Pooling  [None, 168, 32, 20, dim_decode] ->  (None, 1, 32, 20, dim_decode)
+            conv1 = tf.layers.average_pooling3d(latent_fea, [TIMESTEPS / DAILY_TIMESTEPS, 1, 1], [1,1,1], padding='valid')
+
+            conv1 = tf.layers.conv3d(inputs=conv1, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
             conv1 = tf.layers.batch_normalization(conv1, training=is_training)
             conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
             # conv => 16*16*16
