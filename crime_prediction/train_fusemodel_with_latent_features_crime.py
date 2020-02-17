@@ -503,7 +503,7 @@ def main():
 
         # -------------- loat latent representation ---------------------
         print('loading latent representation')
-        latent_rep_path = '/home/ubuntu/CTensor/toy_examples_1to1_reconstruct/toy_autoencoder_v2_1to1_dim3_alltoall_bikeshare_dim3_dim1d_1/latent_rep/final_lat_rep.npy'
+        latent_rep_path = '/home/ubuntu/CTensor/toy_examples_1to1_reconstruct/toy_autoencoder_v2_1to1_dim3_alltoall_bikeshare_dim3_dim1d_1_e100/latent_rep/final_lat_rep.npy'
 
         latent_rep = np.load(latent_rep_path)
         # deprecated: (41616, 1, 32, 20, 1) for v1,  (41616, 32, 20, 1) for v2
