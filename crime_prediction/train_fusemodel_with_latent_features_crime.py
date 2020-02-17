@@ -495,7 +495,6 @@ def main():
         test_len = total_length - train_hours  # should be 1400
         print('test_len: ', test_len)
 
-
         start_train_hour =0
         # 40152
         end_train_hour = train_hours
@@ -503,41 +502,53 @@ def main():
 
         # -------------- loat latent representation ---------------------
         print('loading latent representation')
+        latent_rep_path = '/home/ubuntu/CTensor/toy_examples_1to1_reconstruct/toy_autoencoder_v2_1to1_dim3_alltoall_bikeshare_dim3_dim1d_1/latent_rep/final_lat_rep.npy'
+
+        latent_rep = np.load(latent_rep_path)
+        # deprecated: (41616, 1, 32, 20, 1) for v1,  (41616, 32, 20, 1) for v2
+        print('latent_rep.shape: ', latent_rep.shape)  # should be [42240, 32, 20, 3]
+
+
         # latent_rep_path = '/home/ubuntu/CTensor/predictions/autoencoder_v1_Seattle/inference/infer_latent_representation.npy'
         # latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/train_lat_rep.npy'
         # latent_rep_path = '/home/ubuntu/CTensor/results/AE_v2/autoencoder_v2_dim1_aev2_dim1_epoch20/train_lat_rep.npy'
-        latent_rep_path = '/home/ubuntu/CTensor/results/AE_v2/autoencoder_v2_dim3_ae_v2_dim3_epoch15/train_lat_rep.npy'
-        latent_rep = np.load(latent_rep_path)
-        #  (41616, 1, 32, 20, 1)
-        print('latent_rep.shape: ', latent_rep.shape)
+        # latent_rep_path = '/home/ubuntu/CTensor/results/AE_v2/autoencoder_v2_dim3_ae_v2_dim3_epoch15/train_lat_rep.npy'
+        # latent_rep = np.load(latent_rep_path)
+        # print('latent_rep.shape: ', latent_rep.shape)  # should be [42240, 32, 20, 3]
 
         # load test inference
         # latent_rep_test_path = '/home/ubuntu/CTensor/results/AE_v1/infer_latent_representation_test.npy'
         #latent_rep_test_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/test_lat_rep.npy'
-        latent_rep_test_path = '/home/ubuntu/CTensor/results/AE_v2/autoencoder_v2_dim3_ae_v2_dim3_epoch15/test_lat_rep.npy'
-        latent_rep_test = np.load(latent_rep_test_path)
+        # latent_rep_test_path = '/home/ubuntu/CTensor/results/AE_v2/autoencoder_v2_dim3_ae_v2_dim3_epoch15/test_lat_rep.npy'
+        # latent_rep_test = np.load(latent_rep_test_path)
         # note that this version of lat rep has a length of 8400,
         # which is a duplicatation of two 4200 lat infer_latent_representation
         # (8400, 32, 20, 1)
-        latent_rep_test = latent_rep_test[0:4200, :, :, :]
-        print('latent_rep_test.shape: ', latent_rep_test.shape)
-        dim = latent_rep_test.shape[-1]
+        # latent_rep_test = latent_rep_test[0:4200, :, :, :]
+        # print('latent_rep_test.shape: ', latent_rep_test.shape)
+        dim = latent_rep.shape[-1]
         # ------------------------------------------------------------------#
 
         # note: the latent representation is at hourly pace, but crime prediciton at 3-hour pace
         # average the 3-hour
-        # (4580, 1, 32, 20, 1)
+        # # latent_rep: [42240, 32, 20, 3]
         latent_rep_3hour = np.mean(latent_rep.reshape(-1, 3,  32, 20, dim), axis=1)
         print('latent_rep_3hour: ', latent_rep_3hour.shape)
-        latent_rep_test_3hour = np.mean(latent_rep_test.reshape(-1, 3,  32, 20, dim), axis=1)
-        print('latent_rep_test_3hour: ', latent_rep_test_3hour.shape)
 
-        latent_train_series = latent_rep_3hour[start_train_hour:end_train_hour,  :,:,:]
-        latent_test_series = latent_rep_test_3hour
-        # latent_train_series = np.squeeze(latent_train_series, axis=1)
-        # latent_test_series = np.squeeze(latent_test_series, axis=1)
-        print('latent_test_series.shape: ',latent_test_series.shape)
-        print('latent_train_series.shape: ',latent_train_series.shape)
+        latent_seq_arr = train_obj.generate_fixlen_timeseries(latent_rep_3hour)
+        print('input latent_seq_arr shape: ',latent_seq_arr.shape )
+        train_latent_arr, test_latent_arr = train_obj.train_test_split(latent_seq_arr)
+        print('input train_latent_arr shape: ',train_latent_arr.shape )
+        print('input test_latent_arr shape: ',test_latent_arr.shape )
+
+
+
+        # latent_train_series = latent_rep_3hour[start_train_hour:end_train_hour,  :,:,:]
+        # latent_test_series = latent_rep_test_3hour
+        # # latent_train_series = np.squeeze(latent_train_series, axis=1)
+        # # latent_test_series = np.squeeze(latent_test_series, axis=1)
+        # print('latent_test_series.shape: ',latent_test_series.shape)
+        # print('latent_train_series.shape: ',latent_train_series.shape)
 
 
 
@@ -578,7 +589,7 @@ def main():
                                             # multi_demo_sensitive, demo_pop, multi_pop_g1, multi_pop_g2,
                                             # multi_grid_g1, multi_grid_g2, fairloss,
                                             # train_arr_1d, test_arr_1d, data_2d,
-                                            latent_train_series, latent_test_series,
+                                            train_latent_arr, test_latent_arr,
                                     demo_mask_arr,
                             save_path,
                             HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
@@ -588,7 +599,7 @@ def main():
         print('resume trainging from : ', train_dir)
         conv3d_predicted = fused_model_with_latent_features_crime.Conv3D(train_obj, train_arr, test_arr, intersect_pos_set,
                                             # train_arr_1d, test_arr_1d, data_2d,
-                                            latent_train_series, latent_test_series,
+                                                train_latent_arr, test_latent_arr,
                                          demo_mask_arr,
                             train_dir,
                             HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,

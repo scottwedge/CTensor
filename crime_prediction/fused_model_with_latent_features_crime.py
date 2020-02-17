@@ -209,7 +209,7 @@ class Conv3DPredictor:
         '''
 
     # for 3d cnn
-    def cnn_model(self, x_train_data, is_training, keep_rate=0.7, seed=None):
+    def cnn_model(self, x_train_data, is_training, dim = 1,keep_rate=0.7, seed=None):
     # output from 3d cnn (?, 168, 32, 20, 1)  ->  (?, 32, 20, 1)
 
         with tf.name_scope("3d_layer_a"):
@@ -266,7 +266,7 @@ class Conv3DPredictor:
         with tf.name_scope("3d_layer_b"):
             conv5 = tf.layers.conv2d(
                 inputs=cnn3d_bn_squeeze,
-                filters=1,
+                filters=dim,
                 kernel_size=[1, 1],
                 padding="same",
                 activation=my_leaky_relu
@@ -440,6 +440,7 @@ class Conv3DPredictor:
         with tf.name_scope("fusion_layer_a"):
             # Convolution Layer with 32 filters and a kernel size of 5
             conv1 = tf.layers.conv2d(fuse_feature, 16, 3, padding='same',activation=my_leaky_relu)
+            conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=my_leaky_relu)
             #  Convolution Layer with 64 filters and a kernel size of 3
     #         conv2 = tf.layers.conv2d(conv1, 16, 3, padding='same',activation=my_leaky_relu)
             # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
@@ -448,7 +449,7 @@ class Conv3DPredictor:
     #         conv2 = tf.layers.max_pooling2d(conv2, 2, 2)
 
         with tf.name_scope("fusion_batch_norm"):
-            cnn2d_bn = tf.layers.batch_normalization(inputs=conv1, training=is_training)
+            cnn2d_bn = tf.layers.batch_normalization(inputs=conv2, training=is_training)
             # (?, 168, 32, 20, 1)
             print('cnn2d_bn shape: ',cnn2d_bn.shape)
 
@@ -617,10 +618,13 @@ class Conv3DPredictor:
         #prediction = self.cnn_model(self.x, keep_rate, seed=1)
         # fusion model
         prediction_3d = self.cnn_model(self.x, self.is_training, keep_rate, seed=1)
+        latent_fea_output = self.cnn_model(self.latent_fea, self.is_training,
+                        latent_train_series.shape[-1], keep_rate, seed=1)
 
         # fusion
         #prediction = self.model_fusion(prediction_3d, prediction_2d, prediction_1d, self.is_training)
-        prediction = self.model_fusion_latent_feature(prediction_3d, self.latent_fea, self.is_training)
+        prediction = self.model_fusion_latent_feature(prediction_3d, latent_fea_output, self.is_training)
+
 
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr, 0)  # [1, 2]
         # [1, 32, 20, 1] -> [batchsize, 32, 20, 1]
@@ -1413,7 +1417,7 @@ class Conv3D:
                     # demo_sensitive, demo_pop, pop_g1, pop_g2,
                     # grid_g1, grid_g2, fairloss,
                     # train_arr_1d, test_arr_1d, data_2d,
-                    latent_train_series, latent_test_series,
+                    train_latent_arr, test_latent_arr,
                     demo_mask_arr,
                      save_path,
                      HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
@@ -1446,8 +1450,8 @@ class Conv3D:
         # self.test_arr_1d = test_arr_1d
         # self.data_2d = data_2d
 
-        self.latent_train_series =  latent_train_series
-        self.latent_test_series = latent_test_series
+        self.latent_train_series =  train_latent_arr
+        self.latent_test_series = test_latent_arr
         self.save_path = save_path
 
         globals()['HEIGHT']  = HEIGHT
@@ -1521,15 +1525,14 @@ class Conv3D:
         #data = data_loader.load_series('international-airline-passengers.csv')
         # rawdata, timesteps, batchsize
         self.train_data = generateData(self.train_arr, TIMESTEPS, BATCH_SIZE)
-        # train_x shape should be : [num_examples (batch size), time_step (168), feature_dim (1)]
-
-        # create batches, feed batches into predictor
-        # predictor.train(self.train_data)
-        # print('finished training')
-
-        # prep test data, split test_arr into test_x and test_y
         self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
         print('test_data.y.shape', self.test_data.y.shape)
+
+        # create batch data for latent rep
+        self.train_latent = generateData(self.latent_train_series, TIMESTEPS, BATCH_SIZE)
+        self.test_latent = generateData(self.latent_test_series, TIMESTEPS, BATCH_SIZE)
+        self.train_lat = np.squeeze(self.train_latent.X, axis = 4)
+        self.test_lat= np.squeeze(self.test_latent.X, axis = 4)
 
         # if self.train_arr_1d is not None:
             # self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
@@ -1542,7 +1545,7 @@ class Conv3D:
                         # self.lamda,
                         self.demo_mask_arr,
                         # self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
-                        self.latent_train_series, self.latent_test_series,
+                        self.train_lat, self.test_lat,
                           self.save_path,
                           # self.beta,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
@@ -1603,10 +1606,17 @@ class Conv3D:
         #data = data_loader.load_series('international-airline-passengers.csv')
         # rawdata, timesteps, batchsize
         self.train_data = generateData(self.train_arr, TIMESTEPS, BATCH_SIZE)
-        # train_x shape should be : [num_examples (batch size), time_step (168), feature_dim (1)]
-        # prep test data, split test_arr into test_x and test_y
+
         self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
         print('test_data.y.shape', self.test_data.y.shape)
+
+
+        # create batch data for latent rep
+        self.train_latent = generateData(self.latent_train_series, TIMESTEPS, BATCH_SIZE)
+        self.test_latent = generateData(self.latent_test_series, TIMESTEPS, BATCH_SIZE)
+        self.train_lat = np.squeeze(self.train_latent.X, axis = 4)
+        self.test_lat= np.squeeze(self.test_latent.X, axis = 4)
+
         predicted_vals = predictor.train_neural_network(self.train_data.X, self.train_data.y,
                 self.test_data.X, self.test_data.y,
                 # self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
@@ -1614,7 +1624,7 @@ class Conv3D:
                 # self.lamda,
                 self.demo_mask_arr,
                 # self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
-                self.latent_train_series, self.latent_test_series,
+                self.train_lat, self.test_lat,
                   self.save_path,
                   self.train_dir, self.checkpoint_path,
                   # self.beta,
