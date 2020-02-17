@@ -479,10 +479,11 @@ def main():
             np.save(path_3d + 'seattlecrime_grided_3-day_3-hour_20140201-20190501.npy', rawdata_arr)
 
         print('generating fixed window length training and testing sequences...')
-        # raw_seq_arr.shape (169, 9336, 32, 20)
+
         raw_seq_arr = train_obj.generate_fixlen_timeseries(rawdata_arr)
         train_arr, test_arr = train_obj.train_test_split(raw_seq_arr)
         print('input train_arr shape: ',train_arr.shape )
+        print('input test_arr shape: ',test_arr.shape )
 
 
 
@@ -533,10 +534,10 @@ def main():
         # average the 3-hour
         # # latent_rep: [42240, 32, 20, 3]
         latent_rep_3hour = np.mean(latent_rep.reshape(-1, 3,  32, 20, dim), axis=1)
-        print('latent_rep_3hour: ', latent_rep_3hour.shape)
+        print('latent_rep_3hour: ', latent_rep_3hour.shape)  # (14080, 32, 20, 3)
 
         latent_seq_arr = train_obj.generate_fixlen_timeseries(latent_rep_3hour)
-        print('input latent_seq_arr shape: ',latent_seq_arr.shape )
+        print('input latent_seq_arr shape: ',latent_seq_arr.shape ) # (57, 14024, 32, 20, 3)
         train_latent_arr, test_latent_arr = train_obj.train_test_split(latent_seq_arr)
         print('input train_latent_arr shape: ',train_latent_arr.shape )
         print('input test_latent_arr shape: ',test_latent_arr.shape )

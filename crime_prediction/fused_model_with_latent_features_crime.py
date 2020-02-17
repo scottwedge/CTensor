@@ -1533,6 +1533,8 @@ class Conv3D:
         self.test_latent = generateData(self.latent_test_series, TIMESTEPS, BATCH_SIZE)
         self.train_lat = np.squeeze(self.train_latent.X, axis = 4)
         self.test_lat= np.squeeze(self.test_latent.X, axis = 4)
+        print('train_lat.shape', self.train_lat.shape)
+        print('test_lat.shape', self.test_lat.shape)
 
         # if self.train_arr_1d is not None:
             # self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
