@@ -1840,7 +1840,7 @@ class Autoencoder:
         if not os.path.exists(save_folder_path):
             os.makedirs(save_path)
 
-        save_folder_path = os.path.join(save_folder_path, 'inference/')
+        save_folder_path = os.path.join(save_folder_path, 'latent_rep/')
 
         saver = tf.train.Saver()
 
