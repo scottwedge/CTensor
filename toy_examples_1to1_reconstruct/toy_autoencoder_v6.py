@@ -1869,9 +1869,9 @@ class Autoencoder:
             # train_hours: train_start_time = '2014-02-01',train_end_time = '2018-10-31',
             step = batch_size * TIMESTEPS  # 32 * 24 = 768
             if total_len%step ==0:
-                iterations = int(train_hours/step)
+                iterations = int(total_len/step)
             else:
-                iterations = int(train_hours/step) + 1
+                iterations = int(total_len/step) + 1
 
             start_time = datetime.datetime.now()
             epoch_loss = 0
