@@ -1837,10 +1837,11 @@ class Autoencoder:
         test_encoded_list = list()
         final_reconstruction_dict = {} # temp: only first batch
 
-        if not os.path.exists(save_folder_path):
-            os.makedirs(save_path)
-
         save_folder_path = os.path.join(save_folder_path, 'latent_rep/')
+        if not os.path.exists(save_folder_path):
+            os.makedirs(save_folder_path)
+
+
 
         saver = tf.train.Saver()
 
@@ -1968,7 +1969,7 @@ class Autoencoder:
                 epoch_subrmse[k] = v/iterations
                 # print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
 
-                # save epoch statistics to csv
+            # save epoch statistics to csv
             ecoch_res_df = pd.DataFrame([[epoch_loss]],
                     columns=[ 'inference_loss'])
             res_csv_path = save_folder_path + 'inference_loss_df' +'.csv'
