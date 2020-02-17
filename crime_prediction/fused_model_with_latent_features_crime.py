@@ -617,7 +617,7 @@ class Conv3DPredictor:
 
         #prediction = self.cnn_model(self.x, keep_rate, seed=1)
         # fusion model
-        prediction_3d = self.cnn_model(self.x, self.is_training, keep_rate, seed=1)
+        prediction_3d = self.cnn_model(self.x, self.is_training, 1, keep_rate, seed=1)
         latent_fea_output = self.cnn_model(self.latent_fea, self.is_training,
                         latent_train_series.shape[-1], keep_rate, seed=1)
 
