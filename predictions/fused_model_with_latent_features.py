@@ -1536,6 +1536,8 @@ class Conv3D:
         # create batch data for latent rep
         self.train_latent = generateData(self.latent_train_series, TIMESTEPS, BATCH_SIZE)
         self.test_latent = generateData(self.latent_test_series, TIMESTEPS, BATCH_SIZE)
+        self.train_latent = np.squeeze(self.train_latent, axis = 4)
+        self.test_latent = np.squeeze(self.test_latent, axis = 4)
 
 
         predicted_vals = predictor.train_neural_network(self.train_data.X, self.train_data.y,
