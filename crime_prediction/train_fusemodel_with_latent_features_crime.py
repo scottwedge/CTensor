@@ -469,7 +469,7 @@ def main():
 
         #  seattlecrime_grided_3-day_3-hour_20140101-20190505.npy
         # crime_arr_20140201_20190501_python3.npy
-        if os.path.isfile(path_3d + 'seattlecrime_grided_3-day_3-hour_20140201-20190501.npy'):
+        if os.path.isfile(path_3d + 'seattlecrime_grided_3-day_3-hour_20140201-20190430.npy'):
             print('loading raw data array...')
             rawdata_arr = np.load(path_3d + 'seattlecrime_grided_3-day_3-hour_20140201-20190430.npy')
             # rawdata_arr = np.load('bikedata_32_20_171001-181031.npy')
