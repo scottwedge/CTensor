@@ -1929,9 +1929,10 @@ class Autoencoder:
             # iter = 2. if train_hours = 121. iter = 3. ignore the last 1 time_step
             step = batch_size * TIMESTEPS  # 32 * 24 = 768
             if total_len%step ==0:
-                iterations = int(train_hours/step)
+                iterations = int(total_len/step)
             else:
-                iterations = int(train_hours/step) + 1
+                iterations = int(total_len/step) + 1
+            print('total iterations: ', iterations)
 
             start_time = datetime.datetime.now()
             epoch_loss = 0
