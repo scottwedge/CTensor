@@ -702,6 +702,8 @@ class Conv3DPredictor:
                     mini_batch_x = x_train_data[itr*batch_size: (itr+1)*batch_size]
                     mini_batch_y = y_train_data[itr*batch_size: (itr+1)*batch_size]
                     mini_batch_latent = latent_train_series[itr*batch_size: (itr+1)*batch_size]
+                    print('mini_batch_x.shape: ', mini_batch_x.shape)
+                    print('mini_batch_latent.shape: ', mini_batch_latent.shape)
                     _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             # self.input_1d_feature:mini_batch_data_1d,  self.input_2d_feature: mini_batch_data_2d,
                                                             self.latent_fea: mini_batch_latent,
