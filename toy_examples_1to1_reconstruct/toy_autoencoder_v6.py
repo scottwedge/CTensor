@@ -2209,7 +2209,7 @@ class Autoencoder_entry:
         tf.reset_default_graph()
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
                         self.intersect_pos_set,
-                     self.demo_mask_arr, self.dim,
+                     self.demo_mask_arr, self.dim,self.grouping_dict,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
         train_lat_rep = predictor.get_latent_rep(
