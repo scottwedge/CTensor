@@ -2097,6 +2097,7 @@ class Autoencoder_entry:
             pickle.dump(encoded_list, file)
             file.close()
         else:
+            '''
             # inference only
             # dumpint test / train encoding part to pickle
             print('get inference results')
@@ -2125,6 +2126,7 @@ class Autoencoder_entry:
             print('dumping final_reconstruction_dict to pickle')
             pickle.dump(final_reconstruction_dict, recon_file)
             recon_file.close()
+            '''
 
             # ----------- get lat rep ---------------------- #
             # run_inference_lat_rep(self):
