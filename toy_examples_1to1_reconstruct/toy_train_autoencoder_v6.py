@@ -692,7 +692,7 @@ def main():
                                 HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                                 True, checkpoint, False, train_dir,
                                 use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
-                        ).train_lat_rep
+                        ).final_lat_rep
 
     else:
          # resume training
