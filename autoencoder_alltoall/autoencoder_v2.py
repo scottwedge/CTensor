@@ -1919,7 +1919,7 @@ class Autoencoder:
             if total_len%step ==0:
                 iterations = int(train_hours/step)
             else:
-                iterations = int(train_hours/step) + 1
+                iterations = int(train_hours/step) + 1  # should be 60 iterations
 
             start_time = datetime.datetime.now()
             epoch_loss = 0
@@ -2071,7 +2071,9 @@ class Autoencoder:
             print('saving output_arr ....')
             train_encoded_res = train_result
             train_output_arr = train_encoded_res[0]
+            print('len(train_encoded_res): ', len(train_encoded_res))
             for i in range(1,len(train_encoded_res)):
+
                 train_output_arr = np.concatenate((train_output_arr, train_encoded_res[i]), axis=0)
 
             # test_encoded_res = test_result
