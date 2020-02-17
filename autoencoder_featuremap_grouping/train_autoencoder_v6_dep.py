@@ -1,5 +1,3 @@
-# TOY
-
 # v3: datasets were grouped during encoding and decoding
 # according to a predefined grouping strategy
 # [raw datasets grouping by Pearson correlation and affinity propogation ]
@@ -44,7 +42,7 @@ import random
 
 HEIGHT = 32
 WIDTH = 20
-TIMESTEPS = 24
+TIMESTEPS = 168
 
 CHANNEL = 27  # number of all features
 
@@ -368,7 +366,6 @@ def main():
 
     print('whether to use pretrained model: ', use_pretrained)
     print('pretrained_checkpoint: ', pretrained_checkpoint)
-    print('inference or not: ', inference)
 
     if pretrained_checkpoint is not None:
         print('pick up pretrained model: ', pretrained_checkpoint)
@@ -447,16 +444,16 @@ def main():
 
     # construct dictionary
     print('use dictionary to organize data')
-    # rawdata_1d_dict = {
-    #  'weather': weather_arr,
-    # # 'airquality': airquality_arr,
-    # }
     rawdata_1d_dict = {
-     'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
-    'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
-     'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
-     'airquality': airquality_arr,
+     'weather': weather_arr,
+    'airquality': airquality_arr,
     }
+    # rawdata_1d_dict = {
+    #  'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
+    # 'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
+    # 'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+    # 'airquality': airquality_arr,
+    # }
 
     rawdata_2d_dict = {
          'house_price': house_price_arr,
@@ -483,8 +480,6 @@ def main():
         'seattle911calls': seattle911calls_arr # (45984, 32, 20)
         }
 
-
-
     # -------------- grouping -----------------------
     # grouping_dict = {'weather_grp': ['weather', 'airquality'],
     #             'transportation_grp': ['POI_transportation', 'seattle_street', 'total_flow_count',
@@ -497,15 +492,15 @@ def main():
     #             }
 
     ####  grouping all datasets altogether using affinity propogation and Pearson correlation
-    grouping_dict = {
-        'group_1': ['precipitation'],
-        'group_2': ['temperature', 'pressure', 'airquality'],
-        'group_3': ['house_price', 'slope'],
-        'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices',
-                'POI_transportation', 'transit_routes', 'transit_signals', 'seattle911calls'],
-        'group_5': ['POI_hospitals', 'building_permit', 'collisions'],
-        'group_6':['POI_recreation', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_stop', 'bikelane']
-    }
+    # grouping_dict = {
+    #     'group_1': ['precipitation'],
+    #     'group_2': ['temperature', 'pressure', 'airquality'],
+    #     'group_3': ['house_price', 'slope'],
+    #     'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices',
+    #             'POI_transportation', 'transit_routes', 'transit_signals', 'seattle911calls'],
+    #     'group_5': ['POI_hospitals', 'building_permit', 'collisions'],
+    #     'group_6':['POI_recreation', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_stop', 'bikelane']
+    # }
 
 
     ######  grouping using all raw datasets with cosine similarity ######
@@ -600,7 +595,19 @@ def main():
     #     'group_7': ['seattle911calls'],
     #
     # }
-    #
+    grouping_dict = {
+         'group_1':['weather', 'house_price', 'POI_business', 'POI_food',
+            'POI_government', 'POI_publicservices', 'POI_recreation', 'POI_transportation', 'transit_routes'],
+        'group_2': ['airquality'],
+        'group_3': ['POI_hospitals', 'building_permit', 'collisions', 'seattle911calls'],
+        'group_4':['POI_school', 'slope'],
+         'group_5': ['seattle_street', 'bikelane'],
+        'group_6':['total_flow_count'],
+        'group_7':['transit_signals', 'transit_stop']
+        }
+
+
+
 
 
 
@@ -639,9 +646,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './autoencoder_v6_1to1_'+ 'dim'+ str(dim)  +'/'
+        save_path =  './autoencoder_v6_cos_'+ 'dim'+ str(dim)  +'/'
     else:
-        save_path = './autoencoder_v6_1to1_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
+        save_path = './autoencoder_v6_cos_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir
@@ -662,13 +669,9 @@ def main():
 
 
     timer = str(time.time())
-
-
-
     if resume_training == False:
-
         if inference == False:
-            # Model fusion without fairness
+    # Model fusion without fairness
             print('Train Model')
             latent_representation = autoencoder_v6.Autoencoder_entry(train_obj,
                                     rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
@@ -676,15 +679,14 @@ def main():
                                 HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                                 use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
                         ).train_lat_rep
-        else: # inference
+        else:
             latent_representation = autoencoder_v6.Autoencoder_entry(train_obj,
                                     rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                      demo_mask_arr,  save_path, dim, grouping_dict,
                                 HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                                 True, checkpoint, False, train_dir,
                                 use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
-                        ).final_lat_rep
-
+                        ).train_lat_rep
     else:
          # resume training
         print('resume trainging from : ', train_dir)
@@ -710,6 +712,15 @@ def main():
         the_file.write(str(dim) + '\n')
         the_file.write('learning rate\n')
         the_file.write(str(LEARNING_RATE) + '\n')
+        the_file.write('use checkpoint or not\n')
+        the_file.write(str(pretrained_checkpoint) + '\n')
+        the_file.write('checkpoint\n')
+        the_file.write(str(checkpoint) + '\n')
+
+        the_file.write('grouping strategy\n')
+        for i in grouping_dict.keys():
+            the_file.write(str(i) + '\n')
+            the_file.write(','.join([str(x) for x in grouping_dict[i]]) + "\n")
 
         the_file.close()
 
