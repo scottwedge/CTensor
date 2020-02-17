@@ -2018,8 +2018,8 @@ class Autoencoder:
             print('saving output_arr ....')
             train_encoded_res = train_result
             train_output_arr = train_encoded_res[0]
-            # for i in range(1,len(train_encoded_res)):
-            #     train_output_arr = np.concatenate((train_output_arr, train_encoded_res[i]), axis=0)
+            for i in range(1,len(train_encoded_res)):
+                train_output_arr = np.concatenate((train_output_arr, train_encoded_res[i]), axis=0)
 
         print('train_output_arr.shape: ', train_output_arr.shape)
         # This is the latent representation (9337, 1, 32, 20, 1) of training
