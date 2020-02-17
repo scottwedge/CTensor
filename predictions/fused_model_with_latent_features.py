@@ -1612,6 +1612,13 @@ class Conv3D:
         self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
         print('test_data.y.shape', self.test_data.y.shape)
 
+        # create batch data for latent rep
+        self.train_latent = generateData(self.latent_train_series, TIMESTEPS, BATCH_SIZE)
+        self.test_latent = generateData(self.latent_test_series, TIMESTEPS, BATCH_SIZE)
+        self.train_lat = np.squeeze(self.train_latent.X, axis = 4)
+        self.test_lat= np.squeeze(self.test_latent.X, axis = 4)
+
+
         predicted_vals = predictor.train_neural_network(self.train_data.X, self.train_data.y,
                 self.test_data.X, self.test_data.y,
                 # self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
@@ -1619,7 +1626,7 @@ class Conv3D:
                 # self.lamda,
                 self.demo_mask_arr,
                 # self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
-                self.latent_train_series, self.latent_test_series,
+                self.train_lat, self.test_lat,
                   self.save_path,
                   self.train_dir, self.checkpoint_path,
                   # self.beta,
