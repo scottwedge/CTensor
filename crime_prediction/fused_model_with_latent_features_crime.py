@@ -191,7 +191,7 @@ class Conv3DPredictor:
         # (168, 9336,  3)
         self.input_1d_feature =  tf.placeholder(tf.float32, shape=[None,time_steps, NUM_1D_FEA], name = "input_1d_feature")
 
-        self.latent_fea =  tf.placeholder(tf.float32, shape=[None, height, width, LATENT_CHANNEL])
+        self.latent_fea =  tf.placeholder(tf.float32, shape=[None, TIMESTEPS, height, width, LATENT_CHANNEL])
 
         # this is usefor Batch normalization.
         # https://towardsdatascience.com/pitfalls-of-batch-norm-in-tensorflow-and-sanity-checks-for-training-networks-e86c207548c8
