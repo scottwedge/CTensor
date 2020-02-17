@@ -2073,7 +2073,7 @@ class Autoencoder:
             train_output_arr = train_encoded_res[0]
             print('len(train_encoded_res): ', len(train_encoded_res))
             for i in range(1,len(train_encoded_res)):
-
+                print('i, len(train_encoded_res[i]): ',i,  len(train_encoded_res[i]))
                 train_output_arr = np.concatenate((train_output_arr, train_encoded_res[i]), axis=0)
 
             # test_encoded_res = test_result
