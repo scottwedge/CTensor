@@ -553,6 +553,7 @@ def main():
         raw_seq_arr = train_obj.generate_fixlen_timeseries(rawdata_arr)
         train_arr, test_arr = train_obj.train_test_split(raw_seq_arr)
         print('input train_arr shape: ',train_arr.shape )
+        print('input test_arr shape: ',test_arr.shape )
 
 
         # train_hours: 8084
@@ -592,6 +593,7 @@ def main():
         print('input latent_seq_arr shape: ',latent_seq_arr.shape )
         train_latent_arr, test_latent_arr = train_obj.train_test_split(latent_seq_arr)
         print('input train_latent_arr shape: ',train_latent_arr.shape )
+        print('input test_latent_arr shape: ',test_latent_arr.shape )
 
         # ---------------------------------------------------------------
 
