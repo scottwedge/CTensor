@@ -1,4 +1,14 @@
-# updated Feb 15
+# v2: all_to_all autoencoder, still flat structure
+# train autoencoder for urban features
+# for each week's data, learn a
+# laten representation as [H, W, dim]
+# from the latent representation, each datasets will
+# be reconstructed with equal weight in MAE loss
+
+# when used for new task prediction. The latent representation can be
+# directly concatenate with 168 hours of historical biekshare data.
+
+# last updated: October, 2019
 
 
 import pandas as pd
@@ -31,7 +41,7 @@ import random
 
 HEIGHT = 32
 WIDTH = 20
-TIMESTEPS = 24
+TIMESTEPS = 168
 
 CHANNEL = 27  # number of all features
 
@@ -42,15 +52,13 @@ TRAINING_STEPS = 50
 
 LEARNING_RATE = 0.001
 
-# HOURLY_TIMESTEPS = 168
-
-HOURLY_TIMESTEPS = 24
+HOURLY_TIMESTEPS = 168
 DAILY_TIMESTEPS = 7
 THREE_HOUR_TIMESTEP = 56
 
 # stacking to form features: [9504-168, 168, 32, 20, 9]
 # target latent representation: [9504-168, 1, 32,20,1]
-def generate_fixlen_timeseries(rawdata_arr, timestep = 24):
+def generate_fixlen_timeseries(rawdata_arr, timestep = 168):
     raw_seq_list = list()
         # arr_shape: [# of timestamps, w, h]
     arr_shape = rawdata_arr.shape
@@ -321,9 +329,6 @@ def parse_args():
                      action="store", help = 'epochs to train', default = 50)
     parser.add_argument('-l',   '--learning_rate',  type=float,
                      action="store", help = 'epochs to train', default = 0.001)
-    parser.add_argument("-i","--inference", type=bool, default=False,
-    				help="inference")
-
 
 
     return parser.parse_args()
@@ -341,7 +346,6 @@ def main():
     epoch = args.epoch
     learning_rate= args.learning_rate
     dim = args.dim
-    inference = args.inference
 
     print("resume_training: ", resume_training)
     print("training dir path: ", train_dir)
@@ -418,26 +422,26 @@ def main():
     print('crime_arr.shape: ', crime_arr.shape)
     print('seattle911calls_arr.shape: ', seattle911calls_arr.shape)
 
-    building_permit_arr_seq = generate_fixlen_timeseries(building_permit_arr, 1)
+    building_permit_arr_seq = generate_fixlen_timeseries(building_permit_arr, 7)
     building_permit_arr_seq_extend = np.repeat(building_permit_arr_seq, 24, axis =1)
-    collisions_arr_seq = generate_fixlen_timeseries(collisions_arr, 1)
+    collisions_arr_seq = generate_fixlen_timeseries(collisions_arr, 7)
     collisions_arr_seq_extend = np.repeat(collisions_arr_seq, 24, axis =1)
 
     # construct dictionary
     print('use dictionary to organize data')
-    # rawdata_1d_dict = {
-    #  'weather': weather_arr,
-    # # 'airquality': airquality_arr,
-    # }
     rawdata_1d_dict = {
-     'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
-    'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
-    'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+     'weather': weather_arr,
     'airquality': airquality_arr,
     }
+    # rawdata_1d_dict = {
+    #  'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
+    # 'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
+    # 'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+    # 'airquality': airquality_arr,
+    # }
 
     rawdata_2d_dict = {
-        'house_price': house_price_arr,
+         'house_price': house_price_arr,
         'POI_business': POI_business_arr,
         'POI_food': POI_food_arr,
         'POI_government': POI_government_arr,
@@ -457,9 +461,7 @@ def main():
 
     rawdata_3d_dict = {
           'building_permit': building_permit_arr_seq_extend,
-        'collisions': collisions_arr_seq_extend,  # (24, 45840, 32, 20)
-        # 'building_permit': building_permit_arr,
-        # 'collisions':collisions_arr,
+        'collisions': collisions_arr_seq_extend,  # (7, 45840, 32, 20)
         'seattle911calls': seattle911calls_arr # (45984, 32, 20)
         }
 
@@ -473,9 +475,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './autoencoder_v2_1to1'+ 'dim'+ str(dim)  +'/'
+        save_path =  './autoencoder_v2_202001_'+ 'dim'+ str(dim)  +'/'
     else:
-        save_path = './autoencoder_v2_1to1_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
+        save_path = './autoencoder_v2_202001_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir
@@ -497,26 +499,17 @@ def main():
 
     timer = str(time.time())
     if resume_training == False:
-        if inference == False:
-        # Model fusion without fairness
-            print('Train Model')
-            latent_representation = toy_autoencoder_v2.Autoencoder_entry(train_obj,
-                                    rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
-                                     demo_mask_arr,  save_path, dim,
-                                HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE
-                        ).train_lat_rep
-        else:
-            latent_representation = toy_autoencoder_v2.Autoencoder_entry(train_obj,
-                                        rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
-                                         demo_mask_arr,  save_path, dim,
-                                    HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
-                                    True, checkpoint, False, train_dir
-
-                            ).final_lat_rep
+    # Model fusion without fairness
+        print('Train Model')
+        latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
+                                rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+                                 demo_mask_arr,  save_path, dim,
+                            HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE
+                    ).train_lat_rep
     else:
          # resume training
         print('resume trainging from : ', train_dir)
-        latent_representation = toy_autoencoder_v2.Autoencoder_entry(train_obj,
+        latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
                             rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                          demo_mask_arr,
                             train_dir, dim,
@@ -538,7 +531,7 @@ def main():
         the_file.write(str(dim) + '\n')
         the_file.write('learning rate\n')
         the_file.write(str(LEARNING_RATE) + '\n')
-
+        
         the_file.close()
 
 
