@@ -82,20 +82,6 @@ fea_list = ['pop','normalized_pop', 'bi_caucasian','bi_age', 'bi_high_incm','bi_
            'white_pop','age65_under', 'edu_uni']
 
 
-# stacking to form features: [9504-168, 168, 32, 20, 9]
-def generate_fixlen_timeseries_forfeatures(rawdata_arr, timestep = 168):
-    raw_seq_list = list()
-        # arr_shape: [# of timestamps, w, h]
-    arr_shape = rawdata_arr.shape
-    for i in range(0, arr_shape[0] - (timestep)+1):
-        start = i
-        end = i+ (timestep )
-            # temp_seq = rawdata_arr[start: end, :, :]
-        temp_seq = rawdata_arr[start: end]
-        raw_seq_list.append(temp_seq)
-    raw_seq_arr = np.array(raw_seq_list)
-    raw_seq_arr = np.swapaxes(raw_seq_arr,0,1)
-    return raw_seq_arr
 
 
 class train:
@@ -602,7 +588,7 @@ def main():
         print('latent_series.shape: ',latent_series.shape)
         dim  = latent_series.shape[-1]
 
-        latent_seq_arr = generate_fixlen_timeseries_forfeatures(latent_series)
+        latent_seq_arr = train_obj.generate_fixlen_timeseries(latent_series)
         print('input latent_seq_arr shape: ',latent_seq_arr.shape )
         train_latent_arr, test_latent_arr = train_obj.train_test_split(latent_seq_arr)
         print('input train_latent_arr shape: ',train_latent_arr.shape )
@@ -745,69 +731,6 @@ def main():
     # demo_pop = np.expand_dims(demo_pop, axis=2)
     # print('demo_pop.shape: ',  demo_pop.shape)
 
-    # demo sensitive
-    '''
-    ['pop','normalized_pop','bi_caucasian','bi_age','bi_high_incm',
-    'bi_edu_univ','bi_nocar_hh','white_pop','age65_under','edu_uni']
-    '''
-    # demo_sensitive = demo_arr[:,:,2]  # caucasian
-    # demo_sensitive = np.expand_dims(demo_sensitive, axis=2)
-
-    # normalized population of each group
-    '''
-    caucasian	non_caucasian	senior	young	high_incm	low_incm
-    high_edu	low_edu	  fewer_car	more_car
-    '''
-    # pop_g1 = pop_df['caucasian'].values[1]
-    # pop_g2 = pop_df['non_caucasian'].values[1]
-    #
-    # if fairloss == 'RFG':  # metric1: region-based
-    #     if multivar:
-    #         print('MULTIVAR')
-    #         fea_dim = [2,3,5]  # caucasian, age, edu_univ
-    #         multi_pop_g1 = [pop_df['caucasian'].values[1], pop_df['young'].values[1], pop_df['high_edu'].values[1]]
-    #         multi_pop_g2 = [pop_df['non_caucasian'].values[1], pop_df['senior'].values[1], pop_df['low_edu'].values[1]]
-    #     else:  # single var
-    #         fea_dim = [2]  # binary caucasian
-    #         # multi_demo_sensitive = demo_arr[:,:,fea_dim]  # caucasian
-    #         multi_pop_g1 = [pop_df['caucasian'].values[1]]
-    #         multi_pop_g2 = [pop_df['non_caucasian'].values[1]]
-    # elif fairloss == "IFG":
-    #     if multivar:
-    #         print('MULTIVAR')
-    #         fea_dim = [7, 8, 9]  # multivar
-    #     else:
-    #         fea_dim = [7]  # white percent
-    #     # multi_demo_sensitive = demo_arr[:,:,fea_dim]  # caucasian
-    #     multi_pop_g1 = [pop_df['caucasian'].values[1], pop_df['young'].values[1], pop_df['high_edu'].values[1]]
-    #     multi_pop_g2 = [pop_df['non_caucasian'].values[1], pop_df['senior'].values[1], pop_df['low_edu'].values[1]]
-    # elif fairloss == "equalmean":
-    #     fea_dim = [2]  # binar caucasian
-    #     # multi_demo_sensitive = demo_arr[:,:,fea_dim]  # caucasian
-    #     # multi_pop_g1 = [pop_df['caucasian'].values[1], pop_df['young'].values[1], pop_df['high_edu'].values[1]]
-    #     # multi_pop_g2 = [pop_df['non_caucasian'].values[1], pop_df['senior'].values[1], pop_df['low_edu'].values[1]]
-    #     multi_pop_g1 = [pop_df['caucasian'].values[1]]
-    #     multi_pop_g2 = [pop_df['non_caucasian'].values[1]]
-    #
-    #     # multi_grid_g1 = [pop_df['caucasian'].values[0]]
-    #     # multi_grid_g2 = [pop_df['non_caucasian'].values[0]]
-    # elif fairloss == "pairwise":
-    #     multi_pop_g1 = [pop_df['caucasian'].values[1]]
-    #     multi_pop_g2 = [pop_df['non_caucasian'].values[1]]
-    #     fea_dim = [2]  # binar caucasian
-    #
-    # multi_demo_sensitive = demo_arr[:,:,fea_dim]  # caucasian
-    # multi_grid_g1 = [pop_df['caucasian'].values[0]]  # only for equal mean
-    # multi_grid_g2 = [pop_df['non_caucasian'].values[0]]
-    #
-
-    # multi-var fairness input
-    #fea_dim = [2,3,5]  # caucasian, age, edu_univ
-    # fea_dim = [7]  # white percent
-    # multi_demo_sensitive = demo_arr[:,:,fea_dim]  # caucasian
-
-    # multi_pop_g1 = [pop_df['caucasian'].values[1], pop_df['young'].values[1], pop_df['high_edu'].values[1]]
-    # multi_pop_g2 = [pop_df['non_caucasian'].values[1], pop_df['senior'].values[1], pop_df['low_edu'].values[1]]
 
     timer = str(time.time())
     if resume_training == False:

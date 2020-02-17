@@ -1530,20 +1530,14 @@ class Conv3D:
         #data = data_loader.load_series('international-airline-passengers.csv')
         # rawdata, timesteps, batchsize
         self.train_data = generateData(self.train_arr, TIMESTEPS, BATCH_SIZE)
-        # train_x shape should be : [num_examples (batch size), time_step (168), feature_dim (1)]
-
-        # create batches, feed batches into predictor
-        # predictor.train(self.train_data)
-        # print('finished training')
-
-        # prep test data, split test_arr into test_x and test_y
         self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
         print('test_data.y.shape', self.test_data.y.shape)
 
-        # if self.train_arr_1d is not None:
-            # self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
-            # self.test_data_1d = generateData_1d(self.test_arr_1d, TIMESTEPS, BATCH_SIZE)
-            # print('test_data_1d.y.shape', self.test_data_1d.y.shape)
+        # create batch data for latent rep
+        self.train_latent = generateData(self.latent_train_series, TIMESTEPS, BATCH_SIZE)
+        self.test_latent = generateData(self.latent_test_series, TIMESTEPS, BATCH_SIZE)
+
+
         predicted_vals = predictor.train_neural_network(self.train_data.X, self.train_data.y,
                         self.test_data.X, self.test_data.y,
                         # self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
@@ -1551,7 +1545,7 @@ class Conv3D:
                         # self.lamda,
                         self.demo_mask_arr,
                         # self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
-                        self.latent_train_series, self.latent_test_series,
+                        self.train_latent.X, self.test_latent.X,
                           self.save_path,
                           # self.beta,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
