@@ -500,13 +500,13 @@ def main():
         if inference == False:
         # Model fusion without fairness
             print('Train Model')
-            latent_representation = toy_autoencoder_v2.Autoencoder_entry(train_obj,
+            latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
                                     rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                      demo_mask_arr,  save_path, dim,
                                 HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE
                         ).train_lat_rep
         else:
-            latent_representation = toy_autoencoder_v2.Autoencoder_entry(train_obj,
+            latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
                                         rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                          demo_mask_arr,  save_path, dim,
                                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
@@ -516,7 +516,7 @@ def main():
     else:
          # resume training
         print('resume trainging from : ', train_dir)
-        latent_representation = toy_autoencoder_v2.Autoencoder_entry(train_obj,
+        latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
                             rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                          demo_mask_arr,
                             train_dir, dim,
@@ -529,7 +529,7 @@ def main():
     # np.save(save_path +'latent_representation_train.npy', latent_representation)
 
 
-    txt_name = save_path + 'autoencoder_v2_' + 'dim_' + str(dim) +'_'  + timer + '.txt'
+    txt_name = save_path + 'autoencoder_v2_1to1_' + 'dim_' + str(dim) +'_'  + timer + '.txt'
     with open(txt_name, 'w') as the_file:
         the_file.write('Only account for grids that intersect with city boundary \n')
         the_file.write('place\n')
