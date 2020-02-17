@@ -83,7 +83,7 @@ fea_list = ['pop','normalized_pop', 'bi_caucasian','bi_age', 'bi_high_incm','bi_
 
 
 # stacking to form features: [9504-168, 168, 32, 20, 9]
-def generate_fixlen_timeseries_forfeatures(rawdata_arr, timestep = 24):
+def generate_fixlen_timeseries_forfeatures(rawdata_arr, timestep = 168):
     raw_seq_list = list()
         # arr_shape: [# of timestamps, w, h]
     arr_shape = rawdata_arr.shape
@@ -603,6 +603,7 @@ def main():
         dim  = latent_series.shape[-1]
 
         latent_seq_arr = generate_fixlen_timeseries_forfeatures(latent_series)
+        print('input latent_seq_arr shape: ',latent_seq_arr.shape )
         train_latent_arr, test_latent_arr = train_obj.train_test_split(latent_seq_arr)
         print('input train_latent_arr shape: ',train_latent_arr.shape )
 
