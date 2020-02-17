@@ -582,7 +582,7 @@ def main():
 
         # latent_train_series = latent_rep[start_train_hour:end_train_hour,  :,:,:]
         # latent_test_series = latent_rep[end_train_hour:end_train_hour + test_len, :,:,:]
-        latent_series = latent_rep[start_train_hour:end_train_hour + test_len,  :,:,:]
+        latent_series = latent_rep[start_train_hour:end_train_hour + test_len + TIMESTEPS,  :,:,:]
 
         # latent_train_series = np.squeeze(latent_train_series, axis=1)
         # latent_test_series = np.squeeze(latent_test_series, axis=1)
