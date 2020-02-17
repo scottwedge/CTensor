@@ -82,6 +82,21 @@ fea_list = ['pop','normalized_pop', 'bi_caucasian','bi_age', 'bi_high_incm','bi_
            'white_pop','age65_under', 'edu_uni']
 
 
+# stacking to form features: [9504-168, 168, 32, 20, 9]
+def generate_fixlen_timeseries_forfeatures(rawdata_arr, timestep = 24):
+    raw_seq_list = list()
+        # arr_shape: [# of timestamps, w, h]
+    arr_shape = rawdata_arr.shape
+    for i in range(0, arr_shape[0] - (timestep)+1):
+        start = i
+        end = i+ (timestep )
+            # temp_seq = rawdata_arr[start: end, :, :]
+        temp_seq = rawdata_arr[start: end]
+        raw_seq_list.append(temp_seq)
+    raw_seq_arr = np.array(raw_seq_list)
+    raw_seq_arr = np.swapaxes(raw_seq_arr,0,1)
+    return raw_seq_arr
+
 
 class train:
     # TODO: increase window size to 4 weeks
@@ -393,6 +408,8 @@ class train:
 
 
 
+
+
     # split train/test according to predefined timestamps
     '''
     return:
@@ -585,7 +602,7 @@ def main():
         print('latent_series.shape: ',latent_series.shape)
         dim  = latent_series.shape[-1]
 
-        latent_seq_arr = train_obj.generate_fixlen_timeseries(latent_series)
+        latent_seq_arr = generate_fixlen_timeseries_forfeatures(latent_series)
         train_latent_arr, test_latent_arr = train_obj.train_test_split(latent_seq_arr)
         print('input train_latent_arr shape: ',train_latent_arr.shape )
 
