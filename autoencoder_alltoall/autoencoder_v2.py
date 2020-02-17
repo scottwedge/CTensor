@@ -98,7 +98,7 @@ def create_mini_batch_3d(start_idx, end_idx,data_3d, timestep):
     # handle different time frame
     # shape should be (batchsize, 7, 32, 20, 1), but for 24 hours in a day
     # the sequence should be the same.
-    if timestep == 7:
+    if timestep == DAILY_TIMESTEPS:
         # (7, 45840, 32, 20)
         test_data_3d_seq = data_3d[:, start_idx :end_idx, :, :]
         test_data_3d_seq = np.expand_dims(test_data_3d_seq, axis=4)
