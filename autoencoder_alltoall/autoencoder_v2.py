@@ -242,10 +242,17 @@ class Autoencoder:
             self.rawdata_2d_tf_y_dict[k] = tf.placeholder(tf.float32, shape=[None, height, width, dim])
 
         # -------- 3d --------------#
-        building_permit_x = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
-        building_permit_y = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
-        collisions_x = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
-        collisions_y = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
+        # building_permit_x = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
+        # building_permit_y = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
+        # collisions_x = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
+        # collisions_y = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
+
+        building_permit_x = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+        building_permit_y = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+        collisions_x = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+        collisions_y = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+
+
         seattle911calls_x = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
         seattle911calls_y = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
 
@@ -477,7 +484,7 @@ class Autoencoder:
         stride = [1,1,1]
         # [batchsize, 32, 20, dim] -> [batchsize, 1, 32, 20, dim]
         # latent_fea = tf.expand_dims(latent_fea, 1)
-        if timestep == TIMESTEPS:
+        # if timestep == TIMESTEPS:
             # deconv1 = tf.layers.conv3d_transpose(inputs=latent_fea, filters=16, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
             # # [1, 32, 20, 32]
             # # https://www.tensorflow.org/api_docs/python/tf/keras/backend/resize_volumes
@@ -503,38 +510,26 @@ class Autoencoder:
             # print('output reconstruction 3d shape: ', output.shape)
 
             # [None, 168, 32, 20, dim_decode] ->  [None, DAILY_TIMESTEPS, height, width, 1]
-            conv1 = tf.layers.conv3d(inputs=latent_fea, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
-            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
-            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
+        conv1 = tf.layers.conv3d(inputs=latent_fea, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
+        conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+        conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
             # conv => 16*16*16
-            conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
-            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
-            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+        conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
+        conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+        conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
             # pool => 8*8*8
 
             # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, dim]
-            conv3 = tf.layers.conv3d(inputs=conv2, filters= 1, kernel_size=[3,3,3], padding='same', activation=None)
-            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
-            conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
+        conv3 = tf.layers.conv3d(inputs=conv2, filters= 1, kernel_size=[3,3,3], padding='same', activation=None)
+        conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+        conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
 
-            output = conv3
+        output = conv3
 
-            return output
+        return output
 
+        '''
         if timestep == DAILY_TIMESTEPS:
-            # [1, 32, 20, 1]-> [168, 32, 20, 9]
-            # deconv1 = tf.layers.conv3d_transpose(inputs=latent_fea, filters=16, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
-            # # added
-            # deconv2 = tf.layers.conv3d_transpose(inputs=deconv1, filters=32, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
-            # # [1, 32, 20, 32]
-            # # https://www.tensorflow.org/api_docs/python/tf/keras/backend/resize_volumes
-            # unpool1 = K.resize_volumes(deconv2,7,1,1,"channels_last")
-            # # [7, 32, 20, 32]
-            #         # [168, 32, 20, 9]
-            # output = tf.layers.conv3d(inputs=unpool1, filters= 1, kernel_size=[3,3,3], padding='same', activation=my_leaky_relu)
-            #         # [none, 1, 20, 64, 64] -> [none, 20, 64, 64, 1]
-            # # (?, 168, 32, 20, 9)
-            # print('output reconstruction 3d shape: ', output.shape)
 
             # #Average Pooling  [None, 168, 32, 20, dim_decode] ->  (None, 1, 32, 20, dim_decode)
             conv1 = tf.layers.average_pooling3d(latent_fea, [TIMESTEPS / DAILY_TIMESTEPS, 1, 1], [1,1,1], padding='valid')
@@ -555,7 +550,9 @@ class Autoencoder:
 
             output = conv3
 
+
             return output
+            '''
 
     # previous: [None, 32, 20, dim ] -> recontruct to data_2d: (None, 32, 20, dim_2d)
     # update: [None, 168, 32, 20, dim_decode] ->  (None, 32, 20, dim_2d)
@@ -870,15 +867,15 @@ class Autoencoder:
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
             prediction_3d = self.cnn_model(v, self.is_training, k)
-            if k == 'seattle911calls':
-                first_level_output[k] = prediction_3d
-                first_order_encoder_list.append(prediction_3d)
-            else:
-                # [None, 1, height, width, 1] -> [None, 24, height, width, 1]
-                prediction_3d_expand = tf.tile(prediction_3d, [1, TIMESTEPS, 1,
-                                                        1 ,1])
-                first_level_output[k] = prediction_3d_expand
-                first_order_encoder_list.append(prediction_3d_expand)
+            # if k == 'seattle911calls':
+            first_level_output[k] = prediction_3d
+            first_order_encoder_list.append(prediction_3d)
+            # else:
+            #     # [None, 1, height, width, 1] -> [None, 24, height, width, 1]
+            #     prediction_3d_expand = tf.tile(prediction_3d, [1, TIMESTEPS, 1,
+            #                                             1 ,1])
+            #     first_level_output[k] = prediction_3d_expand
+            #     first_order_encoder_list.append(prediction_3d_expand)
 
             keys_list.append(k)
 
@@ -1047,10 +1044,10 @@ class Autoencoder:
 
                      # create batches for 3d
                     for k, v in rawdata_3d_dict.items():
-                        if k == 'seattle911calls':
-                            timestep = TIMESTEPS
-                        else:
-                            timestep = DAILY_TIMESTEPS
+                        # if k == 'seattle911calls':
+                        timestep = TIMESTEPS
+                        # else:
+                        #     timestep = DAILY_TIMESTEPS
                         temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
                         feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
@@ -1162,10 +1159,10 @@ class Autoencoder:
 
                      # create batches for 3d
                     for k, v in rawdata_3d_dict.items():
-                        if k == 'seattle911calls':
-                            timestep = TIMESTEPS
-                        else:
-                            timestep = DAILY_TIMESTEPS
+                        #if k == 'seattle911calls':
+                        timestep = TIMESTEPS
+                        # else:
+                        #     timestep = DAILY_TIMESTEPS
                         temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
                         test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
@@ -1363,15 +1360,15 @@ class Autoencoder:
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
             prediction_3d = self.cnn_model(v, self.is_training, k)
-            if k == 'seattle911calls':
-                first_level_output[k] = prediction_3d
-                first_order_encoder_list.append(prediction_3d)
-            else:
-                # [None, 1, height, width, 1] -> [None, 24, height, width, 1]
-                prediction_3d_expand = tf.tile(prediction_3d, [1, TIMESTEPS, 1,
-                                                        1 ,1])
-                first_level_output[k] = prediction_3d_expand
-                first_order_encoder_list.append(prediction_3d_expand)
+            # if k == 'seattle911calls':
+            first_level_output[k] = prediction_3d
+            first_order_encoder_list.append(prediction_3d)
+            # else:
+            #     # [None, 1, height, width, 1] -> [None, 24, height, width, 1]
+            #     prediction_3d_expand = tf.tile(prediction_3d, [1, TIMESTEPS, 1,
+            #                                             1 ,1])
+            #     first_level_output[k] = prediction_3d_expand
+            #     first_order_encoder_list.append(prediction_3d_expand)
 
             keys_list.append(k)
 
@@ -1515,10 +1512,10 @@ class Autoencoder:
 
                      # create batches for 3d
                 for k, v in rawdata_3d_dict.items():
-                    if k == 'seattle911calls':
-                        timestep = TIMESTEPS
-                    else:
-                        timestep = DAILY_TIMESTEPS
+                    # if k == 'seattle911calls':
+                    timestep = TIMESTEPS
+                    # else:
+                    #     timestep = DAILY_TIMESTEPS
                     temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
                     feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
@@ -1809,15 +1806,15 @@ class Autoencoder:
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
             prediction_3d = self.cnn_model(v, self.is_training, k)
-            if k == 'seattle911calls':
-                first_level_output[k] = prediction_3d
-                first_order_encoder_list.append(prediction_3d)
-            else:
-                # [None, 1, height, width, 1] -> [None, 24, height, width, 1]
-                prediction_3d_expand = tf.tile(prediction_3d, [1, TIMESTEPS, 1,
-                                                        1 ,1])
-                first_level_output[k] = prediction_3d_expand
-                first_order_encoder_list.append(prediction_3d_expand)
+            # if k == 'seattle911calls':
+            first_level_output[k] = prediction_3d
+            first_order_encoder_list.append(prediction_3d)
+            # else:
+            #     # [None, 1, height, width, 1] -> [None, 24, height, width, 1]
+            #     prediction_3d_expand = tf.tile(prediction_3d, [1, TIMESTEPS, 1,
+            #                                             1 ,1])
+            #     first_level_output[k] = prediction_3d_expand
+            #     first_order_encoder_list.append(prediction_3d_expand)
 
 
 
@@ -1974,10 +1971,10 @@ class Autoencoder:
 
                     # create batches for 3d
                 for k, v in rawdata_3d_dict.items():
-                    if k == 'seattle911calls':
-                        timestep = TIMESTEPS
-                    else:
-                        timestep = DAILY_TIMESTEPS
+                    # if k == 'seattle911calls':
+                    timestep = TIMESTEPS
+                    # else:
+                    #     timestep = DAILY_TIMESTEPS
                     temp_batch = create_mini_batch_3d_nonoverlapping(start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
                     feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch

@@ -418,10 +418,16 @@ def main():
     print('crime_arr.shape: ', crime_arr.shape)
     print('seattle911calls_arr.shape: ', seattle911calls_arr.shape)
 
-    building_permit_arr_seq = generate_fixlen_timeseries(building_permit_arr, 1)
-    building_permit_arr_seq_extend = np.repeat(building_permit_arr_seq, 24, axis =1)
-    collisions_arr_seq = generate_fixlen_timeseries(collisions_arr, 1)
-    collisions_arr_seq_extend = np.repeat(collisions_arr_seq, 24, axis =1)
+    # building_permit_arr_seq = generate_fixlen_timeseries(building_permit_arr, 1)
+    # building_permit_arr_seq_extend = np.repeat(building_permit_arr_seq, 24, axis =1)
+    # collisions_arr_seq = generate_fixlen_timeseries(collisions_arr, 1)
+    # collisions_arr_seq_extend = np.repeat(collisions_arr_seq, 24, axis =1)
+
+    # duplicate building_permit_arr and collisions to the same shape as seattle911calls
+    # deal them the same way as 911
+    building_permit_arr_seq_extend = np.repeat(building_permit_arr, 24, axis =0)
+    collisions_arr_seq_extend = np.repeat(collisions_arr, 24, axis =0)
+
     print('building_permit_arr_seq.shape: ', building_permit_arr_seq.shape)
     print('building_permit_arr_seq_extend.shape: ', building_permit_arr_seq_extend.shape)
 
