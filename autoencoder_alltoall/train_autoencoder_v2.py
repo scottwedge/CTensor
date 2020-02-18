@@ -428,7 +428,6 @@ def main():
     building_permit_arr_seq_extend = np.repeat(building_permit_arr, 24, axis =0)
     collisions_arr_seq_extend = np.repeat(collisions_arr, 24, axis =0)
 
-    print('building_permit_arr_seq.shape: ', building_permit_arr_seq.shape)
     print('building_permit_arr_seq_extend.shape: ', building_permit_arr_seq_extend.shape)
 
     # construct dictionary
