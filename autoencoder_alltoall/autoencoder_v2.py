@@ -185,10 +185,10 @@ def create_mini_batch_3d_nonoverlapping(start_idx, end_idx, data_3d, timestep):
             # ignore if a small sequence of data that is shorter than timestep
             if end <= end_idx:
                 # temp_seq = rawdata_arr[start: end, :, :]
-                temp_seq = data_3d[:, start, :, :]
-                print('temp_seq.shape', temp_seq.shape)
+                temp_seq = data_3d[:, start, :, :]  # (1, 32, 20)
                 test_data_3d_list.append(temp_seq)
         test_data_3d_seq = np.array(test_data_3d_list)
+        print('test_data_3d_seq.shape: ', test_data_3d_seq.shape)
 
         # should be [32,1,32,20,1]
         test_data_3d_seq = np.expand_dims(test_data_3d_seq, axis=4)
