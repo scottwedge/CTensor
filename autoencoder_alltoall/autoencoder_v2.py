@@ -187,6 +187,7 @@ def create_mini_batch_3d_nonoverlapping(start_idx, end_idx, data_3d, timestep):
                 temp_seq = data_3d[:, start, :, :]  # (1, 32, 20)
                 test_data_3d_list.append(temp_seq)
         test_data_3d_seq = np.array(test_data_3d_list)
+        test_data_3d_seq = np.swapaxes(test_data_3d_seq,0,1)
         print('test_data_3d_seq.shape: ', test_data_3d_seq.shape)
 
         # should be [32,1,32,20,1]
