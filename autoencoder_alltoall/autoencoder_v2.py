@@ -172,7 +172,7 @@ def create_mini_batch_3d_nonoverlapping(start_idx, end_idx, data_3d, timestep):
     # handle different time frame
     # shape should be (batchsize, 7, 32, 20, 1), but for 24 hours in a day
     # the sequence should be the same.
-    print('data_3d.shape: ', data_3d.shape)
+    print('data_3d.shape: ', data_3d.shape)  # (1, 45984, 32, 20)
     if timestep == DAILY_TIMESTEPS:
         # input  (1, 45840, 32, 20) and 768 indexes
         # output should be [32,1,32,20,1]
@@ -185,7 +185,8 @@ def create_mini_batch_3d_nonoverlapping(start_idx, end_idx, data_3d, timestep):
             # ignore if a small sequence of data that is shorter than timestep
             if end <= end_idx:
                 # temp_seq = rawdata_arr[start: end, :, :]
-                temp_seq = data_3d[:, start :end, :, :]
+                temp_seq = data_3d[:, start, :, :]
+                print('temp_seq.shape', temp_seq.shape)
                 test_data_3d_list.append(temp_seq)
         test_data_3d_seq = np.array(test_data_3d_list)
 
