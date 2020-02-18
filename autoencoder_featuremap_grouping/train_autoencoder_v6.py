@@ -440,10 +440,15 @@ def main():
     print('crime_arr.shape: ', crime_arr.shape)
     print('seattle911calls_arr.shape: ', seattle911calls_arr.shape)
 
-    building_permit_arr_seq = generate_fixlen_timeseries(building_permit_arr, 7)
-    building_permit_arr_seq_extend = np.repeat(building_permit_arr_seq, 24, axis =1)
-    collisions_arr_seq = generate_fixlen_timeseries(collisions_arr, 7)
-    collisions_arr_seq_extend = np.repeat(collisions_arr_seq, 24, axis =1)
+    building_permit_arr_seq_extend = np.repeat(building_permit_arr, 24, axis =0)
+    collisions_arr_seq_extend = np.repeat(collisions_arr, 24, axis =0)
+
+    print('building_permit_arr_seq_extend.shape: ', building_permit_arr_seq_extend.shape)
+
+    # building_permit_arr_seq = generate_fixlen_timeseries(building_permit_arr, 7)
+    # building_permit_arr_seq_extend = np.repeat(building_permit_arr_seq, 24, axis =1)
+    # collisions_arr_seq = generate_fixlen_timeseries(collisions_arr, 7)
+    # collisions_arr_seq_extend = np.repeat(collisions_arr_seq, 24, axis =1)
 
     # construct dictionary
     print('use dictionary to organize data')
