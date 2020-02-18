@@ -40,12 +40,12 @@ WIDTH = 20
 # if outside city, assign 0
 # turn into numpy array mask, True/ False
 def generate_mask_array(intersect_pos_set):
-    temp_image = [[0 for i in range(HEIGHT)] for j in range(WIDTH)]
+    temp_image = [[1 for i in range(HEIGHT)] for j in range(WIDTH)]
     for i in range(HEIGHT):
         for j in range(WIDTH):
             temp_str = str(j)+'_'+str(i)
             if temp_str in intersect_pos_set:
-                temp_image[j][i] = 1
+                temp_image[j][i] = 0
 
     mask_arr = np.array(temp_image)
     mask_arr = np.rot90(mask_arr)
