@@ -176,10 +176,9 @@ def create_mini_batch_3d_nonoverlapping(start_idx, end_idx, data_3d, timestep):
     if timestep == DAILY_TIMESTEPS:
         # input  (1, 45840, 32, 20) and 768 indexes
         # output should be [32,1,32,20,1]
-        # test_data_3d_seq = data_3d[:, start_idx :end_idx, :, :] # (1, start: end, 32, 20)
         # for every 24 timestep, take one slice
         test_data_3d_list = list()
-        for i in range(start_idx, end_idx, timestep):
+        for i in range(start_idx, end_idx, TIMESTEPS):
             start = i
             end = i+ (timestep )
             # ignore if a small sequence of data that is shorter than timestep
