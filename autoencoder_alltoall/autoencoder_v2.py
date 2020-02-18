@@ -1805,7 +1805,6 @@ class Autoencoder:
                 first_level_output[k] = prediction_3d_expand
                 first_order_encoder_list.append(prediction_3d_expand)
 
-            keys_list.append(k)
 
 
         # dim: latent fea dimension
