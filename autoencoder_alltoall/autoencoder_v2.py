@@ -164,8 +164,8 @@ def create_mini_batch_2d_nonoverlapping(start_idx, end_idx,  data_2d):
 
 
 
-def create_mini_batch_3d_nonoverlapping(start_idx, end_idx,data_3d, timestep):
-    # data_3d : (45984, 32, 20, ?)
+def create_mini_batch_3d_nonoverlapping(start_idx, end_idx, data_3d, timestep):
+    # data_3d : (45984, 32, 20, ?) or (1, 45840, 32, 20)
     # data_1d: (45984, ?)
     # data_2d: (32, 20, ?)
     test_size = end_idx - start_idx
@@ -173,8 +173,22 @@ def create_mini_batch_3d_nonoverlapping(start_idx, end_idx,data_3d, timestep):
     # shape should be (batchsize, 7, 32, 20, 1), but for 24 hours in a day
     # the sequence should be the same.
     if timestep == DAILY_TIMESTEPS:
-        # (7, 45840, 32, 20)
-        test_data_3d_seq = data_3d[:, start_idx :end_idx, :, :]
+        # input  (1, 45840, 32, 20) and 768 indexes
+        # output should be [32,1,32,20,1]
+        # test_data_3d_seq = data_3d[:, start_idx :end_idx, :, :] # (1, start: end, 32, 20)
+        # for every 24 timestep, take one slice
+        test_data_3d_list = list()
+        for i in range(start_idx, end_idx, timestep):
+            start = i
+            end = i+ (timestep )
+            # ignore if a small sequence of data that is shorter than timestep
+            if end <= end_idx:
+                # temp_seq = rawdata_arr[start: end, :, :]
+                temp_seq = data_3d[:, start :end, :, :]
+                test_data_3d_list.append(temp_seq)
+        test_data_3d_seq = np.array(test_data_3d_list)
+
+        # should be [32,1,32,20,1]
         test_data_3d_seq = np.expand_dims(test_data_3d_seq, axis=4)
         test_data_3d_seq = np.swapaxes(test_data_3d_seq,0,1)
     else:  # 911 data
@@ -1968,7 +1982,7 @@ class Autoencoder:
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
                     feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
                     feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
-                    # is_training: True
+
                 feed_dict_all[self.is_training] = True
                 batch_cost, batch_loss_dict, batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict=feed_dict_all)
                     # get encoded representation
