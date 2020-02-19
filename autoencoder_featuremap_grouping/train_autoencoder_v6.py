@@ -55,13 +55,13 @@ TRAINING_STEPS = 50
 
 LEARNING_RATE = 0.001
 
-HOURLY_TIMESTEPS = 168
+HOURLY_TIMESTEPS = 24
 DAILY_TIMESTEPS = 7
 THREE_HOUR_TIMESTEP = 56
 
 # stacking to form features: [9504-168, 168, 32, 20, 9]
 # target latent representation: [9504-168, 1, 32,20,1]
-def generate_fixlen_timeseries(rawdata_arr, timestep = 168):
+def generate_fixlen_timeseries(rawdata_arr, timestep = TIMESTEPS):
     raw_seq_list = list()
         # arr_shape: [# of timestamps, w, h]
     arr_shape = rawdata_arr.shape
