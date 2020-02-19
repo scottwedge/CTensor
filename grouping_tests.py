@@ -224,7 +224,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     if ds_name2 in keys_2d:
                         temp_arr2 = feature_map_dict[ds_name2]
 
-                        relation_all_df.loc[ds_name1, ds_name2]  += relation_all_df.loc[ds_name2, ds_name1]
+                        relation_all_df.loc[ds_name1, ds_name2]  = relation_all_df.loc[ds_name2, ds_name1]
 
                     # 3D VS 3D
                     # flatten and compare. Because 3rd dimension contains
@@ -235,7 +235,6 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         temp_arr2 = np.moveaxis(temp_arr2, 0, -1) # (32, 20, 24)
 
                         ave_SR = 0 # average spearman correlation
-    #                     for i in range(dim2):
                         compress_arr2 = remove_outside_cells( temp_arr2, mask_arr)
                         compress_arr1 = remove_outside_cells( temp_arr1, mask_arr)
 
