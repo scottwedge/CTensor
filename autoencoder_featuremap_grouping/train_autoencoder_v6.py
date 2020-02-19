@@ -491,26 +491,26 @@ def main():
 
 
     # -------------- grouping -----------------------
-    # grouping_dict = {'weather_grp': ['weather', 'airquality'],
-    #             'transportation_grp': ['POI_transportation', 'seattle_street', 'total_flow_count',
-    #                                   'transit_routes', 'transit_signals', 'transit_stop', 'bikelane',
-    #                                   'collisions', 'slope'],
-    #             'economics_grp': ['house_price', 'POI_business', 'POI_food', 'building_permit',
-    #                          'seattle911calls'],
-    #              'public_service_grp': ['POI_government', 'POI_hospitals', 'POI_publicservices',
-    #                                'POI_recreation', 'POI_school']
-    #             }
+    grouping_dict = {'weather_grp': ['precipitation','temperature', 'pressure', 'airquality'],
+                'transportation_grp': ['POI_transportation', 'seattle_street', 'total_flow_count',
+                                      'transit_routes', 'transit_signals', 'transit_stop', 'bikelane',
+                                      'collisions', 'slope'],
+                'economics_grp': ['house_price', 'POI_business', 'POI_food', 'building_permit',
+                             'seattle911calls'],
+                 'public_service_grp': ['POI_government', 'POI_hospitals', 'POI_publicservices',
+                                   'POI_recreation', 'POI_school']
+                }
 
     ####  grouping all datasets altogether using affinity propogation and Pearson correlation
-    grouping_dict = {
-        'group_1': ['precipitation'],
-        'group_2': ['temperature', 'pressure', 'airquality'],
-        'group_3': ['house_price', 'slope'],
-        'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices',
-                'POI_transportation', 'transit_routes', 'transit_signals', 'seattle911calls'],
-        'group_5': ['POI_hospitals', 'building_permit', 'collisions'],
-        'group_6':['POI_recreation', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_stop', 'bikelane']
-    }
+    # grouping_dict = {
+    #     'group_1': ['precipitation'],
+    #     'group_2': ['temperature', 'pressure', 'airquality'],
+    #     'group_3': ['house_price', 'slope'],
+    #     'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices',
+    #             'POI_transportation', 'transit_routes', 'transit_signals', 'seattle911calls'],
+    #     'group_5': ['POI_hospitals', 'building_permit', 'collisions'],
+    #     'group_6':['POI_recreation', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_stop', 'bikelane']
+    # }
 
 
     ######  grouping using all raw datasets with cosine similarity ######
