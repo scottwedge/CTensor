@@ -578,14 +578,14 @@ def main():
         if inference == False:
             # Model fusion without fairness
             print('Train Model')
-            latent_representation = autoencoder_v6.Autoencoder_entry(train_obj,
+            latent_representation = autoencoder_v5.Autoencoder_entry(train_obj,
                                     rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                      demo_mask_arr,  save_path, dim, grouping_dict,
                                 HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                                 use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
                         ).train_lat_rep
         else: # inference
-            latent_representation = autoencoder_v6.Autoencoder_entry(train_obj,
+            latent_representation = autoencoder_v5.Autoencoder_entry(train_obj,
                                     rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                      demo_mask_arr,  save_path, dim, grouping_dict,
                                 HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
@@ -596,7 +596,7 @@ def main():
     else:
          # resume training
         print('resume trainging from : ', train_dir)
-        latent_representation = autoencoder_v6.Autoencoder_entry(train_obj,
+        latent_representation = autoencoder_v5.Autoencoder_entry(train_obj,
                             rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                          demo_mask_arr,
                             train_dir, dim,grouping_dict,
