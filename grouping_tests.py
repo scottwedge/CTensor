@@ -211,7 +211,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
 
             # 3D
             if ds_name1 in keys_3d:
-                temp_arr1 = feature_map_dict[ds_name1]  # [24, 32, 20, 1]
+                temp_arr1 = feature_map_dict[ds_name1][n,:,:,:,:]  # [24, 32, 20, 1]
                 temp_arr1 = np.squeeze(temp_arr1, axis = -1)  #[24, 32, 20]
                 temp_arr1 = np.moveaxis(temp_arr1, 0, -1) # (32, 20, 24)
 
@@ -230,7 +230,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     # flatten and compare. Because 3rd dimension contains
                     # temporal information
                     if ds_name2 in keys_3d:
-                        temp_arr2 = feature_map_dict[ds_name2]
+                        temp_arr2 = feature_map_dict[ds_name2][n,:,:,:,:]
                         temp_arr2 = np.squeeze(temp_arr2, axis = -1)  #[24, 32, 20]
                         temp_arr2 = np.moveaxis(temp_arr2, 0, -1) # (32, 20, 24)
 
