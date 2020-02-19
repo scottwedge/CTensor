@@ -719,6 +719,7 @@ class Autoencoder:
         # first level output [dataset name: output]
         first_level_output = dict()
         first_order_encoder_list = []
+        keys_list = []
         for k, v in self.rawdata_1d_tf_x_dict.items():
             # (batchsize, 168, # of features) should expand to (batchsize, 168, 32, 20, # of features)
             prediction_1d = self.cnn_1d_model(v, self.is_training, k)
