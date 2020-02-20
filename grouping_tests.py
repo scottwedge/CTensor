@@ -248,11 +248,193 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
 
 
 
+
+# 1d feature map shape: [1, 3] -> (24, 1)   originally (24, 1, 1, 1)
+# 2d feature map: [32, 20, 1] -> [32, 20, 1]
+# 3d feature map: [32, 20, 3]  -> [24, 32, 20, 1]
+# all duplicate to 3d and comapre
+def first_level_grouping_simplified(feature_map_dict, encoded_list_rearrange_concat,
+            mask_arr, all_keys, keys_1d, keys_2d, keys_3d =  []):
+    height = 32
+    width = 20
+    relation_all_df = pd.DataFrame(0, columns = all_keys, index = all_keys)
+    num_data = len(encoded_list_rearrange_concat[0])
+    timestep = 24
+    # num_data
+    for n in range(num_data):
+        print('n: ', n)
+        for ds_name1 in all_keys:
+            # 1D case
+            if ds_name1 in keys_1d:
+                temp_arr1 = feature_map_dict[ds_name1][n,:] # (24, 1, 1, 1)
+                # (24, 1) - > [32, 20, 24]
+                temp_1d_dup = np.repeat(temp_arr1, 32, axis = 1)
+                temp_1d_dup = np.repeat(temp_1d_dup, 20, axis = 2)  # 32, 20, 24, 1
+
+                temp_1d_dup = np.squeeze(temp_1d_dup, axis = -1)  #[24, 32, 20,]
+                temp_1d_dup = np.moveaxis(temp_1d_dup, 0, -1) # (32, 20, 24)
+
+
+                dim1 = temp_arr1.shape[0]  # number of layers in the 2d data
+        #         dim1 = temp_arr1.shape[-1]  # number of layers in the 2d data
+                for ds_name2 in all_keys:
+                    # 1D VS 1D
+                    if ds_name2 in keys_1d:
+                        ave_SR = 0
+        #                 print(ds_name1, ds_name2)
+                        temp_arr2 = feature_map_dict[ds_name2][n, :]
+                        temp_2d_dup = np.repeat(temp_arr2, 32, axis = 1)
+                        temp_2d_dup = np.repeat(temp_2d_dup, 20, axis = 2)  # 32, 20, 24, 1
+                        temp_2d_dup = np.squeeze(temp_2d_dup, axis = -1)  #[24, 32, 20,]
+                        temp_2d_dup = np.moveaxis(temp_2d_dup, 0, -1) # (32, 20, 24)
+
+                        compress_arr2 = remove_outside_cells(temp_2d_dup, mask_arr) # [32, 20, 24]
+                        compress_arr1 = remove_outside_cells( temp_1d_dup, mask_arr) # [32, 20, 24]
+
+                        sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
+                               compress_arr2.reshape(1, -1))
+                        ave_SR = sim_sparse[0][0]
+                        relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
+
+                    # 2D VS 1D
+                    # 2D:  32, 20, 1
+                    # 1D duplicate: 32, 20, 3. This means that there is no spatial variations for 1D
+                    # duplicate 2D to 32, 20, 3. This means that there is no temporal variations for 2D
+                    # then flatten and compare
+                    # This means that there is no temporal variations for 2D
+                    if ds_name2 in keys_2d:
+                        temp_arr2 = feature_map_dict[ds_name2][n,:,:,:] # 32, 20, 1
+                        # duplicate to [32, 20, 24]
+                        temp_arr2_mean_dup = np.repeat(temp_arr2, dim1, axis = -1)
+
+                        # compress 1D (32, 20, 3) duplicate to 32, 20, 1 by average,
+                        # temp_1d_mean = np.mean(temp_1d_dup, axis = -1)  #
+                        # temp_1d_mean = np.expand_dims(temp_1d_mean, axis = -1) # 32, 20, 1
+
+                        compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr) # [32, 20, 24]
+                        compress_arr1 = remove_outside_cells( temp_1d_dup, mask_arr) # [32, 20, 24]
+
+                        ave_SR = 0
+                        sim_sparse = cosine_similarity(compress_arr2.reshape(1, -1),
+                                                                   compress_arr1.reshape(1, -1))
+
+                        ave_SR = sim_sparse[0][0]
+                        relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
+
+                    # 3D VS 1D
+                    # duplicate 1D to 3D, flatten and compare
+                    if ds_name2 in keys_3d:
+                        temp_arr2 = feature_map_dict[ds_name2][n,:,:,:,:] # 3d, e.g. [24, 32, 20, 1]
+                        temp_arr2 = np.squeeze(temp_arr2, axis = -1)  #[24, 32, 20]
+                        temp_arr2 = np.moveaxis(temp_arr2, 0, -1) # (32, 20, 24)
+
+                        ave_SR = 0
+
+                        compress_arr2 = remove_outside_cells(temp_arr2, mask_arr)
+                        compress_arr1 = remove_outside_cells(temp_1d_dup, mask_arr)
+
+                        sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
+                                                compress_arr2.reshape(1, -1))
+
+                        ave_SR = sim_sparse[0][0]
+                        relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
+
+
+            # 2D case
+            if ds_name1 in keys_2d:
+                temp_arr1 = feature_map_dict[ds_name1][n,:,:,:]  # [32, 20, 1]
+                # duplicate to [32, 20, 24]
+                temp_arr1_mean_dup = np.repeat(temp_arr1, timestep, axis = -1)
+                for ds_name2 in all_keys:
+                    # 2D Vs 1D
+                    if ds_name2 in keys_1d:
+                        relation_all_df.loc[ds_name1, ds_name2]  = relation_all_df.loc[ds_name2, ds_name1]
+                    # 2D Vs 2D
+                    # all duplicate to 3D
+                    if ds_name2 in keys_2d:
+                        ave_SR = 0 # average spearman correlation
+        #                 print(ds_name1, ds_name2)
+                        temp_arr2 = feature_map_dict[ds_name2][n,:,:,:]
+                        temp_arr2_mean_dup = np.repeat(temp_arr2, timestep, axis = -1)
+
+                        compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr)
+                        compress_arr1 = remove_outside_cells( temp_arr1_mean_dup, mask_arr)
+
+                        sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
+                                    compress_arr2.reshape(1, -1))
+    #                             pearson_coef, p_value = stats.pearsonr(temp_arr1[ :, :, i].ravel(), temp_arr2[ :, :, j].ravel())
+
+                        ave_SR = sim_sparse[0][0]
+                        relation_all_df.loc[ds_name1, ds_name2] += ave_SR
+
+                    # 2D VS 3D
+                    # duplicate 2D to 3D and compare to 3D
+                    if ds_name2 in keys_3d:
+                        temp_arr2 = feature_map_dict[ds_name2][n,:,:,:,:]     #[24, 32, 20, 1]
+                        temp_arr2 = np.squeeze(temp_arr2, axis = -1)  #[24, 32, 20]
+                        temp_arr2 = np.moveaxis(temp_arr2, 0, -1) # (32, 20, 24)
+                        # temp_arr2 = np.squeeze(temp_arr2, axis = -1)  #[24, 32, 20]
+                        # temp_arr2 = np.moveaxis(temp_arr2, 0, -1) # (32, 20, 24)
+                        #
+                        # # average along third dimension
+                        # temp_arr2_mean = np.mean(temp_arr2, axis = -1)
+                        # temp_arr2_mean_dup = np.expand_dims(temp_arr2_mean, axis = -1) #[32, 20, 1]
+
+
+                        compress_arr2 = remove_outside_cells( temp_arr2, mask_arr)
+                        compress_arr1 = remove_outside_cells( temp_arr1_mean_dup, mask_arr)
+
+                        ave_SR = 0 # average spearman correlation
+                        sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
+                                   compress_arr2.reshape(1, -1))
+                        ave_SR = sim_sparse[0][0]
+                        relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
+
+            # 3D
+            if ds_name1 in keys_3d:
+                temp_arr1 = feature_map_dict[ds_name1][n,:,:,:,:]  # [24, 32, 20, 1]
+                temp_arr1 = np.squeeze(temp_arr1, axis = -1)  #[24, 32, 20]
+                temp_arr1 = np.moveaxis(temp_arr1, 0, -1) # (32, 20, 24)
+
+
+                for ds_name2 in all_keys:
+                    # 1D
+                    if ds_name2 in keys_1d:
+                        relation_all_df.loc[ds_name1, ds_name2]  = relation_all_df.loc[ds_name2, ds_name1]
+                    # 3D VS 2D
+                    if ds_name2 in keys_2d:
+                        relation_all_df.loc[ds_name1, ds_name2]  = relation_all_df.loc[ds_name2, ds_name1]
+
+                    # 3D VS 3D
+                    # flatten and compare. Because 3rd dimension contains
+                    # temporal information
+                    if ds_name2 in keys_3d:
+                        temp_arr2 = feature_map_dict[ds_name2][n,:,:,:,:]
+                        temp_arr2 = np.squeeze(temp_arr2, axis = -1)  #[24, 32, 20]
+                        temp_arr2 = np.moveaxis(temp_arr2, 0, -1) # (32, 20, 24)
+
+                        ave_SR = 0 # average spearman correlation
+                        compress_arr2 = remove_outside_cells( temp_arr2, mask_arr)
+                        compress_arr1 = remove_outside_cells( temp_arr1, mask_arr)
+
+                        sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
+                                                                       compress_arr2.reshape(1, -1))
+
+                        ave_SR = float(sim_sparse[0][0])
+                        relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
+    relation_all_df = relation_all_df / num_data
+    return relation_all_df
+
+
+
+
 # group
 def second_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
             mask_arr, all_keys):
     relation_all_df = pd.DataFrame(0, columns = all_keys, index = all_keys)
     num_data = len(encoded_list_rearrange_concat[0])
+
+
 
     for n in range(num_data):
         print('n: ', n)
@@ -393,7 +575,7 @@ def main():
         feature_map_dict = dict(zip(keys_list, encoded_list_rearrange_concat))
         # encoded_list: (num_dataset, # of data points, 32, 20, dim)
         print('begin grouping')
-        relation_all_df = first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
+        relation_all_df = first_level_grouping_simplified(feature_map_dict, encoded_list_rearrange_concat,
                     mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
 
 
