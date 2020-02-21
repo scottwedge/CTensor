@@ -539,9 +539,9 @@ def first_level_grouping_within_group(feature_map_dict, encoded_list_rearrange_c
                         ave_SR = float(sim_sparse[0][0])
                         relation_3d_df.loc[ds_name1, ds_name2]  += ave_SR
 
-    relation_1d_df = abs(relation_1d_df) / num_data
-    relation_2d_df = abs(relation_2d_df) / num_data
-    relation_3d_df = abs(relation_3d_df) / num_data
+    relation_1d_df = relation_1d_df / num_data
+    relation_2d_df = relation_2d_df / num_data
+    relation_3d_df = relation_3d_df / num_data
     return relation_1d_df, relation_2d_df, relation_3d_df
 
 
