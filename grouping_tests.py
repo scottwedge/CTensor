@@ -67,8 +67,6 @@ def remove_outside_cells(tensor, mask_arr):
     # print('demo_mask_arr_expanded.shape: ', demo_mask_arr_expanded.shape)
     # masked tensor, outside cells should be false / 0
     marr = np.ma.MaskedArray(tensor, mask= demo_mask_arr_expanded)
-    # print('masked array: ', marr)
-
     compressed_arr = np.ma.compressed(marr)
     # print('compressed arr: ', compressed_arr)
     # print('compreessed shape: ', compressed_arr.shape)
@@ -99,8 +97,6 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
 
                 temp_1d_dup = np.squeeze(temp_1d_dup, axis = -1)  #[24, 32, 20,]
                 temp_1d_dup = np.moveaxis(temp_1d_dup, 0, -1) # (32, 20, 24)
-
-
                 dim1 = temp_arr1.shape[0]  # number of layers in the 2d data
         #         dim1 = temp_arr1.shape[-1]  # number of layers in the 2d data
                 for ds_name2 in all_keys:
@@ -303,23 +299,20 @@ def first_level_grouping_simplified(feature_map_dict, encoded_list_rearrange_con
                     # then flatten and compare
                     # This means that there is no temporal variations for 2D
                     if ds_name2 in keys_2d:
-                        temp_arr2 = feature_map_dict[ds_name2][n,:,:,:] # 32, 20, 1
-                        # duplicate to [32, 20, 24]
-                        temp_arr2_mean_dup = np.repeat(temp_arr2, dim1, axis = -1)
+                        # temp_arr2 = feature_map_dict[ds_name2][n,:,:,:] # 32, 20, 1
+                        # # duplicate to [32, 20, 24]
+                        # temp_arr2_mean_dup = np.repeat(temp_arr2, dim1, axis = -1)
+                        # compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr) # [32, 20, 24]
+                        # compress_arr1 = remove_outside_cells( temp_1d_dup, mask_arr) # [32, 20, 24]
+                        #
+                        # ave_SR = 0
+                        # sim_sparse = cosine_similarity(compress_arr2.reshape(1, -1),
+                        #                                            compress_arr1.reshape(1, -1))
+                        #
+                        # ave_SR = sim_sparse[0][0]
+                        # relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
+                        relation_all_df.loc[ds_name1, ds_name2]  += 0
 
-                        # compress 1D (32, 20, 3) duplicate to 32, 20, 1 by average,
-                        # temp_1d_mean = np.mean(temp_1d_dup, axis = -1)  #
-                        # temp_1d_mean = np.expand_dims(temp_1d_mean, axis = -1) # 32, 20, 1
-
-                        compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr) # [32, 20, 24]
-                        compress_arr1 = remove_outside_cells( temp_1d_dup, mask_arr) # [32, 20, 24]
-
-                        ave_SR = 0
-                        sim_sparse = cosine_similarity(compress_arr2.reshape(1, -1),
-                                                                   compress_arr1.reshape(1, -1))
-
-                        ave_SR = sim_sparse[0][0]
-                        relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
 
                     # 3D VS 1D
                     # duplicate 1D to 3D, flatten and compare
