@@ -299,19 +299,19 @@ def first_level_grouping_simplified(feature_map_dict, encoded_list_rearrange_con
                     # then flatten and compare
                     # This means that there is no temporal variations for 2D
                     if ds_name2 in keys_2d:
-                        temp_arr2 = feature_map_dict[ds_name2][n,:,:,:] # 32, 20, 1
-                        # duplicate to [32, 20, 24]
-                        temp_arr2_mean_dup = np.repeat(temp_arr2, dim1, axis = -1)
-                        compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr) # [32, 20, 24]
-                        compress_arr1 = remove_outside_cells( temp_1d_dup, mask_arr) # [32, 20, 24]
-
-                        ave_SR = 0
-                        sim_sparse = cosine_similarity(compress_arr2.reshape(1, -1),
-                                                                   compress_arr1.reshape(1, -1))
-
-                        ave_SR = sim_sparse[0][0]
-                        relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
-                        # relation_all_df.loc[ds_name1, ds_name2]  += 0
+                        # temp_arr2 = feature_map_dict[ds_name2][n,:,:,:] # 32, 20, 1
+                        # # duplicate to [32, 20, 24]
+                        # temp_arr2_mean_dup = np.repeat(temp_arr2, dim1, axis = -1)
+                        # compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr) # [32, 20, 24]
+                        # compress_arr1 = remove_outside_cells( temp_1d_dup, mask_arr) # [32, 20, 24]
+                        #
+                        # ave_SR = 0
+                        # sim_sparse = cosine_similarity(compress_arr2.reshape(1, -1),
+                        #                                            compress_arr1.reshape(1, -1))
+                        #
+                        # ave_SR = sim_sparse[0][0]
+                        # relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
+                        relation_all_df.loc[ds_name1, ds_name2]  += 0
 
 
                     # 3D VS 1D
@@ -415,7 +415,8 @@ def first_level_grouping_simplified(feature_map_dict, encoded_list_rearrange_con
 
                         ave_SR = float(sim_sparse[0][0])
                         relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
-    relation_all_df = relation_all_df / num_data
+                        
+    relation_all_df = abs(relation_all_df) / num_data
     return relation_all_df
 
 
