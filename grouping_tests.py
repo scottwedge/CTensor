@@ -428,7 +428,7 @@ def first_level_grouping_simplified(feature_map_dict, encoded_list_rearrange_con
 # all duplicate to 3d and comapre
 #grouping within dim
 def first_level_grouping_within_group(feature_map_dict, encoded_list_rearrange_concat,
-            mask_arr, keys_1d, keys_2d, keys_3d =  []):
+            mask_arr, all_keys,keys_1d, keys_2d, keys_3d =  []):
     height = 32
     width = 20
     relation_1d_df = pd.DataFrame(0, columns = keys_1d, index = keys_1d)
@@ -684,7 +684,7 @@ def main():
         #
 
         relation_1d_df, relation_2d_df, relation_3d_df = first_level_grouping_within_group(feature_map_dict, encoded_list_rearrange_concat,
-             mask_arr, keys_1d, keys_2d, keys_3d)
+             mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
 
 
 
