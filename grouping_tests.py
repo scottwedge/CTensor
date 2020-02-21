@@ -168,7 +168,6 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     # take mean along 3rd dimension and compare
                     if ds_name2 in keys_2d:
                         ave_SR = 0 # average spearman correlation
-        #                 print(ds_name1, ds_name2)
                         temp_arr2 = feature_map_dict[ds_name2][n,:,:,:]
 
                         compress_arr2 = remove_outside_cells(temp_arr2, mask_arr)
@@ -456,21 +455,26 @@ def first_level_grouping_within_group(feature_map_dict, encoded_list_rearrange_c
                 for ds_name2 in all_keys:
                     # 1D VS 1D
                     if ds_name2 in keys_1d:
-                        ave_SR = 0
-        #                 print(ds_name1, ds_name2)
                         temp_arr2 = feature_map_dict[ds_name2][n, :]
-                        temp_2d_dup = np.repeat(temp_arr2, 32, axis = 1)
-                        temp_2d_dup = np.repeat(temp_2d_dup, 20, axis = 2)  # 32, 20, 24, 1
-                        temp_2d_dup = np.squeeze(temp_2d_dup, axis = -1)  #[24, 32, 20,]
-                        temp_2d_dup = np.moveaxis(temp_2d_dup, 0, -1) # (32, 20, 24)
-
-                        compress_arr2 = remove_outside_cells(temp_2d_dup, mask_arr) # [32, 20, 24]
-                        compress_arr1 = remove_outside_cells( temp_1d_dup, mask_arr) # [32, 20, 24]
-
-                        sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
-                               compress_arr2.reshape(1, -1))
+                        sim_sparse = cosine_similarity(temp_arr1.reshape(1, -1),
+                               temp_arr2.reshape(1, -1))
                         ave_SR = sim_sparse[0][0]
-                        relation_1d_df.loc[ds_name1, ds_name2]  += ave_SR
+                        relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
+                        # ave_SR = 0
+                        #
+                        # temp_arr2 = feature_map_dict[ds_name2][n, :]
+                        # temp_2d_dup = np.repeat(temp_arr2, 32, axis = 1)
+                        # temp_2d_dup = np.repeat(temp_2d_dup, 20, axis = 2)  # 32, 20, 24, 1
+                        # temp_2d_dup = np.squeeze(temp_2d_dup, axis = -1)  #[24, 32, 20,]
+                        # temp_2d_dup = np.moveaxis(temp_2d_dup, 0, -1) # (32, 20, 24)
+                        #
+                        # compress_arr2 = remove_outside_cells(temp_2d_dup, mask_arr) # [32, 20, 24]
+                        # compress_arr1 = remove_outside_cells( temp_1d_dup, mask_arr) # [32, 20, 24]
+                        #
+                        # sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
+                        #        compress_arr2.reshape(1, -1))
+                        # ave_SR = sim_sparse[0][0]
+                        # relation_1d_df.loc[ds_name1, ds_name2]  += ave_SR
 
             # 2D case
             if ds_name1 in keys_2d:
@@ -481,20 +485,31 @@ def first_level_grouping_within_group(feature_map_dict, encoded_list_rearrange_c
                     # 2D Vs 2D
                     # all duplicate to 3D
                     if ds_name2 in keys_2d:
-                        ave_SR = 0 # average spearman correlation
-        #                 print(ds_name1, ds_name2)
-                        temp_arr2 = feature_map_dict[ds_name2][n,:,:,:]
-                        temp_arr2_mean_dup = np.repeat(temp_arr2, timestep, axis = -1)
+        #                 ave_SR = 0 # average spearman correlation
+        # #                 print(ds_name1, ds_name2)
+        #                 temp_arr2 = feature_map_dict[ds_name2][n,:,:,:]
+        #                 temp_arr2_mean_dup = np.repeat(temp_arr2, timestep, axis = -1)
+        #
+        #                 compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr)
+        #                 compress_arr1 = remove_outside_cells( temp_arr1_mean_dup, mask_arr)
+        #
+        #                 sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
+        #                             compress_arr2.reshape(1, -1))
+        #
+        #                 ave_SR = sim_sparse[0][0]
+        #                 relation_2d_df.loc[ds_name1, ds_name2] += ave_SR
 
-                        compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr)
-                        compress_arr1 = remove_outside_cells( temp_arr1_mean_dup, mask_arr)
+                        ave_SR = 0 # average spearman correlation
+                        temp_arr2 = feature_map_dict[ds_name2][n,:,:,:]
+
+                        compress_arr2 = remove_outside_cells(temp_arr2, mask_arr)
+                        compress_arr1 = remove_outside_cells( temp_arr1, mask_arr)
 
                         sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
                                     compress_arr2.reshape(1, -1))
-    #                             pearson_coef, p_value = stats.pearsonr(temp_arr1[ :, :, i].ravel(), temp_arr2[ :, :, j].ravel())
 
                         ave_SR = sim_sparse[0][0]
-                        relation_2d_df.loc[ds_name1, ds_name2] += ave_SR
+                        relation_all_df.loc[ds_name1, ds_name2] += ave_SR
 
 
             # 3D
