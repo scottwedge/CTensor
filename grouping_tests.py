@@ -724,16 +724,16 @@ def main():
 
     print('relation_1d_df')
     txt_name = encoding_dir + '_'+ method+'_' +level+  '_level'+ '_grouping_' + suffix + '.txt'
-    clustering(relation_1d_df, keys_list,txt_name,method, n_clusters)
+    clustering(relation_1d_df, keys_1d,txt_name,method, n_clusters)
 
 
     print('relation_2d_df')
     txt_name = encoding_dir + '_'+ method+'_' +level+  '_level'+ '_grouping_' + suffix + '.txt'
-    clustering(relation_2d_df, keys_list,txt_name,method, n_clusters)
+    clustering(relation_2d_df, keys_2d,txt_name,method, n_clusters)
 
     print('relation_3d_df')
     txt_name = encoding_dir + '_'+ method+'_' +level+  '_level'+ '_grouping_' + suffix + '.txt'
-    clustering(relation_3d_df, keys_list,txt_name,method, n_clusters)
+    clustering(relation_3d_df, keys_3d,txt_name,method, n_clusters)
 
 
 
