@@ -2088,6 +2088,16 @@ class Autoencoder_entry:
             print('dumping encoded_list to pickle')
             pickle.dump(encoded_list, file)
             file.close()
+
+
+            # dump pickle
+            recon_file = open(self.save_path + 'final_reconstruction_dict', 'wb')
+            # dump information to that file
+            # number of batches, num_dataset, batchsize, h, w, dim
+            print('dumping final_reconstruction_dict to pickle')
+            pickle.dump(final_reconstruction_dict, recon_file)
+            recon_file.close()
+
         else:
             '''
             # inference only
