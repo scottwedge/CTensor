@@ -459,7 +459,7 @@ def first_level_grouping_within_group(feature_map_dict, encoded_list_rearrange_c
                         sim_sparse = cosine_similarity(temp_arr1.reshape(1, -1),
                                temp_arr2.reshape(1, -1))
                         ave_SR = sim_sparse[0][0]
-                        relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
+                        relation_1d_df.loc[ds_name1, ds_name2]  += ave_SR
                         # ave_SR = 0
                         #
                         # temp_arr2 = feature_map_dict[ds_name2][n, :]
@@ -509,7 +509,7 @@ def first_level_grouping_within_group(feature_map_dict, encoded_list_rearrange_c
                                     compress_arr2.reshape(1, -1))
 
                         ave_SR = sim_sparse[0][0]
-                        relation_all_df.loc[ds_name1, ds_name2] += ave_SR
+                        relation_2d_df.loc[ds_name1, ds_name2] += ave_SR
 
 
             # 3D
