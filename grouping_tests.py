@@ -693,13 +693,13 @@ def main():
 
         feature_map_dict = dict(zip(keys_list, encoded_list_rearrange_concat))
 
-        # print('begin grouping')
-        # relation_all_df = first_level_grouping_simplified(feature_map_dict, encoded_list_rearrange_concat,
-        #             mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
-        #
+        print('begin grouping')
+        relation_all_df = first_level_grouping_simplified(feature_map_dict, encoded_list_rearrange_concat,
+                    mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
 
-        relation_1d_df, relation_2d_df, relation_3d_df = first_level_grouping_within_group(feature_map_dict, encoded_list_rearrange_concat,
-             mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
+
+        # relation_1d_df, relation_2d_df, relation_3d_df = first_level_grouping_within_group(feature_map_dict, encoded_list_rearrange_concat,
+        #      mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
 
 
 
@@ -714,7 +714,7 @@ def main():
 
 
     # -------------------  relation_all_df -------------------------- #
-    '''
+
     print('relation_all_df')
     print(relation_all_df)
     relation_all_df.to_csv(encoding_dir+  level+  '_level'+ '_grouping_' + suffix + '.csv')
@@ -726,11 +726,12 @@ def main():
     plot_name = encoding_dir + '_'+ method+'_' +level+  '_level'+ '_grouping_' + suffix + '.png'
     plot_grouping(relation_all_df, plot_name)
     print('plot saved to :', plot_name)
-    '''
+
     # -------------------------------------------------------------#
 
 
-
+    # ---------------------------   by dim ------------------------- #
+    '''
     print('relation_all_df')
     print(relation_1d_df)
     print(relation_2d_df)
@@ -749,13 +750,14 @@ def main():
     print('relation_3d_df')
     txt_name = encoding_dir + '_'+ method+'_' +level+  '_level'+ '_grouping_' + suffix + '.txt'
     clustering(relation_3d_df, keys_3d,txt_name,method, n_clusters)
+    '''
+    # ----------------------------------------------------------- #
 
 
-
-    # print('plotting')
-    # plot_name = encoding_dir + '_'+ method+'_' +level+  '_level'+ '_grouping_' + suffix + '.png'
-    # plot_grouping(relation_all_df, plot_name)
-    # print('plot saved to :', plot_name)
+    print('plotting')
+    plot_name = encoding_dir + '_'+ method+'_' +level+  '_level'+ '_grouping_' + suffix + '.png'
+    plot_grouping(relation_all_df, plot_name)
+    print('plot saved to :', plot_name)
 
 
 
