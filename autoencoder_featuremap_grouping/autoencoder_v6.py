@@ -980,7 +980,8 @@ class Autoencoder:
                         feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
 
                     feed_dict_all[self.is_training] = True
-                    batch_cost, batch_loss_dict, batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict=feed_dict_all)
+                    #batch_cost, batch_loss_dict, batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict=feed_dict_all)
+                    batch_cost, batch_total_loss, batch_loss_dict, batch_rmse_dict, _ = sess.run([cost,total_loss, loss_dict, rmse_dict,optimizer], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     batch_output, batch_encoded_list = sess.run([latent_fea, second_order_encoder_list], feed_dict= feed_dict_all)
@@ -996,7 +997,7 @@ class Autoencoder:
                     if itr% 50 == 0:
                         final_encoded_list.append(batch_encoded_list)
 
-                    epoch_loss += batch_cost
+
                     for k, v in epoch_subloss.items():
                         epoch_subloss[k] += batch_loss_dict[k]
 
@@ -1011,9 +1012,17 @@ class Autoencoder:
                             print('loss for k :', k, v)
 
 
+                    epoch_loss += batch_cost
+                    # total loss: equal weighting
+                    epoch_total_loss += batch_total_loss
+
+
                 # report loss per epoch
                 epoch_loss = epoch_loss/ iterations
                 print('epoch: ', epoch, 'Trainig Set Epoch total Cost: ',epoch_loss)
+                epoch_total_loss = epoch_total_loss / iterations
+                print('epoch: ', epoch, 'Trainig Set Epoch sum of loss: ',epoch_total_loss)
+
                 end_time = datetime.datetime.now()
                 train_time_per_epoch = end_time - start_time
                 train_time_per_sample = train_time_per_epoch/ train_hours
@@ -1094,7 +1103,8 @@ class Autoencoder:
                     # is_training: True
                     test_feed_dict_all[self.is_training] = True
 
-                    test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict= test_feed_dict_all)
+                    #test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict= test_feed_dict_all)
+                    test_batch_cost, test_batch_total_loss, test_batch_loss_dict, test_batch_rmse_dict, _ = sess.run([cost, total_loss, loss_dict, rmse_dict, optimizer], feed_dict= test_feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     test_batch_output = sess.run([latent_fea], feed_dict= test_feed_dict_all)
@@ -1113,9 +1123,12 @@ class Autoencoder:
 
 
                     test_cost += test_batch_cost
+                    test_total_loss += test_batch_total_loss
 
                 test_epoch_loss = test_cost/ itrs
                 print('epoch: ', epoch, 'Test Set Epoch total Cost: ',test_epoch_loss)
+                test_total_loss = test_total_loss /itrs
+                print('epoch: ', epoch, 'Test Set Epoch total loss: ',test_total_loss)
                 test_end_time = datetime.datetime.now()
                 test_time_per_epoch = test_end_time - test_start_time
                 test_time_per_sample = test_time_per_epoch/ test_len
