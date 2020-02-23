@@ -930,6 +930,7 @@ class Autoencoder:
             reconstruction_dict[k] = reconstruction_1d
 
 
+
         for k, v in self.rawdata_2d_tf_y_dict.items():
             dim_2d = rawdata_2d_dict[k].shape[-1]
             reconstruction_2d = self.reconstruct_2d(latent_fea, dim_2d, self.is_training)
@@ -967,7 +968,24 @@ class Autoencoder:
 
 
         with tf.name_scope("training"):
-            optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost, global_step = self.global_step)
+            #optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost, global_step = self.global_step)
+            opt = tf.train.AdamOptimizer(learning_rate)
+            # optimizer  = opt.minimize(cost, global_step = self.global_step)
+
+            #  List of (gradient, variable) pairs
+            # https://stackoverflow.com/questions/43830022/compute-gradient-norm-of-each-part-of-composite-loss-function
+            # https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/training/optimizer.py
+            grads_and_vars = opt.compute_gradients(cost)
+            # unzip grads and vars
+            grads, _ = list(zip(*grads_and_vars))
+            norms = tf.global_norm(grads)
+            # gradnorm_s = tf.summary.scalar('gradient norm', norms)
+            optimizer = opt.apply_gradients(grads_and_vars)
+
+
+            # output gradients
+            # https://www.tensorflow.org/api_docs/python/tf/compat/v1/train/Optimizer
+            # gradient_step = optimizer.compute_gradients(predictions, tf.trainable_variables())
 
 
         saver = tf.train.Saver()
@@ -1072,7 +1090,7 @@ class Autoencoder:
 
                     # is_training: True
                     feed_dict_all[self.is_training] = True
-                    batch_cost, batch_loss_dict, batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict,optimizer], feed_dict=feed_dict_all)
+                    batch_cost, batch_loss_dict, batch_rmse_dict, batch_grads, _ = sess.run([cost,loss_dict, rmse_dict, grads_and_vars,optimizer], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     batch_output, batch_encoded_list = sess.run([latent_fea, first_order_encoder_list], feed_dict= feed_dict_all)
@@ -1103,6 +1121,13 @@ class Autoencoder:
                             "Training loss: {:.4f}".format(batch_cost))
                         for k, v in batch_loss_dict.items():
                             print('loss for k :', k, v)
+
+                        # list of grads_and_vars dictionary
+                        g_v = batch_grads[0]  # first of a batch
+                        # g_v:  dict
+                        for g, v in g_v.items():
+                            print('g: ', g)
+                            print('v: ', v)
 
 
                 # report loss per epoch
