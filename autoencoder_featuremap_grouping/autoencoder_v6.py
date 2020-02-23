@@ -819,7 +819,8 @@ class Autoencoder:
                     loss_dict[ds] = temp_loss
 
                     if k == 'temperature':
-                        cost += 100 * temp_loss
+                        temp_loss = 100 *temp_loss
+                        cost += temp_loss
                     else:
                         cost += temp_loss
 
