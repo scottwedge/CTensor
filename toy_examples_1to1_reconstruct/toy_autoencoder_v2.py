@@ -1125,9 +1125,9 @@ class Autoencoder:
                         # list of grads_and_vars dictionary
                         g_v = batch_grads[0]  # first of a batch
                         # g_v:  dict
-                        for g, v in g_v.items():
-                            print('g: ', g)
-                            print('v: ', v)
+                        # for g, v in g_v.items():
+                        print('g: ', g_v[0])
+                        print('v: ', g_v[1])
 
 
                 # report loss per epoch
