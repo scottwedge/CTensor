@@ -1008,7 +1008,8 @@ class Autoencoder:
 
                     if itr%10 == 0:
                         print("Iter/Epoch: {}/{}...".format(itr, epoch),
-                            "Training loss: {:.4f}".format(batch_cost))
+                            "Training cost: {:.4f}".format(batch_cost),
+                            "Training batch_total_loss: {:.4f}".format(batch_total_loss))
                         for k, v in batch_loss_dict.items():
                             print('loss for k :', k, v)
 
