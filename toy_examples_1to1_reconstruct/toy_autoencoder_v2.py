@@ -915,6 +915,7 @@ class Autoencoder:
         loss_dict = {} # {dataset name: loss}
         rmse_dict = {}
         reconstruction_dict = dict()  # {dataset name:  reconstruction for this batch}
+        grad_dict = {}  # grad_norm for each dataset
 
 
         for k, v in self.rawdata_1d_tf_y_dict.items():
@@ -929,6 +930,9 @@ class Autoencoder:
 
             reconstruction_dict[k] = reconstruction_1d
 
+            grads = tf.gradients(temp_loss, prediction_1d_expand, name='gradients')
+            gradnorm = tf.norm(grads, name='norm')
+            grad_dict[k] = gradnorm
 
 
         for k, v in self.rawdata_2d_tf_y_dict.items():
@@ -1090,7 +1094,7 @@ class Autoencoder:
 
                     # is_training: True
                     feed_dict_all[self.is_training] = True
-                    batch_cost, batch_loss_dict, batch_rmse_dict, batch_grads, _ = sess.run([cost,loss_dict, rmse_dict, grads_and_vars,optimizer], feed_dict=feed_dict_all)
+                    batch_cost, batch_loss_dict, batch_rmse_dict, batch_grads, _ = sess.run([cost,loss_dict, rmse_dict, grad_dict,optimizer], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     batch_output, batch_encoded_list = sess.run([latent_fea, first_order_encoder_list], feed_dict= feed_dict_all)
@@ -1122,12 +1126,16 @@ class Autoencoder:
                         for k, v in batch_loss_dict.items():
                             print('loss for k :', k, v)
 
+                        for k, v in batch_grads.items():
+                            print('gradnorm for k :', k, v)
+
+
                         # list of grads_and_vars dictionary
-                        g_v = batch_grads[0]  # first of a batch
-                        # g_v:  dict
-                        # for g, v in g_v.items():
-                        print('g: ', g_v[0])
-                        print('v: ', g_v[1])
+                        # g_v = batch_grads[0]  # first of a batch
+                        # # g_v:  dict
+                        # # for g, v in g_v.items():
+                        # print('g: ', g_v[0])
+                        # print('v: ', g_v[1])
 
 
                 # report loss per epoch
