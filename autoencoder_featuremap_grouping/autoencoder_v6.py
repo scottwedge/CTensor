@@ -804,6 +804,10 @@ class Autoencoder:
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 1)
         reconstruction_dict = dict()  # {dataset name:  reconstruction for this batch}
 
+
+        #--- test for adjusting weight ---- #
+        cost = 0
+
         for grp, data_list in grouping_dict.items():
             for ds in data_list:
                 # reconstruct each
@@ -813,6 +817,11 @@ class Autoencoder:
                     temp_loss = tf.losses.absolute_difference(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds])
                     total_loss += temp_loss
                     loss_dict[ds] = temp_loss
+
+                    if k == 'temperature':
+                        cost += 100 * temp_loss
+                    else:
+                        cost += temp_loss
 
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
@@ -827,6 +836,7 @@ class Autoencoder:
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
                     reconstruction_dict[k] = reconstruction_2d
+                    cost += temp_loss
 
                 if ds in keys_3d:
                     timestep_3d = self.rawdata_3d_tf_y_dict[ds].shape[1]
@@ -841,10 +851,11 @@ class Autoencoder:
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
                     reconstruction_dict[k] = reconstruction_3d
+                    cost += temp_loss
 
 
         print('total_loss: ', total_loss)
-        cost = total_loss
+        # cost = total_loss
 
         #--------  fix weights, not update during optimization ------ #
         variables = tf.global_variables()
