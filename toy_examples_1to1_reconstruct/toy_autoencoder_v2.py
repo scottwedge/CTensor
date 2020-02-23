@@ -930,7 +930,7 @@ class Autoencoder:
 
             reconstruction_dict[k] = reconstruction_1d
 
-            grads = tf.gradients(temp_loss, prediction_1d_expand, name='gradients')
+            grads = tf.gradients(temp_loss, prediction_1d_expand, name=k+'_gradients')
             gradnorm = tf.norm(grads, name='norm')
             grad_dict[k] = gradnorm
 
@@ -945,6 +945,10 @@ class Autoencoder:
             rmse_dict[k] = temp_rmse
 
             reconstruction_dict[k] = reconstruction_2d
+
+            grads = tf.gradients(temp_loss, prediction_2d_expand, name=k+'_gradients')
+            gradnorm = tf.norm(grads, name='norm')
+            grad_dict[k] = gradnorm
 
 
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 1)
@@ -965,6 +969,10 @@ class Autoencoder:
             rmse_dict[k] = temp_rmse
 
             reconstruction_dict[k] = reconstruction_3d
+
+            grads = tf.gradients(temp_loss, prediction_3d, name= k+'_gradients')
+            gradnorm = tf.norm(grads, name='norm')
+            grad_dict[k] = gradnorm
 
 
         print('total_loss: ', total_loss)
@@ -1054,6 +1062,9 @@ class Autoencoder:
                 epoch_subrmse = {}  # ave loss for each dataset
                 epoch_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
+                epoch_subgrad = {}  # grad norm for each dataset
+                epoch_subgrad = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+
 
                 final_output = list()
                 final_encoded_list = list()
@@ -1120,6 +1131,8 @@ class Autoencoder:
                         epoch_subrmse[k] += batch_rmse_dict[k]
 
 
+
+
                     if itr%10 == 0:
                         print("Iter/Epoch: {}/{}...".format(itr, epoch),
                             "Training loss: {:.4f}".format(batch_cost))
@@ -1154,6 +1167,10 @@ class Autoencoder:
                 for k, v in epoch_subrmse.items():
                     epoch_subrmse[k] = v/iterations
                     print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
+
+                for k, v in epoch_subgrad.items():
+                    epoch_subgrad[k] = v/iterations
+                    print('epoch: ', epoch, 'k: ', k, 'mean train grad: ', epoch_subgrad[k])
 
 
                 save_path = saver.save(sess, save_folder_path +'autoencoder_v2_' +str(epoch)+'.ckpt', global_step=self.global_step)
@@ -1310,7 +1327,11 @@ class Autoencoder:
                     test_sub_rmse_df.to_csv(f, header=f.tell()==0)
 
 
-
+                train_sub_grad_df = pd.DataFrame([list(epoch_subgrad.values())],
+                    columns= list(epoch_subgrad.keys()))
+                train_sub_grad_csv_path = save_folder_path + 'autoencoder_train_sub_grad' +'.csv'
+                with open(train_sub_grad_csv_path, 'a') as f:
+                    train_sub_grad_df.to_csv(f, header=f.tell()==0)
 
                 # save results to txt
                 txt_name = save_folder_path + 'AE_df_' +  '.txt'
