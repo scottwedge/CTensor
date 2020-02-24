@@ -1138,6 +1138,9 @@ class Autoencoder:
                     for k, v in epoch_subrmse.items():
                         epoch_subrmse[k] += batch_rmse_dict[k]
 
+                    for k, v in epoch_subgrad.items():
+                        epoch_subgrad[k] += batch_grads[k]
+
 
 
 
