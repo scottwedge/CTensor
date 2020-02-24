@@ -491,6 +491,8 @@ def main():
     keys_2d = list(rawdata_2d_dict.keys())
     keys_3d = list(rawdata_3d_dict.keys())
 
+
+
     if key != '' and key in keys_1d:
         temp_var = rawdata_1d_dict[key]
         rawdata_1d_dict.clear()
