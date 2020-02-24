@@ -307,6 +307,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s',   '--suffix',
                      action="store", help = 'save path suffix', default = '')
+    parser.add_argument('-k',   '--key',
+                     action="store", help = 'train only one dataset', default = '')
     parser.add_argument('-d',   '--dim',  type=int,
                      action="store", help = 'dims of latent rep', default = 1)
     parser.add_argument("-r","--resume_training", type=bool, default=False,
@@ -342,6 +344,8 @@ def main():
     learning_rate= args.learning_rate
     dim = args.dim
     inference = args.inference
+    key = args.key
+
 
     print("resume_training: ", resume_training)
     print("training dir path: ", train_dir)
@@ -350,6 +354,7 @@ def main():
     print("epochs to train: ", epoch)
     print("start learning rate: ", learning_rate)
     print("dimension of latent representation: ", dim)
+    print('key: ', key)
 
     if checkpoint is not None:
         checkpoint = train_dir + checkpoint
@@ -470,6 +475,33 @@ def main():
         'seattle911calls': seattle911calls_arr # (45984, 32, 20)
         }
 
+    keys_1d = list(rawdata_1d_dict.keys())
+    keys_2d = list(rawdata_2d_dict.keys())
+    keys_3d = list(rawdata_3d_dict.keys())
+
+    if key != '' and key in keys_1d:
+        temp_var = rawdata_1d_dict[key]['key']
+        rawdata_1d_dict.clear()
+        rawdata_1d_dict[key] = temp_var
+        rawdata_2d_dict.clear()
+        rawdata_3d_dict.clear()
+
+    if key != '' and key in keys_2d:
+        temp_var = rawdata_2d_dict[key]['key']
+        rawdata_2d_dict.clear()
+        rawdata_2d_dict[key] = temp_var
+        rawdata_1d_dict.clear()
+        rawdata_3d_dict.clear()
+
+    if key != '' and key in keys_3d:
+        temp_var = rawdata_3d_dict[key]['key']
+        rawdata_3d_dict.clear()
+        rawdata_3d_dict[key] = temp_var
+        rawdata_2d_dict.clear()
+        rawdata_1d_dict.clear()
+
+
+
 
     # train_obj.train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
     print('train_hours: ', train_obj.train_hours)
@@ -482,7 +514,10 @@ def main():
     if suffix == '':
         save_path =  './autoencoder_v2_1to1'+ 'dim'+ str(dim)  +'/'
     else:
-        save_path = './autoencoder_v2_1to1_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
+        if key == '':
+            save_path = './autoencoder_v2_1to1_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
+        else:
+            save_path = './autoencoder_v2_1to1_'+ 'dim' + str(dim) +  '_' + key + '_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir

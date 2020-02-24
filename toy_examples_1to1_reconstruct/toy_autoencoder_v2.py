@@ -435,68 +435,6 @@ class Autoencoder:
         return out
 
 
-    # deprecated since jan 2020
-    def model_fusion(self, med_res_3d, med_res_2d, med_res_1d, dim, is_training):
-        # prediction_1d: batchsize, 1  -> duplicate to batch size, 32, 20, 1
-        temp_list = []
-
-        print('check med_res_1d: ')
-        for prediction_1d in med_res_1d:
-    #         print('prediction_1d.shape: ', prediction_1d.shape)
-            prediction_1d = tf.expand_dims(prediction_1d, 1)
-            prediction_1d = tf.expand_dims(prediction_1d, 1)
-            prediction_1d_expand = tf.tile(prediction_1d, [1, HEIGHT,
-                                                    WIDTH ,1])
-
-            temp_list.append(prediction_1d_expand)
-
-        print('check med_res_2d: ')
-        for prediction_2d in med_res_2d:
-            temp_list.append(prediction_2d)
-
-        print('check med_res_3d:')
-        for prediction_3d in med_res_3d:
-    #         print('prediction_3d.shape: ', prediction_3d.shape)
-            temp_list.append(prediction_3d)
-
-        fuse_feature =tf.concat(axis=3,values=temp_list)
-        print('fuse_feature.shape: ', fuse_feature.shape)
-
-        with tf.name_scope("fusion_layer_a"):
-            # Convolution Layer with 32 filters and a kernel size of 5
-            conv1 = tf.layers.conv2d(fuse_feature, 16, 3, padding='same',activation=None)
-            # conv1 = tf.layers.conv2d(x_2d_train_data, 16, 3, padding='same',activation=None)
-            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
-            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
-
-            #  Convolution Layer with 64 filters and a kernel size of 3
-            # conv2: change from 16 to 32
-            conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
-            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
-            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
-
-        # with tf.name_scope("fusion_batch_norm"):
-        #     cnn2d_bn = tf.layers.batch_normalization(inputs=conv2, training=is_training)
-        #     # (?, 168, 32, 20, 1)
-        #     print('cnn2d_bn shape: ',cnn2d_bn.shape)
-
-
-        # output should be (?, 32, 20, 1)
-        with tf.name_scope("fusion_layer_b"):
-            conv3 = tf.layers.conv2d(
-                      inputs=conv2,
-                      filters=dim,
-                      kernel_size=[1, 1],
-                      padding="same",
-                      activation=my_leaky_relu
-                      #reuse = tf.AUTO_REUSE
-                )
-        #
-        out = conv3
-        print('latent representation shape: ',out.shape)
-        # output size should be [batchsize, height, width, dim]
-        return out
-
 
     # [batchsize, height, width, dim] -> recontruct to [None, DAILY_TIMESTEPS, height, width, 1]
     # update: [None, 168, 32, 20, dim_decode] -> recontruct to [None, DAILY_TIMESTEPS, height, width, 1]

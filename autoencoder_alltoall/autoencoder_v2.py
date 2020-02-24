@@ -222,51 +222,56 @@ class Autoencoder:
 
         self.rawdata_1d_tf_x_dict = {}
         self.rawdata_1d_tf_y_dict = {}
-        # rawdata_1d_dict
-        for k, v in rawdata_1d_dict.items():
-            dim = v.shape[-1]
-            tf_name_x = k+ '_' + 'x'
-            tf_name_y = k+ '_' + 'y'
-            self.rawdata_1d_tf_x_dict[k] = tf.placeholder(tf.float32, shape=[None,TIMESTEPS, dim])
-            self.rawdata_1d_tf_y_dict[k] = tf.placeholder(tf.float32, shape=[None,TIMESTEPS, dim])
+        if len(rawdata_1d_dict) != 0:
+            # rawdata_1d_dict
+            for k, v in rawdata_1d_dict.items():
+                dim = v.shape[-1]
+                self.rawdata_1d_tf_x_dict[k] = tf.placeholder(tf.float32, shape=[None,TIMESTEPS, dim])
+                self.rawdata_1d_tf_y_dict[k] = tf.placeholder(tf.float32, shape=[None,TIMESTEPS, dim])
 
         # 2d
         self.rawdata_2d_tf_x_dict = {}
         self.rawdata_2d_tf_y_dict = {}
-        # rawdata_1d_dict
-        for k, v in rawdata_2d_dict.items():
-            dim = v.shape[-1]
-            tf_name_x = k+ '_' + 'x'
-            tf_name_y = k+ '_' + 'y'
-            self.rawdata_2d_tf_x_dict[k] = tf.placeholder(tf.float32, shape=[None, height, width, dim])
-            self.rawdata_2d_tf_y_dict[k] = tf.placeholder(tf.float32, shape=[None, height, width, dim])
+        if len(rawdata_2d_dict) != 0:
+            # rawdata_1d_dict
+            for k, v in rawdata_2d_dict.items():
+                dim = v.shape[-1]
+                self.rawdata_2d_tf_x_dict[k] = tf.placeholder(tf.float32, shape=[None, height, width, dim])
+                self.rawdata_2d_tf_y_dict[k] = tf.placeholder(tf.float32, shape=[None, height, width, dim])
 
         # -------- 3d --------------#
         # building_permit_x = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
         # building_permit_y = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
         # collisions_x = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
         # collisions_y = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
+        self.rawdata_3d_tf_x_dict = {}
+        self.rawdata_3d_tf_y_dict = {}
+        if len(rawdata_3d_dict) != 0:
+            for k, v in rawdata_3d_dict.items():
+                self.rawdata_3d_tf_x_dict[k] = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+                self.rawdata_3d_tf_y_dict[k] = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
 
-        building_permit_x = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
-        building_permit_y = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
-        collisions_x = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
-        collisions_y = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+            # building_permit_x = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+            # building_permit_y = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+            # collisions_x = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+            # collisions_y = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+            #
+            # seattle911calls_x = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+            # seattle911calls_y = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+            #
+            # self.rawdata_3d_tf_x_dict = {
+            #     'building_permit': building_permit_x,
+            #     'collisions': collisions_x,
+            #     'seattle911calls': seattle911calls_x
+            #
+            # }
+            # self.rawdata_3d_tf_y_dict = {
+            #       'building_permit': building_permit_y,
+            #     'collisions': collisions_y,
+            #     'seattle911calls': seattle911calls_y
+            # }
 
 
-        seattle911calls_x = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
-        seattle911calls_y = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
-
-        self.rawdata_3d_tf_x_dict = {
-            'building_permit': building_permit_x,
-            'collisions': collisions_x,
-            'seattle911calls': seattle911calls_x
-
-        }
-        self.rawdata_3d_tf_y_dict = {
-              'building_permit': building_permit_y,
-            'collisions': collisions_y,
-            'seattle911calls': seattle911calls_y
-        }
 
 
 
@@ -311,7 +316,6 @@ class Autoencoder:
         # original:output size should be [None, height, width, channel]
         # output size should be [None, 168, height, width, channel]
         return out
-
 
 
     '''
@@ -414,251 +418,92 @@ class Autoencoder:
         return out
 
 
-    # deprecated since jan 2020
-    def model_fusion(self, med_res_3d, med_res_2d, med_res_1d, dim, is_training):
-        # prediction_1d: batchsize, 1  -> duplicate to batch size, 32, 20, 1
-        temp_list = []
-
-        print('check med_res_1d: ')
-        for prediction_1d in med_res_1d:
-    #         print('prediction_1d.shape: ', prediction_1d.shape)
-            prediction_1d = tf.expand_dims(prediction_1d, 1)
-            prediction_1d = tf.expand_dims(prediction_1d, 1)
-            prediction_1d_expand = tf.tile(prediction_1d, [1, HEIGHT,
-                                                    WIDTH ,1])
-
-            temp_list.append(prediction_1d_expand)
-
-        print('check med_res_2d: ')
-        for prediction_2d in med_res_2d:
-            temp_list.append(prediction_2d)
-
-        print('check med_res_3d:')
-        for prediction_3d in med_res_3d:
-    #         print('prediction_3d.shape: ', prediction_3d.shape)
-            temp_list.append(prediction_3d)
-
-        fuse_feature =tf.concat(axis=3,values=temp_list)
-        print('fuse_feature.shape: ', fuse_feature.shape)
-
-        with tf.name_scope("fusion_layer_a"):
-            # Convolution Layer with 32 filters and a kernel size of 5
-            conv1 = tf.layers.conv2d(fuse_feature, 16, 3, padding='same',activation=None)
-            # conv1 = tf.layers.conv2d(x_2d_train_data, 16, 3, padding='same',activation=None)
-            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
-            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
-
-            #  Convolution Layer with 64 filters and a kernel size of 3
-            # conv2: change from 16 to 32
-            conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
-            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
-            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
-
-        # with tf.name_scope("fusion_batch_norm"):
-        #     cnn2d_bn = tf.layers.batch_normalization(inputs=conv2, training=is_training)
-        #     # (?, 168, 32, 20, 1)
-        #     print('cnn2d_bn shape: ',cnn2d_bn.shape)
-
-
-        # output should be (?, 32, 20, 1)
-        with tf.name_scope("fusion_layer_b"):
-            conv3 = tf.layers.conv2d(
-                      inputs=conv2,
-                      filters=dim,
-                      kernel_size=[1, 1],
-                      padding="same",
-                      activation=my_leaky_relu
-                      #reuse = tf.AUTO_REUSE
-                )
-        #
-        out = conv3
-        print('latent representation shape: ',out.shape)
-        # output size should be [batchsize, height, width, dim]
-        return out
-
 
     # [batchsize, height, width, dim] -> recontruct to [None, DAILY_TIMESTEPS, height, width, 1]
     # update: [None, 168, 32, 20, dim_decode] -> recontruct to [None, DAILY_TIMESTEPS, height, width, 1]
-    def reconstruct_3d(self, latent_fea, timestep, is_training):
-        padding = 'SAME'
-        stride = [1,1,1]
-        # [batchsize, 32, 20, dim] -> [batchsize, 1, 32, 20, dim]
-        # latent_fea = tf.expand_dims(latent_fea, 1)
-        # if timestep == TIMESTEPS:
-            # deconv1 = tf.layers.conv3d_transpose(inputs=latent_fea, filters=16, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
-            # # [1, 32, 20, 32]
-            # # https://www.tensorflow.org/api_docs/python/tf/keras/backend/resize_volumes
-            # unpool1 = K.resize_volumes(deconv1,7,1,1,"channels_last")
-            # # [7, 32, 20, 32]
-            #         # upsample1 = tf.image.resize_images(encoded, size=(7,7), method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-            #         # # [7, 32, 20, 32]
-            # deconv2 = tf.layers.conv3d_transpose(inputs=unpool1, filters=32, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
-            #         # # [28, 32, 20, 32]
-            # unpool2 = K.resize_volumes(deconv2,4,1,1,"channels_last")
-            #         # # [28, 32, 20, 32]
-            # deconv2 = tf.layers.conv3d_transpose(inputs=unpool2, filters=32, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
-            #         # # [28, 32, 20, 32]
-            # unpool3 = K.resize_volumes(deconv2,3,1,1,"channels_last")
-            #         # # [84, 32, 20, 32]
-            # deconv3 = tf.layers.conv3d_transpose(inputs=unpool3, filters=32, kernel_size=(3,3,3), padding= padding , strides = stride, activation=my_leaky_relu)
-            #         # now # # [16, 20, 64, 64] = [units, time step, width, height]  -> [20, 64, 64, 1]
-            # unpool4 = K.resize_volumes(deconv3,2,1,1,"channels_last")
-            #         # [168, 32, 20, 9]
-            # output = tf.layers.conv3d(inputs=unpool4, filters= 1, kernel_size=[3,3,3], padding='same', activation=my_leaky_relu)
-            #         # [none, 1, 20, 64, 64] -> [none, 20, 64, 64, 1]
-            # # (?, 168, 32, 20, 9)
-            # print('output reconstruction 3d shape: ', output.shape)
+    def reconstruct_3d(self, latent_fea, timestep, is_training, suffix = ''):
+        var_scope = "3d_data_reconstruct_" + suffix
+        with tf.variable_scope(var_scope):
+            padding = 'SAME'
+            stride = [1,1,1]
 
-            # [None, 168, 32, 20, dim_decode] ->  [None, DAILY_TIMESTEPS, height, width, 1]
-        conv1 = tf.layers.conv3d(inputs=latent_fea, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
-        conv1 = tf.layers.batch_normalization(conv1, training=is_training)
-        conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
-            # conv => 16*16*16
-        conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
-        conv2 = tf.layers.batch_normalization(conv2, training=is_training)
-        conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
-            # pool => 8*8*8
-
-            # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, dim]
-        conv3 = tf.layers.conv3d(inputs=conv2, filters= 1, kernel_size=[3,3,3], padding='same', activation=None)
-        conv3 = tf.layers.batch_normalization(conv3, training=is_training)
-        conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
-
-        output = conv3
-
-        return output
-
-        '''
-        if timestep == DAILY_TIMESTEPS:
-
-            # #Average Pooling  [None, 168, 32, 20, dim_decode] ->  (None, 1, 32, 20, dim_decode)
-            conv1 = tf.layers.average_pooling3d(latent_fea, [TIMESTEPS / DAILY_TIMESTEPS, 1, 1], [1,1,1], padding='valid')
-
-            conv1 = tf.layers.conv3d(inputs=conv1, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
+                # [None, 168, 32, 20, dim_decode] ->  [None, DAILY_TIMESTEPS, height, width, 1]
+            conv1 = tf.layers.conv3d(inputs=latent_fea, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
             conv1 = tf.layers.batch_normalization(conv1, training=is_training)
             conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
-            # conv => 16*16*16
+                # conv => 16*16*16
             conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
             conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
-            # pool => 8*8*8
+                # pool => 8*8*8
 
-            # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, dim]
+                # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, dim]
             conv3 = tf.layers.conv3d(inputs=conv2, filters= 1, kernel_size=[3,3,3], padding='same', activation=None)
             conv3 = tf.layers.batch_normalization(conv3, training=is_training)
             conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
 
             output = conv3
 
+        return output
 
-            return output
-            '''
 
     # previous: [None, 32, 20, dim ] -> recontruct to data_2d: (None, 32, 20, dim_2d)
     # update: [None, 168, 32, 20, dim_decode] ->  (None, 32, 20, dim_2d)
-    def reconstruct_2d(self, latent_fea, dim_2d, is_training):
-        padding = 'SAME'
-        # stride = [1, 1]
-        # #  [None, 32, 20, dim] - > [None, 32, 20, 16]
-        # conv1 = tf.layers.conv2d(latent_fea, 16, 3, padding='same',activation=None)
-        # conv1 = tf.layers.batch_normalization(conv1, training=is_training)
-        # conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
-        #
-        # conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
-        # conv2 = tf.layers.batch_normalization(conv2, training=is_training)
-        # conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
-        # # [None, 32, 20, 16]  -> [None,32, 20 32]
-        #
-        # conv3 = tf.layers.conv2d(conv2, dim_2d, 3, padding='same',activation=None)
-        # conv3 = tf.layers.batch_normalization(conv3, training=is_training)
-        # conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
+    def reconstruct_2d(self, latent_fea, dim_2d, is_training, suffix = ''):
+        var_scope = "2d_data_reconstruct_" + suffix
+        with tf.variable_scope(var_scope):
+            padding = 'SAME'
 
-        #Average Pooling  [None, 168, 32, 20, dim_decode] ->  (None, 1, 32, 20, dim_decode)
-        # https://www.tensorflow.org/api_docs/python/tf/compat/v1/layers/average_pooling3d
-        conv1 = tf.layers.average_pooling3d(latent_fea, [TIMESTEPS, 1, 1], [1,1,1], padding='valid')
-        # (None, 1, 32, 20, dim_decode)  -> (None,  32, 20, dim_decode)
-        conv1 = tf.squeeze(conv1, axis = 1)
+            #Average Pooling  [None, 168, 32, 20, dim_decode] ->  (None, 1, 32, 20, dim_decode)
+            # https://www.tensorflow.org/api_docs/python/tf/compat/v1/layers/average_pooling3d
+            conv1 = tf.layers.average_pooling3d(latent_fea, [TIMESTEPS, 1, 1], [1,1,1], padding='valid')
+            # (None, 1, 32, 20, dim_decode)  -> (None,  32, 20, dim_decode)
+            conv1 = tf.squeeze(conv1, axis = 1)
 
-        conv2 = tf.layers.conv2d(conv1, 16, 3, padding='same',activation=None)
-        conv2 = tf.layers.batch_normalization(conv2, training=is_training)
-        conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+            conv2 = tf.layers.conv2d(conv1, 16, 3, padding='same',activation=None)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
 
-        conv3 = tf.layers.conv2d(conv2, 32, 3, padding='same',activation=None)
-        conv3 = tf.layers.batch_normalization(conv3, training=is_training)
-        conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
-        # [None, 32, 20, 16]  -> [None,32, 20 32]
+            conv3 = tf.layers.conv2d(conv2, 32, 3, padding='same',activation=None)
+            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+            conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
+            # [None, 32, 20, 16]  -> [None,32, 20 32]
 
-        conv4 = tf.layers.conv2d(conv3, dim_2d, 3, padding='same',activation=None)
-        conv4 = tf.layers.batch_normalization(conv4, training=is_training)
-        conv4 = tf.nn.leaky_relu(conv4, alpha=0.2)
+            conv4 = tf.layers.conv2d(conv3, dim_2d, 3, padding='same',activation=None)
+            conv4 = tf.layers.batch_normalization(conv4, training=is_training)
+            conv4 = tf.nn.leaky_relu(conv4, alpha=0.2)
 
-        #[None,32, 20 32] -> [None, 32, 20, dim_2d]
+            #[None,32, 20 32] -> [None, 32, 20, dim_2d]
         return conv4
 
 
     # previsou: [None, 32, 20, dim ] -> recontruct to [None,168, dim_1d]
     # new: [None, 168, 32, 20, dim_decode] ->  [None,168, dim_1d]
-    def reconstruct_1d(self, latent_fea, dim_1d, is_training):
-        # [None, 168, 32, 20, dim_decode] ->  [None,168, 1, 1, dim_decode]
-        conv1 = tf.layers.average_pooling3d(latent_fea, [1, HEIGHT, WIDTH], [1,1,1], padding='valid')
-        # [None,168, 1, 1, dim_decode]  -> [None,168, 1, dim_decode]
-        conv1 = tf.squeeze(conv1, axis = 2)
-        # [None,168, 1,  dim_decode]  -> [None,168, dim_decode]
-        conv1 = tf.squeeze(conv1, axis = 2)
+    def reconstruct_1d(self, latent_fea, dim_1d, is_training, suffix= ''):
+        var_scope = "1d_data_reconstruct_" + suffix
+        with tf.variable_scope(var_scope):
+            # [None, 168, 32, 20, dim_decode] ->  [None,168, 1, 1, dim_decode]
+            conv1 = tf.layers.average_pooling3d(latent_fea, [1, HEIGHT, WIDTH], [1,1,1], padding='valid')
+            # [None,168, 1, 1, dim_decode]  -> [None,168, 1, dim_decode]
+            conv1 = tf.squeeze(conv1, axis = 2)
+            # [None,168, 1,  dim_decode]  -> [None,168, dim_decode]
+            conv1 = tf.squeeze(conv1, axis = 2)
 
-        conv2 = tf.layers.conv1d(conv1, 16, 3, padding='same',activation=None)
-        conv2 = tf.layers.batch_normalization(conv2, training=is_training)
-        conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+            conv2 = tf.layers.conv1d(conv1, 16, 3, padding='same',activation=None)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
 
-        #  Convolution Layer with 64 filters and a kernel size of 3
-        # output shape: None, 168,16
-        # conv2 change from 16 to 32
-        conv3 = tf.layers.conv1d(conv2, 32, 3,padding='same', activation=None)
-        conv3 = tf.layers.batch_normalization(conv3, training=is_training)
-        conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
+            #  Convolution Layer with 64 filters and a kernel size of 3
+            # output shape: None, 168,16
+            # conv2 change from 16 to 32
+            conv3 = tf.layers.conv1d(conv2, 32, 3,padding='same', activation=None)
+            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+            conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
 
-        conv4 = tf.layers.conv1d(conv3, dim_1d, 3,padding='same', activation=None)
-        conv4 = tf.layers.batch_normalization(conv4, training=is_training)
-        conv4 = tf.nn.leaky_relu(conv4, alpha=0.2)
+            conv4 = tf.layers.conv1d(conv3, dim_1d, 3,padding='same', activation=None)
+            conv4 = tf.layers.batch_normalization(conv4, training=is_training)
+            conv4 = tf.nn.leaky_relu(conv4, alpha=0.2)
 
-
-
-
-        # padding = 'SAME'
-        # stride = [1]
-        # # first: [None, 32, 20, dim] -> [1, 1, dim_1d]
-        # # then [None, 32, 20, dim] - > [None, 1, 1, 168]
-        # conv1 = tf.layers.conv2d(latent_fea, 16, 3, padding='same',activation=None)
-        # conv1 = tf.layers.batch_normalization(conv1, training=is_training)
-        # conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
-        # # [None, 32, 20, dim]  -> [None, 16, 10, 16]
-        # conv1 = tf.layers.max_pooling2d(conv1, 2, 2)
-        #
-        #
-        # conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
-        # conv2 = tf.layers.batch_normalization(conv2, training=is_training)
-        # conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
-        # # [None, 16, 10, 16]  -> [None, 4, 5, 32]
-        # conv2 = tf.layers.max_pooling2d(conv2, 4, 2)
-        #
-        #
-        # conv3 = tf.layers.conv2d(conv2, 168, 3, padding='same',activation=None)
-        # conv3 = tf.layers.batch_normalization(conv3, training=is_training)
-        # conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
-        # # [None, 4, 5, 16]  -> [None, 1, 1, 168]
-        # conv3 = tf.layers.max_pooling2d(conv3, 4, 5)
-        #
-        # # squueze [None, 1, 1, 168] -> [None, 1,  168]
-        # conv3 = tf.squeeze(conv3, axis = 1)
-        # # [None, 1,  168] - > [None,168, 1] - > [None, 168, dim_1d]
-        # conv3_trans = tf.transpose(conv3, perm=[0,2,1])
-        #
-        # # [None,168, 1]  -> [None,   168, dim_1d]
-        # conv4 = tf.layers.conv1d(conv3_trans, dim_1d, 3, padding='same',activation=None)
-        # conv4 = tf.layers.batch_normalization(conv4, training=is_training)
-        # conv4 = tf.nn.leaky_relu(conv4, alpha=0.2)
-
-        # [None, 168, dim_1d]
         return conv4
 
 
@@ -720,41 +565,41 @@ class Autoencoder:
     # take a latent fea, decode into [batchsize, 32, 20, dim_decode]
     # update: latent_fea: [batchsize, 168, height, width, dim]
     #         -> [None, 168, 32, 20, dim_decode]
-    def branching(self, latent_fea, dim_decode, is_training):
-        padding = 'SAME'
-        stride = [1, 1]
-        #  [None, 32, 20, dim] - > [None, 32, 20, 16]
-        # conv1 = tf.layers.conv2d(latent_fea, 16, 3, padding='same',activation=None)
-        # conv1 = tf.layers.batch_normalization(conv1, training=is_training)
-        # conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
-        #
-        # conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
-        # conv2 = tf.layers.batch_normalization(conv2, training=is_training)
-        # conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
-        #
-        # conv3 = tf.layers.conv2d(conv2, dim_decode, 3, padding='same',activation=None)
-        # conv3 = tf.layers.batch_normalization(conv3, training=is_training)
-        # conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
+    def branching(self, latent_fea, dim_decode, is_training, suffix = ''):
+        var_scope = 'branching_'+ suffix
+        with tf.variable_scope(var_scope):
+            padding = 'SAME'
+            stride = [1, 1]
+            #  [None, 32, 20, dim] - > [None, 32, 20, 16]
+            # conv1 = tf.layers.conv2d(latent_fea, 16, 3, padding='same',activation=None)
+            # conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+            # conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
+            #
+            # conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
+            # conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            # conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+            #
+            # conv3 = tf.layers.conv2d(conv2, dim_decode, 3, padding='same',activation=None)
+            # conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+            # conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
 
-        conv1 = tf.layers.conv3d(inputs=latent_fea, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
-        conv1 = tf.layers.batch_normalization(conv1, training=is_training)
-        conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
-        # conv => 16*16*16
-        conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
-        conv2 = tf.layers.batch_normalization(conv2, training=is_training)
-        conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
-        # pool => 8*8*8
+            conv1 = tf.layers.conv3d(inputs=latent_fea, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
+            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
+            # conv => 16*16*16
+            conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+            # pool => 8*8*8
 
-        # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, dim]
-        conv3 = tf.layers.conv3d(inputs=conv2, filters= dim_decode, kernel_size=[3,3,3], padding='same', activation=None)
-        conv3 = tf.layers.batch_normalization(conv3, training=is_training)
-        conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
+            # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, dim]
+            conv3 = tf.layers.conv3d(inputs=conv2, filters= dim_decode, kernel_size=[3,3,3], padding='same', activation=None)
+            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+            conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
 
-        # previous [None,32, 20 32] -> [None, 32, 20, dim_2d]
-        # [batchsize, 168, height, width, dim] -> [None, 168, 32, 20, dim_decode]
-        return conv3
-
-
+            # previous [None,32, 20 32] -> [None, 32, 20, dim_2d]
+            # [batchsize, 168, height, width, dim] -> [None, 168, 32, 20, dim_decode]
+            return conv3
 
 
 
@@ -878,7 +723,6 @@ class Autoencoder:
             #     first_order_encoder_list.append(prediction_3d_expand)
 
             keys_list.append(k)
-
 
 
         # dim: latent fea dimension
@@ -1094,7 +938,7 @@ class Autoencoder:
 
                     for k, v in epoch_subrmse.items():
                         epoch_subrmse[k] += batch_rmse_dict[k]
-                        
+
                     for k, v in epoch_subgrad.items():
                         epoch_subgrad[k] += batch_grads[k]
 
