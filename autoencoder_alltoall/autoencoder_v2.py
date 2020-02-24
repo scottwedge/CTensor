@@ -899,8 +899,8 @@ class Autoencoder:
                 for v in variable_to_restore:
                     vars_to_restore_dict[v.name[:-2]] = v
                 # only for restoring pretrained model weights
-                savername = 'saver_'+ k
-                saver_dict[savername] = tf.train.Saver(vars_to_restore_dict)
+
+                saver_dict[k] = tf.train.Saver(vars_to_restore_dict)
 
 
              # save all variables
