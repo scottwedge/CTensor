@@ -885,7 +885,7 @@ class Autoencoder:
                         end_idx = train_hours
                     else:
                         end_idx = (itr+1)*batch_size
-                    print('itr, start_idx, end_idx', itr, start_idx, end_idx)
+                    print('Epoch, itr, start_idx, end_idx', epoch, itr, start_idx, end_idx)
 
                     # create feed_dict
                     feed_dict_all = {}  # tf_var:  tensor
