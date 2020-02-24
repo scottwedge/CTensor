@@ -563,8 +563,8 @@ def main():
                                         rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                          demo_mask_arr,  save_path, dim,
                                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
+                                    True, checkpoint, False, train_dir,
                                     use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
-                                    True, checkpoint, False, train_dir
 
                             ).final_lat_rep
     else:
