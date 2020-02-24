@@ -371,6 +371,8 @@ def main():
 
 
 
+
+
     print('load data for Seattle...')
     globals()['TRAINING_STEPS']  = epoch
     globals()['LEARNING_RATE']  = learning_rate

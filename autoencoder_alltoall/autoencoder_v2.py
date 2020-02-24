@@ -2108,6 +2108,25 @@ class Autoencoder_entry:
         self.use_pretrained = use_pretrained
         self.pretrained_ckpt_path = pretrained_ckpt_path
 
+
+        self.ckpt_path_dict = {}
+        if self.use_pretrained:
+            # construct checkpoint_dict : key: path
+            allfiles = os.listdir(self.pretrained_ckpt_path)
+            keys_set = set()
+            path_set = set()
+            for f in allfiles:
+                print(f)
+                ds_key = f.split('.')[0]
+                ckpt_path = '.'.join(f.split('.')[0:2])
+                keys_set.add(ds_key)
+                path_set.add(ckpt_path)
+                self.ckpt_path_dict[ds_key] = os.path.join(pretrained_checkpoint, ckpt_path)
+
+            for k, v in self.ckpt_path_dict.items():
+                print(k, v)
+
+
         # ignore non-intersection cells in test_df
         # this is for evaluation
         # self.test_df_cut = self.test_df.loc[:,self.test_df.columns.isin(list(self.intersect_pos_set))]
@@ -2196,7 +2215,7 @@ class Autoencoder_entry:
         train_lat_rep, test_lat_rep, encoded_list, keys_list, final_reconstruction_dict = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim,
-                         use_pretrained =  self.use_pretrained, pretrained_ckpt_path_dict = self.pretrained_ckpt_path,
+                         use_pretrained =  self.use_pretrained, pretrained_ckpt_path_dict = self.ckpt_path_dict,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
         return train_lat_rep, test_lat_rep, encoded_list, keys_list, final_reconstruction_dict
@@ -2217,7 +2236,7 @@ class Autoencoder_entry:
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim,
                          True, self.checkpoint_path,
-                         use_pretrained =  self.use_pretrained, pretrained_ckpt_path_dict = self.pretrained_ckpt_path,
+                         use_pretrained =  self.use_pretrained, pretrained_ckpt_path_dict = self.ckpt_path_dict,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
 
