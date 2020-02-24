@@ -939,8 +939,8 @@ class Autoencoder:
                     for k, v in epoch_subrmse.items():
                         epoch_subrmse[k] += batch_rmse_dict[k]
 
-                    for k, v in epoch_subgrad.items():
-                        epoch_subgrad[k] += batch_grads[k]
+                    # for k, v in epoch_subgrad.items():
+                    #     epoch_subgrad[k] += batch_grads[k]
 
 
                     if itr%30 == 0:
@@ -970,9 +970,9 @@ class Autoencoder:
                     print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
 
 
-                for k, v in epoch_subgrad.items():
-                    epoch_subgrad[k] = v/iterations
-                    print('epoch: ', epoch, 'k: ', k, 'mean train grad: ', epoch_subgrad[k])
+                # for k, v in epoch_subgrad.items():
+                #     epoch_subgrad[k] = v/iterations
+                #     print('epoch: ', epoch, 'k: ', k, 'mean train grad: ', epoch_subgrad[k])
 
 
 
@@ -1131,11 +1131,11 @@ class Autoencoder:
                     test_sub_rmse_df.to_csv(f, header=f.tell()==0)
 
 
-                train_sub_grad_df = pd.DataFrame([list(epoch_subgrad.values())],
-                    columns= list(epoch_subgrad.keys()))
-                train_sub_grad_csv_path = save_folder_path + 'autoencoder_train_sub_grad' +'.csv'
-                with open(train_sub_grad_csv_path, 'a') as f:
-                    train_sub_grad_df.to_csv(f, header=f.tell()==0)
+                # train_sub_grad_df = pd.DataFrame([list(epoch_subgrad.values())],
+                #     columns= list(epoch_subgrad.keys()))
+                # train_sub_grad_csv_path = save_folder_path + 'autoencoder_train_sub_grad' +'.csv'
+                # with open(train_sub_grad_csv_path, 'a') as f:
+                #     train_sub_grad_df.to_csv(f, header=f.tell()==0)
 
 
                 # save results to txt
