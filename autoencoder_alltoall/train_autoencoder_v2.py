@@ -480,21 +480,21 @@ def main():
     keys_3d = list(rawdata_3d_dict.keys())
 
     if key != '' and key in keys_1d:
-        temp_var = rawdata_1d_dict[key]['key']
+        temp_var = rawdata_1d_dict[key]
         rawdata_1d_dict.clear()
         rawdata_1d_dict[key] = temp_var
         rawdata_2d_dict.clear()
         rawdata_3d_dict.clear()
 
     if key != '' and key in keys_2d:
-        temp_var = rawdata_2d_dict[key]['key']
+        temp_var = rawdata_2d_dict[key]
         rawdata_2d_dict.clear()
         rawdata_2d_dict[key] = temp_var
         rawdata_1d_dict.clear()
         rawdata_3d_dict.clear()
 
     if key != '' and key in keys_3d:
-        temp_var = rawdata_3d_dict[key]['key']
+        temp_var = rawdata_3d_dict[key]
         rawdata_3d_dict.clear()
         rawdata_3d_dict[key] = temp_var
         rawdata_2d_dict.clear()

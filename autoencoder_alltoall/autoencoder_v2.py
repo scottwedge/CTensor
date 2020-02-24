@@ -943,7 +943,7 @@ class Autoencoder:
                         epoch_subgrad[k] += batch_grads[k]
 
 
-                    if itr%10 == 0:
+                    if itr%30 == 0:
                         print("Iter/Epoch: {}/{}...".format(itr, epoch),
                             "Training loss: {:.4f}".format(batch_cost))
                         for k, v in batch_loss_dict.items():
