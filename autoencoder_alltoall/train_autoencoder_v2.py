@@ -325,6 +325,10 @@ def parse_args():
                      action="store", help = 'epochs to train', default = 0.001)
     parser.add_argument("-i","--inference", type=bool, default=False,
     				help="inference")
+    parser.add_argument("-up","--use_pretrained", type=bool, default=False,
+        				help="A boolean value whether or not to start from pretrained model")
+    parser.add_argument('-pc',   '--pretrained_checkpoint',
+                         action="store", help = 'checkpoint path to pretrained models', default = None)
 
 
 
@@ -345,7 +349,9 @@ def main():
     dim = args.dim
     inference = args.inference
     key = args.key
-
+    use_pretrained = args.use_pretrained
+    # this is a path to a list of individually trained checkpoints
+    pretrained_checkpoint = args.pretrained_checkpoint
 
     print("resume_training: ", resume_training)
     print("training dir path: ", train_dir)
@@ -356,9 +362,13 @@ def main():
     print("dimension of latent representation: ", dim)
     print('key: ', key)
 
+    print('whether to use pretrained model: ', use_pretrained)
+    print('pretrained_checkpoint: ', pretrained_checkpoint)
+
     if checkpoint is not None:
         checkpoint = train_dir + checkpoint
         print('pick up checkpoint: ', checkpoint)
+
 
 
     print('load data for Seattle...')
@@ -517,7 +527,7 @@ def main():
         if key == '':
             save_path = './autoencoder_v2_1to1_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
         else:
-            save_path = './autoencoder_v2_1to1_'+ 'dim' + str(dim) +  '_' + key + '_'+ suffix  +'/'
+            save_path = './autoencoder_v2_1to1_'+ 'dim' + str(dim) + '_'+ suffix+ '_' + key  +'/'
 
     if train_dir:
         save_path = train_dir
@@ -545,13 +555,15 @@ def main():
             latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
                                     rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                      demo_mask_arr,  save_path, dim,
-                                HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE
+                                HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
+                                use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
                         ).train_lat_rep
         else:
             latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
                                         rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                          demo_mask_arr,  save_path, dim,
                                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
+                                    use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
                                     True, checkpoint, False, train_dir
 
                             ).final_lat_rep

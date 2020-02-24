@@ -202,6 +202,56 @@ def create_mini_batch_3d_nonoverlapping(start_idx, end_idx, data_3d, timestep):
 
 
 
+# get variables to be restored from pretrained model
+def get_variables_to_restore(variables, scopes_to_reserve):
+    variables_to_restore = []
+    for v in variables:
+        if v.name.split(':')[0].split('/')[0] in scopes_to_reserve:
+            print("Variables restored: %s" % v.name)
+            variables_to_restore.append(v)
+    return variables_to_restore
+
+
+
+# get names of variable_scopes to be restored
+def get_scopes_to_restore(rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict):
+    keys_1d = list(rawdata_1d_dict.keys())
+    keys_2d = list(rawdata_2d_dict.keys())
+    keys_3d = list(rawdata_3d_dict.keys())
+    scopes_to_reserve = []
+    prefix_list = ['1d_data_process_', '2d_data_process_', '3d_data_process_',
+             ]
+    # '1d_data_reconstruct_', '2d_data_reconstruct_', '3d_data_reconstruct_'
+    suffix_list = keys_1d + keys_2d + keys_3d
+    for prefix in prefix_list:
+        for suffix in suffix_list:
+            scopes_to_reserve.append(prefix + suffix)
+    return scopes_to_reserve
+
+
+# get names of variable_scopes to be restored
+# from a checkpoint path dict:  {key: path}
+# e.g., precipitation: path to checkpoint
+def get_scopes_to_restore_for_eachdataset(key, keys_1d, keys_2d, keys_3d):
+    scopes_to_reserve = []
+    # prefix_list = ['1d_data_process_', '2d_data_process_', '3d_data_process_',
+    #          ]
+    # for key in suffix_list:
+    if key in keys_1d:
+        scopes_to_reserve.append('1d_data_process_' + key)
+    if key in keys_2d:
+        scopes_to_reserve.append('2d_data_process_' + key)
+    if key in keys_3d:
+        scopes_to_reserve.append('3d_data_process_' + key)
+    # '1d_data_reconstruct_', '2d_data_reconstruct_', '3d_data_reconstruct_'
+    # suffix_list = keys_1d + keys_2d + keys_3d
+    # for prefix in prefix_list:
+    #     for suffix in suffix_list:
+    #         scopes_to_reserve.append(prefix + suffix)
+    return scopes_to_reserve
+
+
+
 class Autoencoder:
     # input_dim = 1, seq_size = 168,
     def __init__(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
@@ -676,6 +726,7 @@ class Autoencoder:
     def train_autoencoder(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, train_hours,
                      demo_mask_arr, save_folder_path, dim,
                      resume_training = False, checkpoint_path = None,
+                      use_pretrained = False, pretrained_ckpt_path_dict = None,
                        epochs=1, batch_size=16):
         starter_learning_rate = LEARNING_RATE
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
@@ -804,12 +855,13 @@ class Autoencoder:
         print('total_loss: ', total_loss)
         cost = total_loss
 
+        # variables_to_update = [v for v in tf.global_variables() if v not in variable_to_restore]
+
 
         with tf.name_scope("training"):
             optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost, global_step = self.global_step)
 
 
-        saver = tf.train.Saver()
         train_result = list()
         test_result = list()
         # feature maps of last layer of encoder.
@@ -824,6 +876,37 @@ class Autoencoder:
             os.makedirs(save_path)
 
 
+        keys_1d = list(rawdata_1d_dict.keys())
+        keys_2d = list(rawdata_2d_dict.keys())
+        keys_3d = list(rawdata_3d_dict.keys())
+        variables = tf.global_variables()
+
+        # --- dealing with model saver ------ #
+        if not use_pretrained:
+            saver = tf.train.Saver()
+        else:
+            print('Restoring saver from pretrained model....')
+            saver_dict = {}  # saver name: saver
+            for k, cpath in pretrained_ckpt_path_dict.items():
+                # train from pretrained model_fusion
+                vars_to_restore_dict = {}
+                # get scopes_to_reserve
+                scopes_to_reserve = get_scopes_to_restore_for_eachdataset(k, keys_1d, keys_2d, keys_3d)
+                variable_to_restore = get_variables_to_restore(variables, scopes_to_reserve)
+                print('variable_to_restore in : ', k)
+                print(variable_to_restore)
+                # make the dictionary, note that everything here will have “:0”, avoid it.
+                for v in variable_to_restore:
+                    vars_to_restore_dict[v.name[:-2]] = v
+                # only for restoring pretrained model weights
+                savername = 'saver_'+ k
+                saver_dict[savername] = tf.train.Saver(vars_to_restore_dict)
+
+
+             # save all variables
+            saver = tf.train.Saver()
+
+
         config = tf.ConfigProto()
         config.gpu_options.allocator_type ='BFC'
         config.gpu_options.per_process_gpu_memory_fraction = 0.90
@@ -832,6 +915,11 @@ class Autoencoder:
 
         with tf.Session(config=config) as sess:
             sess.run(tf.global_variables_initializer())
+            # ----- if initialized with pretrained weights ----
+            if use_pretrained:
+                for k, s in saver_dict.items():
+                    print('restoring: ', k)
+                    s.restore(sess, pretrained_ckpt_path_dict[k])
 
             # ---- if resume training -----
             if resume_training:
@@ -1986,7 +2074,8 @@ class Autoencoder_entry:
                     demo_mask_arr, save_path, dim,
                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                      is_inference = False, checkpoint_path = None,
-                     resume_training = False, train_dir = None
+                     resume_training = False, train_dir = None,
+                      use_pretrained = False, pretrained_ckpt_path = None,
                      ):
                      #  if s_inference = True, do inference only
         self.train_obj = train_obj
@@ -2015,6 +2104,9 @@ class Autoencoder_entry:
         self.checkpoint_path = checkpoint_path
         self.resume_training = resume_training
         self.train_dir = train_dir
+
+        self.use_pretrained = use_pretrained
+        self.pretrained_ckpt_path = pretrained_ckpt_path
 
         # ignore non-intersection cells in test_df
         # this is for evaluation
@@ -2104,6 +2196,7 @@ class Autoencoder_entry:
         train_lat_rep, test_lat_rep, encoded_list, keys_list, final_reconstruction_dict = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim,
+                         use_pretrained =  self.use_pretrained, pretrained_ckpt_path = self.pretrained_ckpt_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
         return train_lat_rep, test_lat_rep, encoded_list, keys_list, final_reconstruction_dict
@@ -2124,6 +2217,7 @@ class Autoencoder_entry:
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim,
                          True, self.checkpoint_path,
+                         use_pretrained =  self.use_pretrained, pretrained_ckpt_path = self.pretrained_ckpt_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
 
