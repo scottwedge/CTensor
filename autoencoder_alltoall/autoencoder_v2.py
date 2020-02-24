@@ -2121,7 +2121,7 @@ class Autoencoder_entry:
                 ckpt_path = '.'.join(f.split('.')[0:2])
                 keys_set.add(ds_key)
                 path_set.add(ckpt_path)
-                self.ckpt_path_dict[ds_key] = os.path.join(pretrained_checkpoint, ckpt_path)
+                self.ckpt_path_dict[ds_key] = os.path.join(self.pretrained_ckpt_path, ckpt_path)
 
             for k, v in self.ckpt_path_dict.items():
                 print(k, v)
