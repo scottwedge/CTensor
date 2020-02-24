@@ -465,7 +465,7 @@ def main():
     # }
     rawdata_1d_dict = {
      'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
-    'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
+     # 'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
     # 'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
     # 'airquality': airquality_arr,
     }
@@ -485,14 +485,14 @@ def main():
         # 'transit_routes': transit_routes_arr,
         # 'transit_signals': transit_signals_arr,
         # 'transit_stop':transit_stop_arr,
-        'slope': slope_arr,
-        'bikelane': bikelane_arr,
+        # 'slope': slope_arr,
+        # 'bikelane': bikelane_arr,
         }
 
     rawdata_3d_dict = {
         #   'building_permit': building_permit_arr_seq_extend,
         # 'collisions': collisions_arr_seq_extend,  # (7, 45840, 32, 20)
-        'seattle911calls': seattle911calls_arr # (45984, 32, 20)
+        # 'seattle911calls': seattle911calls_arr # (45984, 32, 20)
         }
 
 
@@ -505,9 +505,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './toy_autoencoder_v2_1to1'+ 'dim'+ str(dim)  +'/'
+        save_path =  './indiv_autoencoder_v2_1to1'+ 'dim'+ str(dim)  +'/'
     else:
-        save_path = './toy_autoencoder_v2_1to1_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
+        save_path = './indiv_autoencoder_v2_1to1'+ 'dim' + str(dim) +'_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir

@@ -257,6 +257,7 @@ class Autoencoder:
             self.rawdata_1d_tf_y_dict[k] = tf.placeholder(tf.float32, shape=[None,TIMESTEPS, dim])
 
         # 2d
+        '''
         self.rawdata_2d_tf_x_dict = {}
         self.rawdata_2d_tf_y_dict = {}
         # rawdata_1d_dict
@@ -286,6 +287,7 @@ class Autoencoder:
             # 'collisions': collisions_y,
             'seattle911calls': seattle911calls_y
         }
+        '''
 
 
 
@@ -881,6 +883,7 @@ class Autoencoder:
             keys_list.append(k)
             first_order_encoder_list.append(prediction_1d)
 
+        '''
         for k, v in self.rawdata_2d_tf_x_dict.items():
             # [None, height, width, 1] -> [None, 168, height, width, 1]
             prediction_2d = self.cnn_2d_model(v, self.is_training, k)
@@ -896,6 +899,7 @@ class Autoencoder:
             keys_list.append(k)
             first_level_output[k] = prediction_3d
             first_order_encoder_list.append(prediction_3d)
+        '''
 
 
         # dim: latent fea dimension
@@ -934,7 +938,7 @@ class Autoencoder:
             gradnorm = tf.norm(grads, name='norm')
             grad_dict[k] = gradnorm
 
-
+        '''
         for k, v in self.rawdata_2d_tf_y_dict.items():
             dim_2d = rawdata_2d_dict[k].shape[-1]
             reconstruction_2d = self.reconstruct_2d(latent_fea, dim_2d, self.is_training)
@@ -973,6 +977,7 @@ class Autoencoder:
             grads = tf.gradients(temp_loss, prediction_3d, name= k+'_gradients')
             gradnorm = tf.norm(grads, name='norm')
             grad_dict[k] = gradnorm
+        '''
 
 
         print('total_loss: ', total_loss)
@@ -1086,6 +1091,8 @@ class Autoencoder:
                         feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
                         feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
 
+
+                    '''
                     # create batches for 2d
                     for k, v in rawdata_2d_dict.items():
                         temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
@@ -1102,6 +1109,7 @@ class Autoencoder:
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
                         feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
                         feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+                    '''
 
                     # is_training: True
                     feed_dict_all[self.is_training] = True
@@ -1218,6 +1226,7 @@ class Autoencoder:
                         test_feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
                         test_feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
 
+                    '''
                     # create batches for 2d
                     for k, v in rawdata_2d_dict.items():
                         temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
@@ -1234,7 +1243,8 @@ class Autoencoder:
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
                         test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
                         test_feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
-                    # is_training: True
+                    '''
+
                     test_feed_dict_all[self.is_training] = True
 
                     test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict= test_feed_dict_all)
@@ -1255,15 +1265,6 @@ class Autoencoder:
                         print("Iter/Epoch: {}/{}...".format(itr, epoch),
                             "testing loss: {:.4f}".format(test_batch_cost))
 
-
-                    # test_mini_batch_x = self.create_mini_batch(start_idx, end_idx, data_1d, data_2d, data_3d)
-                    #
-                    # test_batch_cost, _ = sess.run([cost, optimizer], feed_dict={self.x: test_mini_batch_x,
-                    #                                                 self.y: test_mini_batch_x})
-                    # get encoded representation
-                    # # [None, 1, 32, 20, 1]
-                    # test_batch_output = sess.run([encoded], feed_dict={self.x: test_mini_batch_x,
-                    #                                                 self.y: test_mini_batch_x})
 
                     test_cost += test_batch_cost
 
