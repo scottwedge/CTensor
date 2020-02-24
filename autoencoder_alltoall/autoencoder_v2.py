@@ -2196,7 +2196,7 @@ class Autoencoder_entry:
         train_lat_rep, test_lat_rep, encoded_list, keys_list, final_reconstruction_dict = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim,
-                         use_pretrained =  self.use_pretrained, pretrained_ckpt_path = self.pretrained_ckpt_path,
+                         use_pretrained =  self.use_pretrained, pretrained_ckpt_path_dict = self.pretrained_ckpt_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
         return train_lat_rep, test_lat_rep, encoded_list, keys_list, final_reconstruction_dict
@@ -2217,7 +2217,7 @@ class Autoencoder_entry:
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim,
                          True, self.checkpoint_path,
-                         use_pretrained =  self.use_pretrained, pretrained_ckpt_path = self.pretrained_ckpt_path,
+                         use_pretrained =  self.use_pretrained, pretrained_ckpt_path_dict = self.pretrained_ckpt_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
 
