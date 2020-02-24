@@ -756,9 +756,9 @@ class Autoencoder:
 
             reconstruction_dict[k] = reconstruction_1d
 
-            grads = tf.gradients(temp_loss, prediction_1d_expand, name=k+'_gradients')
-            gradnorm = tf.norm(grads, name='norm')
-            grad_dict[k] = gradnorm
+            # grads = tf.gradients(temp_loss, prediction_1d_expand, name=k+'_gradients')
+            # gradnorm = tf.norm(grads, name='norm')
+            # grad_dict[k] = gradnorm
 
 
         for k, v in self.rawdata_2d_tf_y_dict.items():
@@ -772,9 +772,9 @@ class Autoencoder:
 
             reconstruction_dict[k] = reconstruction_2d
 
-            grads = tf.gradients(temp_loss, prediction_2d_expand, name=k+'_gradients')
-            gradnorm = tf.norm(grads, name='norm')
-            grad_dict[k] = gradnorm
+            # grads = tf.gradients(temp_loss, prediction_2d_expand, name=k+'_gradients')
+            # gradnorm = tf.norm(grads, name='norm')
+            # grad_dict[k] = gradnorm
 
 
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 1)
@@ -796,9 +796,9 @@ class Autoencoder:
 
             reconstruction_dict[k] = reconstruction_3d
 
-            grads = tf.gradients(temp_loss, prediction_3d, name= k+'_gradients')
-            gradnorm = tf.norm(grads, name='norm')
-            grad_dict[k] = gradnorm
+            # grads = tf.gradients(temp_loss, prediction_3d, name= k+'_gradients')
+            # gradnorm = tf.norm(grads, name='norm')
+            # grad_dict[k] = gradnorm
 
 
         print('total_loss: ', total_loss)
