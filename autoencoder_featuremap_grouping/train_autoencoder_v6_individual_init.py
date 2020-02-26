@@ -644,5 +644,23 @@ def main():
 
 
 
+    # calc grad norm
+    train_sub_grad_csv_path = save_path + 'autoencoder_train_sub_grad' +'.csv'
+    if os.path.exists(train_sub_grad_csv_path):
+        test_df = pd.read_csv(train_sub_grad_csv_path)
+        test_df = 1/test_df
+        test_df = test_df.apply(lambda x: x/x.max(), axis=1)
+        test_df.to_csv(save_path + 'autoencoder_v6_grad_normalized' +'.csv')
+        print('saved grad norm to : ', save_path + 'autoencoder_v6_grad_normalized' +'.csv')
+        last_row_dict = test_df.iloc[-1,:].to_dict()
+
+        recon_file = open(save_path + 'grad_dict', 'wb')
+        print('saved grad dict to : ',save_path + 'grad_dict')
+        pickle.dump(last_row_dict, recon_file)
+        recon_file.close()
+
+
+
+
 if __name__ == '__main__':
     main()
