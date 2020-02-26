@@ -654,6 +654,9 @@ def main():
         print('saved grad norm to : ', save_path + 'autoencoder_v6_grad_normalized' +'.csv')
         last_row_dict = test_df.iloc[-1,:].to_dict()
 
+        last_corr = test_df.iloc[-1,:].corr(test_df.iloc[-2,:])
+        print('correlation between last two rows of grad: ', last_corr)
+
         recon_file = open(save_path + 'grad_dict', 'wb')
         print('saved grad dict to : ',save_path + 'grad_dict')
         pickle.dump(last_row_dict, recon_file)
