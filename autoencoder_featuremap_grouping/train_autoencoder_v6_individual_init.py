@@ -329,7 +329,7 @@ def parse_args():
     parser.add_argument('-l',   '--learning_rate',  type=float,
                      action="store", help = 'epochs to train', default = 0.001)
     # when do resume training, use_pretrained should be set to False
-    parser.add_argument("-up","--use_pretrained", type=bool, default=False,
+    parser.add_argument("-up","--use_pretrained", type=bool, default=True,
     				help="A boolean value whether or not to start from pretrained model")
     parser.add_argument('-pc',   '--pretrained_checkpoint',
                      action="store", help = 'checkpoint path to pretrained model', default = '../autoencoder_alltoall/individual_ckpt/')
@@ -502,7 +502,7 @@ def main():
                 }
 
     '''
-    grouping_dict = {'one_dim_grp': ['precipitation','temperature', 'pressure',, 'airquality'],
+    grouping_dict = {'one_dim_grp': ['precipitation','temperature', 'pressure', 'airquality'],
                     'two_dim_grp': ['house_price', 'POI_business','POI_food',  'POI_government',
                         'POI_hospitals', 'POI_publicservices', 'POI_recreation', 'POI_school',
                         'POI_transportation', 'seattle_street', 'total_flow_count', 'transit_routes',

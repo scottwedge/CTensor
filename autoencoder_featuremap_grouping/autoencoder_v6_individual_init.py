@@ -855,7 +855,7 @@ class Autoencoder:
 
                     # grads = tf.gradients(temp_loss, prediction_1d_expand, name=k+'_gradients')
                     # gradnorm = tf.norm(grads, name='norm')
-                    # grad_dict[k] = gradnorm
+                    # grad_dict[ds] = gradnorm
 
 
                 if ds in keys_2d:
@@ -872,7 +872,7 @@ class Autoencoder:
 
                     # grads = tf.gradients(temp_loss, prediction_2d_expand, name=k+'_gradients')
                     # gradnorm = tf.norm(grads, name='norm')
-                    # grad_dict[k] = gradnorm
+                    # grad_dict[ds] = gradnorm
 
                 if ds in keys_3d:
                     timestep_3d = self.rawdata_3d_tf_y_dict[ds].shape[1]
@@ -891,7 +891,7 @@ class Autoencoder:
 
                     # grads = tf.gradients(temp_loss, prediction_3d, name= k+'_gradients')
                     # gradnorm = tf.norm(grads, name='norm')
-                    # grad_dict[k] = gradnorm
+                    # grad_dict[ds] = gradnorm
 
 
 
