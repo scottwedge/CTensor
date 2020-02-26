@@ -1,18 +1,4 @@
-# TOY
-
-# v3: datasets were grouped during encoding and decoding
-# according to a predefined grouping strategy
-# [raw datasets grouping by Pearson correlation and affinity propogation ]
-# train autoencoder for urban features
-# for each week's data, learn a
-# laten representation as [H, W, dim]
-# from the latent representation, each datasets will
-# be reconstructed with equal weight in MAE loss
-
-# when used for new task prediction. The latent representation can be
-# directly concatenate with 168 hours of historical biekshare data.
-
-# last updated: Nov, 2019
+# updated Feb 15
 
 
 import pandas as pd
@@ -35,8 +21,9 @@ import time
 import datetime
 from datetime import timedelta
 import datetime_utils
-
-import autoencoder_v6_individual_init
+#import lstm
+import evaluation
+import autoencoder_v2_gradnorm
 from matplotlib import pyplot as plt
 import random
 
@@ -55,13 +42,15 @@ TRAINING_STEPS = 50
 
 LEARNING_RATE = 0.001
 
+# HOURLY_TIMESTEPS = 168
+
 HOURLY_TIMESTEPS = 24
 DAILY_TIMESTEPS = 7
 THREE_HOUR_TIMESTEP = 56
 
 # stacking to form features: [9504-168, 168, 32, 20, 9]
 # target latent representation: [9504-168, 1, 32,20,1]
-def generate_fixlen_timeseries(rawdata_arr, timestep = TIMESTEPS):
+def generate_fixlen_timeseries(rawdata_arr, timestep = 24):
     raw_seq_list = list()
         # arr_shape: [# of timestamps, w, h]
     arr_shape = rawdata_arr.shape
@@ -177,6 +166,10 @@ class train:
 
     # make mask for demo data
     def demo_mask(self):
+    #     if demo_arr is None:
+    #         raw_df = demo_raw.fillna(0)
+
+    #         raw_df = demo_arr.fillna(0)
         rawdata_list = list()
         # add a dummy col
         temp_image = [[0 for i in range(HEIGHT)] for j in range(WIDTH)]
@@ -314,6 +307,8 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s',   '--suffix',
                      action="store", help = 'save path suffix', default = '')
+    parser.add_argument('-k',   '--key',
+                     action="store", help = 'train only one dataset', default = '')
     parser.add_argument('-d',   '--dim',  type=int,
                      action="store", help = 'dims of latent rep', default = 1)
     parser.add_argument("-r","--resume_training", type=bool, default=False,
@@ -328,13 +323,13 @@ def parse_args():
                      action="store", help = 'epochs to train', default = 50)
     parser.add_argument('-l',   '--learning_rate',  type=float,
                      action="store", help = 'epochs to train', default = 0.001)
-    # when do resume training, use_pretrained should be set to False
-    parser.add_argument("-up","--use_pretrained", type=bool, default=False,
-    				help="A boolean value whether or not to start from pretrained model")
-    parser.add_argument('-pc',   '--pretrained_checkpoint',
-                     action="store", help = 'checkpoint path to pretrained model', default = None)
     parser.add_argument("-i","--inference", type=bool, default=False,
     				help="inference")
+    parser.add_argument("-up","--use_pretrained", type=bool, default=False,
+        				help="A boolean value whether or not to start from pretrained model")
+    parser.add_argument('-pc',   '--pretrained_checkpoint',
+                         action="store", help = 'checkpoint path to pretrained models', default = None)
+
 
 
     return parser.parse_args()
@@ -353,10 +348,10 @@ def main():
     learning_rate= args.learning_rate
     dim = args.dim
     inference = args.inference
-
+    key = args.key
     use_pretrained = args.use_pretrained
+    # this is a path to a list of individually trained checkpoints
     pretrained_checkpoint = args.pretrained_checkpoint
-
 
     print("resume_training: ", resume_training)
     print("training dir path: ", train_dir)
@@ -365,17 +360,17 @@ def main():
     print("epochs to train: ", epoch)
     print("start learning rate: ", learning_rate)
     print("dimension of latent representation: ", dim)
+    print('key: ', key)
 
     print('whether to use pretrained model: ', use_pretrained)
     print('pretrained_checkpoint: ', pretrained_checkpoint)
-    print('inference or not: ', inference)
-
-    if pretrained_checkpoint is not None:
-        print('pick up pretrained model: ', pretrained_checkpoint)
 
     if checkpoint is not None:
         checkpoint = train_dir + checkpoint
         print('pick up checkpoint: ', checkpoint)
+
+
+
 
 
     print('load data for Seattle...')
@@ -440,15 +435,17 @@ def main():
     print('crime_arr.shape: ', crime_arr.shape)
     print('seattle911calls_arr.shape: ', seattle911calls_arr.shape)
 
+    # building_permit_arr_seq = generate_fixlen_timeseries(building_permit_arr, 1)
+    # building_permit_arr_seq_extend = np.repeat(building_permit_arr_seq, 24, axis =1)
+    # collisions_arr_seq = generate_fixlen_timeseries(collisions_arr, 1)
+    # collisions_arr_seq_extend = np.repeat(collisions_arr_seq, 24, axis =1)
+
+    # duplicate building_permit_arr and collisions to the same shape as seattle911calls
+    # deal them the same way as 911
     building_permit_arr_seq_extend = np.repeat(building_permit_arr, 24, axis =0)
     collisions_arr_seq_extend = np.repeat(collisions_arr, 24, axis =0)
 
     print('building_permit_arr_seq_extend.shape: ', building_permit_arr_seq_extend.shape)
-
-    # building_permit_arr_seq = generate_fixlen_timeseries(building_permit_arr, 7)
-    # building_permit_arr_seq_extend = np.repeat(building_permit_arr_seq, 24, axis =1)
-    # collisions_arr_seq = generate_fixlen_timeseries(collisions_arr, 7)
-    # collisions_arr_seq_extend = np.repeat(collisions_arr_seq, 24, axis =1)
 
     # construct dictionary
     print('use dictionary to organize data')
@@ -459,12 +456,12 @@ def main():
     rawdata_1d_dict = {
      'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
     'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
-     'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
-     'airquality': airquality_arr,
+    'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+    'airquality': airquality_arr,
     }
 
     rawdata_2d_dict = {
-         'house_price': house_price_arr,
+        'house_price': house_price_arr,
         'POI_business': POI_business_arr,
         'POI_food': POI_food_arr,
         'POI_government': POI_government_arr,
@@ -484,79 +481,40 @@ def main():
 
     rawdata_3d_dict = {
           'building_permit': building_permit_arr_seq_extend,
-        'collisions': collisions_arr_seq_extend,  # (7, 45840, 32, 20)
+        'collisions': collisions_arr_seq_extend,  # expect (1, 45984, 32, 20)
+        # 'building_permit': building_permit_arr,
+        # 'collisions':collisions_arr,
         'seattle911calls': seattle911calls_arr # (45984, 32, 20)
         }
 
+    keys_1d = list(rawdata_1d_dict.keys())
+    keys_2d = list(rawdata_2d_dict.keys())
+    keys_3d = list(rawdata_3d_dict.keys())
 
 
-    # -------------- grouping -----------------------
-    grouping_dict = {'weather_grp': ['precipitation','temperature', 'pressure', 'airquality'],
-                'transportation_grp': ['POI_transportation', 'seattle_street', 'total_flow_count',
-                                      'transit_routes', 'transit_signals', 'transit_stop', 'bikelane',
-                                      'collisions', 'slope'],
-                'economics_grp': ['house_price', 'POI_business', 'POI_food', 'building_permit',
-                             'seattle911calls'],
-                 'public_service_grp': ['POI_government', 'POI_hospitals', 'POI_publicservices',
-                                   'POI_recreation', 'POI_school']
-                }
 
-    '''
-    grouping_dict = {'one_dim_grp': ['precipitation','temperature', 'pressure',, 'airquality'],
-                    'two_dim_grp': ['house_price', 'POI_business','POI_food',  'POI_government',
-                        'POI_hospitals', 'POI_publicservices', 'POI_recreation', 'POI_school',
-                        'POI_transportation', 'seattle_street', 'total_flow_count', 'transit_routes',
-                            'transit_signals', 'transit_stop', 'slope', 'bikelane'],
-                     'third_dim_grp': ['building_permit', 'collisions', 'seattle911calls']
-                    }
-    '''
+    if key != '' and key in keys_1d:
+        temp_var = rawdata_1d_dict[key]
+        rawdata_1d_dict.clear()
+        rawdata_1d_dict[key] = temp_var
+        rawdata_2d_dict.clear()
+        rawdata_3d_dict.clear()
+
+    if key != '' and key in keys_2d:
+        temp_var = rawdata_2d_dict[key]
+        rawdata_2d_dict.clear()
+        rawdata_2d_dict[key] = temp_var
+        rawdata_1d_dict.clear()
+        rawdata_3d_dict.clear()
+
+    if key != '' and key in keys_3d:
+        temp_var = rawdata_3d_dict[key]
+        rawdata_3d_dict.clear()
+        rawdata_3d_dict[key] = temp_var
+        rawdata_2d_dict.clear()
+        rawdata_1d_dict.clear()
 
 
-    ######  grouping using all raw datasets with cosine similarity ######
-    # grouping_dict = {
-    #     'group_1': ['precipitation'],
-    #     'group_2': ['temperature', 'pressure', 'airquality'],
-    #     'group_3': ['house_price', 'POI_recreation', 'POI_school', 'seattle_street',
-    #             'total_flow_count', 'transit_stop', 'slope', 'bikelane'],
-    #     'group_4': ['POI_business', 'POI_food', 'POI_government',
-    #             'POI_publicservices', 'POI_transportation', 'transit_routes',
-    #                 'transit_signals', 'seattle911calls'],
-    #     'group_5': ['POI_hospitals', 'building_permit', 'collisions']
-    #
-    # }
-
-    ########  grouping using raw datasets with cosine similarity BY DIM #########
-
-    # grouping_dict = {
-    #     'group_1': ['precipitation', 'temperature', 'pressure', 'airquality'],
-    #     'group_2': ['seattle911calls'],
-    #     'group_3': ['building_permit', 'collisions'],
-    #     'group_4': ['house_price', 'POI_recreation', 'POI_school', 'seattle_street',
-    #             'total_flow_count', 'transit_stop', 'slope', 'bikelane'],
-    #     'group_5': ['POI_business', 'POI_food', 'POI_government',
-    #             'POI_publicservices', 'POI_transportation', 'transit_routes',
-    #                 'transit_signals'],
-    #     'group_6': ['POI_hospitals', ]
-    #
-    #
-    # }
-
-    ####### grouping by ALL feature maps using cosine distance  #########################################
-    ########## sampled every 50 iterations ###################################
-    # grouping_dict = {
-    #     'group_1': ['precipitation', 'temperature', 'pressure', 'airquality'],
-    #     'group_2': ['house_price', 'POI_government', 'POI_school',
-    #                 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
-    #     'group_3': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation',
-    #                 'transit_stop', 'bikelane'],
-    #     'group_4': ['POI_hospitals', 'POI_recreation', 'slope'],
-    #     'group_5': ['building_permit'],
-    #     'group_6': ['collisions'],
-    #     'group_7': ['seattle911calls']
-    #
-    # }
-
-    ########### grouping by feature maps using cosine distance BY DIM ########
 
 
     # train_obj.train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
@@ -568,9 +526,12 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './autoencoder_v6_individual_init_'+ 'dim'+ str(dim)  +'/'
+        save_path =  './autoencoder_v2_gradnorm_'+ 'dim'+ str(dim)  +'/'
     else:
-        save_path = './autoencoder_v6_individual_init_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
+        if key == '':
+            save_path = './autoencoder_v2_gradnorm_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
+        else:
+            save_path = './autoencoder_v2_gradnorm_'+ 'dim' + str(dim) + '_'+ suffix+ '_' + key  +'/'
 
     if train_dir:
         save_path = train_dir
@@ -591,36 +552,32 @@ def main():
 
 
     timer = str(time.time())
-
-
-
     if resume_training == False:
-
         if inference == False:
-            # Model fusion without fairness
+        # Model fusion without fairness
             print('Train Model')
-            latent_representation = autoencoder_v6_individual_init.Autoencoder_entry(train_obj,
+            latent_representation = autoencoder_v2_gradnorm.Autoencoder_entry(train_obj,
                                     rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
-                                     demo_mask_arr,  save_path, dim, grouping_dict,
+                                     demo_mask_arr,  save_path, dim,
                                 HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                                 use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
                         ).train_lat_rep
-        else: # inference
-            latent_representation = autoencoder_v6_individual_init.Autoencoder_entry(train_obj,
-                                    rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
-                                     demo_mask_arr,  save_path, dim, grouping_dict,
-                                HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
-                                True, checkpoint, False, train_dir,
-                                use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
-                        ).final_lat_rep
+        else:
+            latent_representation = autoencoder_v2_gradnorm.Autoencoder_entry(train_obj,
+                                        rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+                                         demo_mask_arr,  save_path, dim,
+                                    HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
+                                    True, checkpoint, False, train_dir,
+                                    use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
 
+                            ).final_lat_rep
     else:
          # resume training
         print('resume trainging from : ', train_dir)
-        latent_representation = autoencoder_v6_individual_init.Autoencoder_entry(train_obj,
+        latent_representation = autoencoder_v2_gradnorm.Autoencoder_entry(train_obj,
                             rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                          demo_mask_arr,
-                            train_dir, dim,grouping_dict,
+                            train_dir, dim,
                             HEIGHT, WIDTH, TIMESTEPS, CHANNEL,
                             BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                             False, checkpoint, True, train_dir).train_lat_rep
@@ -630,7 +587,7 @@ def main():
     # np.save(save_path +'latent_representation_train.npy', latent_representation)
 
 
-    txt_name = save_path + 'autoencoder_v6_' + 'dim_' + str(dim) +'_'  + timer + '.txt'
+    txt_name = save_path + 'autoencoder_v2_1to1_' + 'dim_' + str(dim) +'_'  + timer + '.txt'
     with open(txt_name, 'w') as the_file:
         the_file.write('Only account for grids that intersect with city boundary \n')
         the_file.write('place\n')
@@ -641,6 +598,24 @@ def main():
         the_file.write(str(LEARNING_RATE) + '\n')
 
         the_file.close()
+
+
+
+    # calc grad norm
+
+    train_sub_grad_csv_path = save_path + 'autoencoder_train_sub_grad' +'.csv'
+    if os.path.exists(train_sub_grad_csv_path):
+        test_df = pd.read_csv(train_sub_grad_csv_path)
+        test_df = 1/test_df
+        test_df = test_df.apply(lambda x: x/x.max(), axis=1)
+        test_df.to_csv(save_path + 'autoencoder_v2_grad_normalized' +'.csv')
+        print('saved grad norm to : ', save_path + 'autoencoder_v2_grad_normalized' +'.csv')
+        last_row_dict = test_df.iloc[-1,:].to_dict()
+
+        recon_file = open(save_path + 'grad_dict', 'wb')
+        print('saved grad dict to : ',save_path + 'grad_dict')
+        pickle.dump(last_row_dict, recon_file)
+        recon_file.close()
 
 
 
