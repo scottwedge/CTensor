@@ -724,7 +724,7 @@ class Autoencoder:
 
 
     def train_autoencoder(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, train_hours,
-                     demo_mask_arr, save_folder_path, dim,
+                     demo_mask_arr, save_folder_path, dim, gradnorm_dict,
                      resume_training = False, checkpoint_path = None,
                       use_pretrained = False, pretrained_ckpt_path_dict = None,
                        epochs=1, batch_size=16):
@@ -807,7 +807,7 @@ class Autoencoder:
             rmse_dict[k] = temp_rmse
 
             reconstruction_dict[k] = reconstruction_1d
-            cost += temp_loss
+            cost += gradnorm_dict[k] * temp_loss
 
             # grads = tf.gradients(temp_loss, prediction_1d_expand, name=k+'_gradients')
             # gradnorm = tf.norm(grads, name='norm')
@@ -824,7 +824,7 @@ class Autoencoder:
             rmse_dict[k] = temp_rmse
 
             reconstruction_dict[k] = reconstruction_2d
-            cost += temp_loss
+            cost += gradnorm_dict[k] * temp_loss
 
             # grads = tf.gradients(temp_loss, prediction_2d_expand, name=k+'_gradients')
             # gradnorm = tf.norm(grads, name='norm')
@@ -847,7 +847,7 @@ class Autoencoder:
             loss_dict[k] = temp_loss
             temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, v, weight_3d))
             rmse_dict[k] = temp_rmse
-            cost += temp_loss
+            cost += gradnorm_dict[k] * temp_loss
 
             reconstruction_dict[k] = reconstruction_3d
 
@@ -957,6 +957,7 @@ class Autoencoder:
                 print('Epoch', epoch, 'started', end='')
                 start_time = datetime.datetime.now()
                 epoch_loss = 0
+                epoch_total_loss = 0  # sum of equal loss
                 epoch_subloss = {}  # ave loss for each dataset
                 epoch_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
@@ -1006,7 +1007,7 @@ class Autoencoder:
 
                     # is_training: True
                     feed_dict_all[self.is_training] = True
-                    batch_cost, batch_loss_dict, batch_rmse_dict,batch_grads, _ = sess.run([cost,loss_dict, rmse_dict,grad_dict, optimizer], feed_dict=feed_dict_all)
+                    batch_cost, batch_total_loss, batch_loss_dict, batch_rmse_dict,batch_grads, _ = sess.run([cost, total_loss, loss_dict, rmse_dict,grad_dict, optimizer], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     batch_output, batch_encoded_list = sess.run([latent_fea, first_order_encoder_list], feed_dict= feed_dict_all)
@@ -1018,35 +1019,46 @@ class Autoencoder:
                         batch_reconstruction_dict = sess.run([reconstruction_dict], feed_dict= feed_dict_all)
                         final_reconstruction_dict = copy.deepcopy(batch_reconstruction_dict)
 
-
-
                     # record results every 50 iterations, that is about 900 samples
                     if itr% 50 == 0:
                         final_encoded_list.append(batch_encoded_list)
 
-                    epoch_loss += batch_cost
+
                     for k, v in epoch_subloss.items():
                         epoch_subloss[k] += batch_loss_dict[k]
 
                     for k, v in epoch_subrmse.items():
                         epoch_subrmse[k] += batch_rmse_dict[k]
 
+                    epoch_loss += batch_cost
+                    # total loss: equal weighting
+                    epoch_total_loss += batch_total_loss
+
                     # for k, v in epoch_subgrad.items():
                     #     epoch_subgrad[k] += batch_grads[k]
 
 
-                    if itr%30 == 0:
+                    # if itr%30 == 0:
+                    #     print("Iter/Epoch: {}/{}...".format(itr, epoch),
+                    #         "Training loss: {:.4f}".format(batch_cost))
+                    #     for k, v in batch_loss_dict.items():
+                    #         print('loss for k :', k, v)
+                    #     for k, v in batch_grads.items():
+                    #         print('gradnorm for k :', k, v)
+                    if itr%10 == 0:
                         print("Iter/Epoch: {}/{}...".format(itr, epoch),
-                            "Training loss: {:.4f}".format(batch_cost))
+                            "Training cost: {:.4f}".format(batch_cost),
+                            "Training batch_total_loss: {:.4f}".format(batch_total_loss))
                         for k, v in batch_loss_dict.items():
                             print('loss for k :', k, v)
-                        for k, v in batch_grads.items():
-                            print('gradnorm for k :', k, v)
 
 
                 # report loss per epoch
                 epoch_loss = epoch_loss/ iterations
                 print('epoch: ', epoch, 'Trainig Set Epoch total Cost: ',epoch_loss)
+                epoch_total_loss = epoch_total_loss / iterations
+                print('epoch: ', epoch, 'Trainig Set Epoch sum of loss: ',epoch_total_loss)
+
                 end_time = datetime.datetime.now()
                 train_time_per_epoch = end_time - start_time
                 train_time_per_sample = train_time_per_epoch/ train_hours
@@ -1072,6 +1084,9 @@ class Autoencoder:
                 # save_path = saver.save(sess, './autoencoder.ckpt')
                 print('Model saved to {}'.format(save_path))
 
+
+
+
                 # Testing per epoch
                 # -----------------------------------------------------------------
                 print('testing per epoch, for epoch: ', epoch)
@@ -1088,6 +1103,7 @@ class Autoencoder:
 
                 test_cost = 0
                 test_final_output = list()
+                test_total_loss = 0
                 test_subloss = {}  # ave loss for each dataset
                 test_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
@@ -1134,7 +1150,7 @@ class Autoencoder:
                     # is_training: True
                     test_feed_dict_all[self.is_training] = True
 
-                    test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict= test_feed_dict_all)
+                    test_batch_cost,test_batch_total_loss, test_batch_loss_dict, test_batch_rmse_dict, _ = sess.run([cost,total_loss, loss_dict, rmse_dict, optimizer], feed_dict= test_feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     test_batch_output = sess.run([latent_fea], feed_dict= test_feed_dict_all)
@@ -1163,9 +1179,12 @@ class Autoencoder:
                     #                                                 self.y: test_mini_batch_x})
 
                     test_cost += test_batch_cost
+                    test_total_loss += test_batch_total_loss
 
                 test_epoch_loss = test_cost/ itrs
                 print('epoch: ', epoch, 'Test Set Epoch total Cost: ',test_epoch_loss)
+                test_total_loss = test_total_loss /itrs
+                print('epoch: ', epoch, 'Test Set Epoch total loss: ',test_total_loss)
                 test_end_time = datetime.datetime.now()
                 test_time_per_epoch = test_end_time - test_start_time
                 test_time_per_sample = test_time_per_epoch/ test_len
@@ -1242,6 +1261,12 @@ class Autoencoder:
                     the_file.write(str(epoch_loss) + '\n')
                     the_file.write(' test_epoch_loss:\n')
                     the_file.write(str(test_epoch_loss) + '\n')
+
+                    the_file.write(' epoch_total_loss: equal weight sum of loss \n')
+                    the_file.write(str(epoch_total_loss) + '\n')
+                    the_file.write(' test_total_loss: equal weight sum of test loss\n')
+                    the_file.write(str(test_total_loss) + '\n')
+
                     the_file.write('\n')
                     the_file.write('total time of last train epoch\n')
                     the_file.write(str(train_time_per_epoch) + '\n')
@@ -2075,7 +2100,7 @@ fixed lenght time window: 168 hours
 class Autoencoder_entry:
     def __init__(self, train_obj,
               rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
-                    demo_mask_arr, save_path, dim,
+                    demo_mask_arr, save_path, dim, gradnorm_dict,
                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                      is_inference = False, checkpoint_path = None,
                      resume_training = False, train_dir = None,
@@ -2092,6 +2117,7 @@ class Autoencoder_entry:
         self.demo_mask_arr = demo_mask_arr
         self.save_path = save_path
         self.dim = dim
+        self.gradnorm_dict = gradnorm_dict
 
         globals()['HEIGHT']  = HEIGHT
         globals()['WIDTH']  = WIDTH
@@ -2218,7 +2244,7 @@ class Autoencoder_entry:
         # (9337, 1, 32, 20, 1)
         train_lat_rep, test_lat_rep, encoded_list, keys_list, final_reconstruction_dict = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
-                         self.demo_mask_arr, self.save_path, self.dim,
+                         self.demo_mask_arr, self.save_path, self.dim,  self.gradnorm_dict,
                          use_pretrained =  self.use_pretrained, pretrained_ckpt_path_dict = self.ckpt_path_dict,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
@@ -2238,7 +2264,7 @@ class Autoencoder_entry:
 
         train_lat_rep, test_lat_rep, encoded_list, keys_list, final_reconstruction_dict = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
-                         self.demo_mask_arr, self.save_path, self.dim,
+                         self.demo_mask_arr, self.save_path, self.dim, self.gradnorm_dict,
                          True, self.checkpoint_path,
                          use_pretrained =  self.use_pretrained, pretrained_ckpt_path_dict = self.ckpt_path_dict,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)

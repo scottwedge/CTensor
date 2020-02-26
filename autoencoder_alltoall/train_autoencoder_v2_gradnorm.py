@@ -371,8 +371,6 @@ def main():
 
 
 
-
-
     print('load data for Seattle...')
     globals()['TRAINING_STEPS']  = epoch
     globals()['LEARNING_RATE']  = learning_rate
@@ -490,6 +488,10 @@ def main():
     keys_1d = list(rawdata_1d_dict.keys())
     keys_2d = list(rawdata_2d_dict.keys())
     keys_3d = list(rawdata_3d_dict.keys())
+    keys_list = []
+    keys_list.extend(keys_1d)
+    keys_list.extend(keys_2d)
+    keys_list.extend(keys_3d)
 
 
 
@@ -515,6 +517,13 @@ def main():
         rawdata_1d_dict.clear()
 
 
+    # load grad norm
+    grad_dict_path = '../grad_dict'
+    if not os.path.exists(save_path):
+        gradnorm_dict = dict(zip(keys_list, [1]*len(keys_list)))
+    else:
+        file = open(grad_dict_path, 'rb')
+        gradnorm_dict = pickle.load(file)
 
 
     # train_obj.train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
@@ -558,14 +567,14 @@ def main():
             print('Train Model')
             latent_representation = autoencoder_v2_gradnorm.Autoencoder_entry(train_obj,
                                     rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
-                                     demo_mask_arr,  save_path, dim,
+                                     demo_mask_arr,  save_path, dim, gradnorm_dict,
                                 HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                                 use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
                         ).train_lat_rep
         else:
             latent_representation = autoencoder_v2_gradnorm.Autoencoder_entry(train_obj,
                                         rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
-                                         demo_mask_arr,  save_path, dim,
+                                         demo_mask_arr,  save_path, dim, gradnorm_dict,
                                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                                     True, checkpoint, False, train_dir,
                                     use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
@@ -577,7 +586,7 @@ def main():
         latent_representation = autoencoder_v2_gradnorm.Autoencoder_entry(train_obj,
                             rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                          demo_mask_arr,
-                            train_dir, dim,
+                            train_dir, dim, gradnorm_dict, 
                             HEIGHT, WIDTH, TIMESTEPS, CHANNEL,
                             BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                             False, checkpoint, True, train_dir).train_lat_rep
