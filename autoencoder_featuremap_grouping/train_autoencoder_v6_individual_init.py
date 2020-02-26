@@ -332,7 +332,7 @@ def parse_args():
     parser.add_argument("-up","--use_pretrained", type=bool, default=False,
     				help="A boolean value whether or not to start from pretrained model")
     parser.add_argument('-pc',   '--pretrained_checkpoint',
-                     action="store", help = 'checkpoint path to pretrained model', default = None)
+                     action="store", help = 'checkpoint path to pretrained model', default = '../autoencoder_alltoall/individual_ckpt/')
     parser.add_argument("-i","--inference", type=bool, default=False,
     				help="inference")
 
