@@ -527,6 +527,7 @@ def main():
    '''
     ########### grouping by feature maps using cosine distance  ########
     # ---  1d2d = 0, no abs, ap ------- #
+    '''
     grouping_dict = {
     'group_1': ['precipitation', 'temperature', 'pressure', 'building_permit'],
     'group_2': ['airquality', 'POI_transportation', 'total_flow_count', 'transit_stop',
@@ -535,8 +536,19 @@ def main():
     'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_hospitals',
         'POI_publicservices', 'POI_recreation', 'POI_school', 'transit_routes', 'seattle911calls']
     }
+    '''
 
+    # ---- 1d2d = calc, no abs, ap  ------#
+    grouping_dict = {
 
+    'group_1': ['precipitation', 'temperature', 'pressure', 'building_permit'],
+    'group_2':['airquality', 'POI_business', 'POI_food', 'POI_recreation', 'POI_school',
+         'seattle911calls'],
+     'group_3': ['house_price', 'seattle_street', 'total_flow_count', 'transit_signals', 'collisions'],
+     'group_4': ['POI_government', 'POI_hospitals', 'POI_publicservices',
+            'POI_transportation', 'transit_routes', 'transit_stop', 'slope', 'bikelane']"
+
+    }
 
     ########### grouping by feature maps using cosine distance BY DIM ########
 
