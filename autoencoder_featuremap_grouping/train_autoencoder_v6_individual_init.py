@@ -565,6 +565,21 @@ def main():
     #
     # }
 
+    # ---- 1d2d = 0, no abs, traditional AP ----- #
+    grouping_dict = {
+    'group_1': ['precipitation', 'temperature', 'pressure'],
+    'group_2': ['airquality'],
+    'group_3': ['house_price', 'seattle_street', 'total_flow_count', 'transit_signals'],
+    'group_4':  ['POI_business', 'POI_food', 'POI_government', 'POI_hospitals', 'POI_publicservices',
+        'POI_recreation', 'POI_school', 'transit_routes', 'seattle911calls'],
+    'group_5':  ['POI_transportation', 'transit_stop', 'slope', 'bikelane'],
+    'group_6': ['building_permit', 'collisions'],
+    }
+
+
+
+
+
     ########### grouping by feature maps using cosine distance BY DIM ########
     # grouping_dict = {
     # 'group_1': ['precipitation', 'temperature', 'pressure'],
