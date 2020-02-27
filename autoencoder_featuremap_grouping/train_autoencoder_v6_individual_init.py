@@ -566,15 +566,15 @@ def main():
     # }
 
     # ---- 1d2d = 0, no abs, traditional AP ----- #
-    grouping_dict = {
-    'group_1': ['precipitation', 'temperature', 'pressure'],
-    'group_2': ['airquality'],
-    'group_3': ['house_price', 'seattle_street', 'total_flow_count', 'transit_signals'],
-    'group_4':  ['POI_business', 'POI_food', 'POI_government', 'POI_hospitals', 'POI_publicservices',
-        'POI_recreation', 'POI_school', 'transit_routes', 'seattle911calls'],
-    'group_5':  ['POI_transportation', 'transit_stop', 'slope', 'bikelane'],
-    'group_6': ['building_permit', 'collisions'],
-    }
+    # grouping_dict = {
+    # 'group_1': ['precipitation', 'temperature', 'pressure'],
+    # 'group_2': ['airquality'],
+    # 'group_3': ['house_price', 'seattle_street', 'total_flow_count', 'transit_signals'],
+    # 'group_4':  ['POI_business', 'POI_food', 'POI_government', 'POI_hospitals', 'POI_publicservices',
+    #     'POI_recreation', 'POI_school', 'transit_routes', 'seattle911calls'],
+    # 'group_5':  ['POI_transportation', 'transit_stop', 'slope', 'bikelane'],
+    # 'group_6': ['building_permit', 'collisions'],
+    # }
 
 
 
@@ -596,7 +596,7 @@ def main():
 
     ###############  random grouping #############################
     grouping_dict = {
-    'group_1': ['temperature',  'building_permit', 'POI_recreation', 'bikelane', 'seattle911calls',
+    'group_1': ['temperature', 'building_permit', 'POI_recreation', 'bikelane', 'seattle911calls',
            'POI_hospitals'],
     'group_2': ['airquality', 'POI_transportation', 'transit_stop',
             'slope', 'POI_food'],
@@ -604,7 +604,7 @@ def main():
             'POI_business'],
     'group_4': [ 'POI_government',
         'POI_publicservices', 'pressure', 'POI_school', 'transit_routes', 'seattle_street']
-    },
+    }
 
 
 
