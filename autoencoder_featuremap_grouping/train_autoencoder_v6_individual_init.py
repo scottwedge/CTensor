@@ -492,6 +492,7 @@ def main():
 
 
     # -------------- grouping -----------------------
+    '''
     grouping_dict = {'weather_grp': ['precipitation','temperature', 'pressure', 'airquality'],
                 'transportation_grp': ['POI_transportation', 'seattle_street', 'total_flow_count',
                                       'transit_routes', 'transit_signals', 'transit_stop', 'bikelane',
@@ -502,7 +503,7 @@ def main():
                                    'POI_recreation', 'POI_school']
                 }
 
-    '''
+
     grouping_dict = {'one_dim_grp': ['precipitation','temperature', 'pressure', 'airquality'],
                     'two_dim_grp': ['house_price', 'POI_business','POI_food',  'POI_government',
                         'POI_hospitals', 'POI_publicservices', 'POI_recreation', 'POI_school',
@@ -524,51 +525,18 @@ def main():
     'group_4': ['POI_hospitals', 'building_permit', 'collisions']
    }
    '''
+    ########### grouping by feature maps using cosine distance  ########
+    # ---  1d2d = 0, no abs, ap ------- #
+    grouping_dict = {
+    'group_1': ['precipitation', 'temperature', 'pressure', 'building_permit'],
+    'group_2': ['airquality', 'POI_transportation', 'total_flow_count', 'transit_stop',
+            'slope', 'bikelane'],
+    'group_3': ['house_price', 'seattle_street', 'transit_signals', 'collisions'],
+    'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_hospitals',
+        'POI_publicservices', 'POI_recreation', 'POI_school', 'transit_routes', 'seattle911calls']
+    }
 
 
-    ######  grouping using all raw datasets with cosine similarity ######
-    # grouping_dict = {
-    #     'group_1': ['precipitation'],
-    #     'group_2': ['temperature', 'pressure', 'airquality'],
-    #     'group_3': ['house_price', 'POI_recreation', 'POI_school', 'seattle_street',
-    #             'total_flow_count', 'transit_stop', 'slope', 'bikelane'],
-    #     'group_4': ['POI_business', 'POI_food', 'POI_government',
-    #             'POI_publicservices', 'POI_transportation', 'transit_routes',
-    #                 'transit_signals', 'seattle911calls'],
-    #     'group_5': ['POI_hospitals', 'building_permit', 'collisions']
-    #
-    # }
-
-    ########  grouping using raw datasets with cosine similarity BY DIM #########
-
-    # grouping_dict = {
-    #     'group_1': ['precipitation', 'temperature', 'pressure', 'airquality'],
-    #     'group_2': ['seattle911calls'],
-    #     'group_3': ['building_permit', 'collisions'],
-    #     'group_4': ['house_price', 'POI_recreation', 'POI_school', 'seattle_street',
-    #             'total_flow_count', 'transit_stop', 'slope', 'bikelane'],
-    #     'group_5': ['POI_business', 'POI_food', 'POI_government',
-    #             'POI_publicservices', 'POI_transportation', 'transit_routes',
-    #                 'transit_signals'],
-    #     'group_6': ['POI_hospitals', ]
-    #
-    #
-    # }
-
-    ####### grouping by ALL feature maps using cosine distance  #########################################
-    ########## sampled every 50 iterations ###################################
-    # grouping_dict = {
-    #     'group_1': ['precipitation', 'temperature', 'pressure', 'airquality'],
-    #     'group_2': ['house_price', 'POI_government', 'POI_school',
-    #                 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
-    #     'group_3': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation',
-    #                 'transit_stop', 'bikelane'],
-    #     'group_4': ['POI_hospitals', 'POI_recreation', 'slope'],
-    #     'group_5': ['building_permit'],
-    #     'group_6': ['collisions'],
-    #     'group_7': ['seattle911calls']
-    #
-    # }
 
     ########### grouping by feature maps using cosine distance BY DIM ########
 
