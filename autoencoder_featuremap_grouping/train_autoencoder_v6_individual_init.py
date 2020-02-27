@@ -39,6 +39,7 @@ import datetime_utils
 import autoencoder_v6_individual_init
 from matplotlib import pyplot as plt
 import random
+import pickle
 
 
 
@@ -660,7 +661,7 @@ def main():
     # calc grad norm
     train_sub_grad_csv_path = save_path + 'autoencoder_train_sub_grad' +'.csv'
     if os.path.exists(train_sub_grad_csv_path):
-        test_df = pd.read_csv(train_sub_grad_csv_path)
+        test_df = pd.read_csv(train_sub_grad_csv_path, index_col=0)
         test_df = 1/test_df
         test_df = test_df.apply(lambda x: x/x.max(), axis=1)
         test_df.to_csv(save_path + 'autoencoder_v6_grad_normalized' +'.csv')

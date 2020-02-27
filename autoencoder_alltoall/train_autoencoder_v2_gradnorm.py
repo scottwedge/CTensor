@@ -517,13 +517,6 @@ def main():
         rawdata_1d_dict.clear()
 
 
-    # load grad norm
-    grad_dict_path = '../grad_dict'
-    if not os.path.exists(save_path):
-        gradnorm_dict = dict(zip(keys_list, [1]*len(keys_list)))
-    else:
-        file = open(grad_dict_path, 'rb')
-        gradnorm_dict = pickle.load(file)
 
 
     # train_obj.train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
@@ -560,6 +553,40 @@ def main():
         np.save(save_path + str(place)+ '_demo_arr_'+ str(HEIGHT) + '.npy', demo_arr)
 
 
+
+    # load grad norm
+    train_sub_grad_csv_path = './autoencoder_v2_1to1_dim5_alltoall_grad/' + 'autoencoder_train_sub_grad' +'.csv'
+    if os.path.exists(train_sub_grad_csv_path):
+        test_df = pd.read_csv(train_sub_grad_csv_path, index_col=0)
+        test_df = 1/test_df
+        test_df = test_df.apply(lambda x: x/x.max(), axis=1)
+        test_df.to_csv(save_path + 'autoencoder_v2_grad_normalized' +'.csv')
+        print('saved grad norm to : ', save_path + 'autoencoder_v2_grad_normalized' +'.csv')
+        last_row_dict = test_df.iloc[-1,:].to_dict()
+
+        last_corr = test_df.iloc[-1,:].corr(test_df.iloc[-2,:])
+        print('correlation between last two rows of grad: ', last_corr)
+
+        recon_file = open(save_path + 'grad_dict', 'wb')
+        print('saved grad dict to : ',save_path + 'grad_dict')
+        pickle.dump(last_row_dict, recon_file)
+        recon_file.close()
+
+
+    grad_dict_path = save_path + 'grad_dict'
+    if not os.path.exists(save_path):
+        print('grad_dict does not exist!')
+        gradnorm_dict = dict(zip(keys_list, [1]*len(keys_list)))
+    else:
+        file = open(grad_dict_path, 'rb')
+        gradnorm_dict = pickle.load(file)
+
+    print('print gradnorm_dict')
+    for k, v in gradnorm_dict.items():
+        print(k,v)
+
+
+
     timer = str(time.time())
     if resume_training == False:
         if inference == False:
@@ -586,7 +613,7 @@ def main():
         latent_representation = autoencoder_v2_gradnorm.Autoencoder_entry(train_obj,
                             rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                          demo_mask_arr,
-                            train_dir, dim, gradnorm_dict, 
+                            train_dir, dim, gradnorm_dict,
                             HEIGHT, WIDTH, TIMESTEPS, CHANNEL,
                             BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                             False, checkpoint, True, train_dir).train_lat_rep
