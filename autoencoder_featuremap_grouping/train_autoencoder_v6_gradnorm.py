@@ -585,7 +585,7 @@ def main():
 
 
     # load grad norm
-    train_sub_grad_csv_path = './autoencoder_v2_1to1_dim5_alltoall_grad/' + 'autoencoder_train_sub_grad' +'.csv'
+    train_sub_grad_csv_path = './autoencoder_v6_individual_init_dim5_semantic_grad/' + 'autoencoder_train_sub_grad' +'.csv'
     if os.path.exists(train_sub_grad_csv_path):
         test_df = 1/test_df
         # test_df = test_df.apply(lambda x: x/x.max(), axis=1)
