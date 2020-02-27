@@ -513,7 +513,7 @@ def main():
                     }
     '''
 
-    # ------ Raw data grouping ------------- #
+    # ------ Raw data grouping V1 ------------- #
     '''
     grouping_dict = {
 
@@ -525,6 +525,23 @@ def main():
     'group_4': ['POI_hospitals', 'building_permit', 'collisions']
    }
    '''
+
+    # ------ Raw data grouping V2 ------------- #
+    grouping_dict = {
+        'group_1':  ['precipitation'],
+        'group_2':  ['temperature', 'pressure', 'airquality'],
+        'group_3': ['house_price', 'POI_school', 'slope'],
+        'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices', 'transit_signals'],
+        'group_5': ['POI_hospitals'],
+        'group_6': ['POI_recreation', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_stop', 'bikelane'],
+        'group_7': ['POI_transportation'],
+        'group_8':  ['building_permit'],
+        'group_9': ['collisions', 'seattle911calls'],
+    }
+
+
+
+
     ########### grouping by feature maps using cosine distance  ########
     # ---  1d2d = 0, no abs, ap ------- #
     '''
@@ -539,16 +556,16 @@ def main():
     '''
 
     # ---- 1d2d = calc, no abs, ap  ------#
-    grouping_dict = {
-
-    'group_1': ['precipitation', 'temperature', 'pressure', 'building_permit'],
-    'group_2':['airquality', 'POI_business', 'POI_food', 'POI_recreation', 'POI_school',
-         'seattle911calls'],
-     'group_3': ['house_price', 'seattle_street', 'total_flow_count', 'transit_signals', 'collisions'],
-     'group_4': ['POI_government', 'POI_hospitals', 'POI_publicservices',
-            'POI_transportation', 'transit_routes', 'transit_stop', 'slope', 'bikelane']
-
-    }
+    # grouping_dict = {
+    #
+    # 'group_1': ['precipitation', 'temperature', 'pressure', 'building_permit'],
+    # 'group_2':['airquality', 'POI_business', 'POI_food', 'POI_recreation', 'POI_school',
+    #      'seattle911calls'],
+    #  'group_3': ['house_price', 'seattle_street', 'total_flow_count', 'transit_signals', 'collisions'],
+    #  'group_4': ['POI_government', 'POI_hospitals', 'POI_publicservices',
+    #         'POI_transportation', 'transit_routes', 'transit_stop', 'slope', 'bikelane']
+    #
+    # }
 
     ########### grouping by feature maps using cosine distance BY DIM ########
 
