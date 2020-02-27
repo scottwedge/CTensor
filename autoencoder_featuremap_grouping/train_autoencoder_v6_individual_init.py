@@ -527,19 +527,17 @@ def main():
    '''
 
     # ------ Raw data grouping V2 ------------- #
-    grouping_dict = {
-        'group_1':  ['precipitation'],
-        'group_2':  ['temperature', 'pressure', 'airquality'],
-        'group_3': ['house_price', 'POI_school', 'slope'],
-        'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices', 'transit_signals'],
-        'group_5': ['POI_hospitals'],
-        'group_6': ['POI_recreation', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_stop', 'bikelane'],
-        'group_7': ['POI_transportation'],
-        'group_8':  ['building_permit'],
-        'group_9': ['collisions', 'seattle911calls'],
-    }
-
-
+    # grouping_dict = {
+    #     'group_1':  ['precipitation'],
+    #     'group_2':  ['temperature', 'pressure', 'airquality'],
+    #     'group_3': ['house_price', 'POI_school', 'slope'],
+    #     'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices', 'transit_signals'],
+    #     'group_5': ['POI_hospitals'],
+    #     'group_6': ['POI_recreation', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_stop', 'bikelane'],
+    #     'group_7': ['POI_transportation'],
+    #     'group_8':  ['building_permit'],
+    #     'group_9': ['collisions', 'seattle911calls'],
+    # }
 
 
     ########### grouping by feature maps using cosine distance  ########
@@ -568,6 +566,21 @@ def main():
     # }
 
     ########### grouping by feature maps using cosine distance BY DIM ########
+    grouping_dict = {
+    'group_1': ['precipitation', 'temperature', 'pressure'],
+    'group_2': ['airquality'],
+    'group_3': ['house_price', 'seattle_street', 'transit_signals'],
+    'group_4':['POI_business', 'POI_hospitals', 'POI_publicservices', 'POI_recreation', 'POI_school'],
+    'group_5': ['POI_food', 'POI_government', 'POI_transportation', 'transit_routes'],
+    'group_6': ['total_flow_count', 'slope', 'bikelane'],
+    'group_7': ['transit_stop'],
+    'group_8':['building_permit', 'collisions'],
+    'group_9':['seattle911calls'],
+    }
+
+
+
+
 
 
     # train_obj.train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
