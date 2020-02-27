@@ -564,7 +564,7 @@ def main():
         # test_df = 1/test_df
 
         test_df = 1/test_df
-        test_df = test_df.apply(lambda x: x/x.max(), axis=1)
+        # test_df = test_df.apply(lambda x: x/x.max(), axis=1)
         test_df = np.log10(test_df)
         test_df = abs(test_df)
         test_df = 1/test_df
