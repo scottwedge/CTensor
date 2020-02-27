@@ -26,6 +26,7 @@ import evaluation
 import autoencoder_v2_gradnorm
 from matplotlib import pyplot as plt
 import random
+import pickle
 
 
 
@@ -574,7 +575,7 @@ def main():
 
 
     grad_dict_path = save_path + 'grad_dict'
-    if not os.path.exists(save_path):
+    if not os.path.exists(grad_dict_path):
         print('grad_dict does not exist!')
         gradnorm_dict = dict(zip(keys_list, [1]*len(keys_list)))
     else:
