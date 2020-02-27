@@ -527,17 +527,17 @@ def main():
    '''
 
     # ------ Raw data grouping V2 ------------- #
-    grouping_dict = {
-        'group_1':  ['precipitation'],
-        'group_2':  ['temperature', 'pressure', 'airquality'],
-        'group_3': ['house_price', 'POI_school', 'slope'],
-        'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices', 'transit_signals'],
-        'group_5': ['POI_hospitals'],
-        'group_6': ['POI_recreation', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_stop', 'bikelane'],
-        'group_7': ['POI_transportation'],
-        'group_8':  ['building_permit'],
-        'group_9': ['collisions', 'seattle911calls'],
-    }
+    # grouping_dict = {
+    #     'group_1':  ['precipitation'],
+    #     'group_2':  ['temperature', 'pressure', 'airquality'],
+    #     'group_3': ['house_price', 'POI_school', 'slope'],
+    #     'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices', 'transit_signals'],
+    #     'group_5': ['POI_hospitals'],
+    #     'group_6': ['POI_recreation', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_stop', 'bikelane'],
+    #     'group_7': ['POI_transportation'],
+    #     'group_8':  ['building_permit'],
+    #     'group_9': ['collisions', 'seattle911calls'],
+    # }
 
 
     ########### grouping by feature maps using cosine distance  ########
