@@ -546,7 +546,7 @@ def main():
          'seattle911calls'],
      'group_3': ['house_price', 'seattle_street', 'total_flow_count', 'transit_signals', 'collisions'],
      'group_4': ['POI_government', 'POI_hospitals', 'POI_publicservices',
-            'POI_transportation', 'transit_routes', 'transit_stop', 'slope', 'bikelane']"
+            'POI_transportation', 'transit_routes', 'transit_stop', 'slope', 'bikelane']
 
     }
 
