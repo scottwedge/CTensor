@@ -469,6 +469,8 @@ def parse_args():
                      action="store", help = 'epochs to train', default = 200)
     parser.add_argument('-l',   '--learning_rate',  type=float,
                      action="store", help = 'epochs to train', default = 0.005)
+    parser.add_argument('-d',   '--encoding_dir',
+                     action="store", help = 'dir containing latent representations', default = '')
 
 
     #parser.add_argument('-a','--use_1d_fea', type=bool, default=True,
@@ -497,6 +499,7 @@ def main():
     place = args.place
     epoch = args.epoch
     learning_rate= args.learning_rate
+    encoding_dir = args.encoding_dir
 
     # print("received arguments: lamda: ",lamda)
     # print("received arguments: beta: ",beta)
@@ -572,7 +575,7 @@ def main():
         # latent_rep_path = '/home/ubuntu/CTensor/predictions/autoencoder_v1_Seattle/inference/infer_latent_representation.npy'
         # latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall/autoencoder_v2_dim1_epoch15/train_lat_rep.npy'
         # latent_rep_path = '/home/ubuntu/CTensor/results/AE_v2/autoencoder_v2_dim1_aev2_dim1_epoch20/train_lat_rep.npy'
-        latent_rep_path = '/home/ubuntu/CTensor/toy_examples_1to1_reconstruct/toy_autoencoder_v2_1to1_dim3_alltoall_bikeshare_dim3_dim1d_1/latent_rep/final_lat_rep.npy'
+        latent_rep_path = '/home/ubuntu/CTensor/' + encoding_dir + 'latent_rep/final_lat_rep.npy'
 
         latent_rep = np.load(latent_rep_path)
         # deprecated: (41616, 1, 32, 20, 1) for v1,  (41616, 32, 20, 1) for v2
@@ -799,6 +802,8 @@ def main():
         # the_file.write(str(beta) + '\n')
         the_file.write('dim\n')
         the_file.write(str(dim) + '\n')
+        the_file.write('latent_rep_path\n')
+        the_file.write(str(latent_rep_path) + '\n')
         # the_file.write('use_1d_fea\n')
         # the_file.write(str(use_1d_fea) + '\n')
         # the_file.write('use_2d_fea\n')

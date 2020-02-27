@@ -409,6 +409,9 @@ def parse_args():
                      action="store", help = 'epochs to train', default = 200)
     parser.add_argument('-l',   '--learning_rate',  type=float,
                      action="store", help = 'epochs to train', default = 0.005)
+    parser.add_argument('-d',   '--encoding_dir',
+                     action="store", help = 'dir containing latent representations', default = '')
+
 
     return parser.parse_args()
 
@@ -425,6 +428,7 @@ def main():
     place = args.place
     epoch = args.epoch
     learning_rate= args.learning_rate
+    encoding_dir = args.encoding_dir
 
     print("resume_training: ", resume_training)
     print("training dir path: ", train_dir)
@@ -503,7 +507,8 @@ def main():
 
         # -------------- loat latent representation ---------------------
         print('loading latent representation')
-        latent_rep_path = '/home/ubuntu/CTensor/toy_examples_1to1_reconstruct/toy_autoencoder_v2_1to1_dim3_alltoall_bikeshare_dim3_dim1d_1_e100/latent_rep/final_lat_rep.npy'
+        # latent_rep_path = '/home/ubuntu/CTensor/toy_examples_1to1_reconstruct/toy_autoencoder_v2_1to1_dim3_alltoall_bikeshare_dim3_dim1d_1_e100/latent_rep/final_lat_rep.npy'
+        latent_rep_path = '/home/ubuntu/CTensor/' + encoding_dir + 'latent_rep/final_lat_rep.npy'
 
         latent_rep = np.load(latent_rep_path)
         # deprecated: (41616, 1, 32, 20, 1) for v1,  (41616, 32, 20, 1) for v2
@@ -644,6 +649,8 @@ def main():
         the_file.write(str(dim) + '\n')
         the_file.write('learning rate\n')
         the_file.write(str(LEARNING_RATE) + '\n')
+        the_file.write('latent_rep_path\n')
+        the_file.write(str(latent_rep_path) + '\n')
 
         the_file.write('rmse for conv3d\n')
         the_file.write(str(eval_obj4.rmse_val) + '\n')
