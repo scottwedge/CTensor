@@ -130,7 +130,7 @@ def first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                         #
                         # ave_SR = sim_sparse[0][0]
                         # relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
-                        relation_all_df.loc[ds_name1, ds_name2]  += ave_SR
+                        relation_all_df.loc[ds_name1, ds_name2]  += 0
 
                     # 3D VS 1D
                     # duplicate 1D to 3D, flatten and compare
