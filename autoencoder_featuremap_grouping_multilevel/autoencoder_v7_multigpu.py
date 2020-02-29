@@ -463,9 +463,6 @@ class Autoencoder:
             conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
 
-            # Max Pooling (down-sampling) with strides of 2 and kernel size of 2
-            # Average Pooling   None, 168,16  -> None, 1, 16
-            # conv2 = tf.layers.average_pooling1d( conv2, 168, 1, padding='valid')
 
         # with tf.name_scope("1d_layer_b"):
             conv3 = tf.layers.conv1d(
@@ -936,7 +933,7 @@ class Autoencoder:
                     AdamOp = tf.train.AdamOptimizer(learning_rate=learning_rate)
                     grads = AdamOp.compute_gradients(cost, colocate_gradients_with_ops = True)
                     print('\n'.join('{}: {}'.format(*k) for k in enumerate(grads)))
-                    tf.get_variable_scope().reuse_variables()
+                    # tf.get_variable_scope().reuse_variables()
 
                     tower_grads.append(grads)
                     # var_list=variables_to_update
