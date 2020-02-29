@@ -58,16 +58,27 @@ def generate_mask_array(intersect_pos_set):
 # input a tensor [32, 20, n] or [n, 32, 20]
 # remove cells outside city, resulting in, e.g. [500, n]
 # return a flatten tensor of 500 * n
+# should deal with [24, 32, 20, 3]
 def remove_outside_cells(tensor, mask_arr):
-    demo_mask_arr_expanded = np.expand_dims(mask_arr, 2)  # [1, 2]
-            # [1, 32, 20, 1]  -> [1, 1, 32, 20, 1]
-            # [1, 32, 20, 1] -> [batchsize, 32, 20, 1]
-            # batchsize = tf.shape(prediction)[0]
-    demo_mask_arr_expanded = np.tile(demo_mask_arr_expanded, [1,1, tensor.shape[-1]])
-    # print('demo_mask_arr_expanded.shape: ', demo_mask_arr_expanded.shape)
-    # masked tensor, outside cells should be false / 0
-    marr = np.ma.MaskedArray(tensor, mask= demo_mask_arr_expanded)
-    compressed_arr = np.ma.compressed(marr)
+    if len(mask_arr.shape) == 3: # for first level
+        demo_mask_arr_expanded = np.expand_dims(mask_arr, 2)  # [1, 2]
+                # [1, 32, 20, 1]  -> [1, 1, 32, 20, 1]
+                # [1, 32, 20, 1] -> [batchsize, 32, 20, 1]
+                # batchsize = tf.shape(prediction)[0]
+        demo_mask_arr_expanded = np.tile(demo_mask_arr_expanded, [1,1, tensor.shape[-1]])
+        # print('demo_mask_arr_expanded.shape: ', demo_mask_arr_expanded.shape)
+        # masked tensor, outside cells should be false / 0
+        marr = np.ma.MaskedArray(tensor, mask= demo_mask_arr_expanded)
+        compressed_arr = np.ma.compressed(marr)
+    if len(mask_arr.shape) == 4:  # for second level
+        demo_mask_arr_expanded = np.expand_dims(mask_arr, 2)  # [1, 2]
+        demo_mask_arr_expanded = np.tile(demo_mask_arr_expanded, [1,1, tensor.shape[-1]])
+        demo_mask_arr_expanded = np.expand_dims(mask_arr, 0)  # [1, 2]
+        demo_mask_arr_expanded = np.tile(demo_mask_arr_expanded, [tensor.shape[0], 1, 1, 1])
+
+        marr = np.ma.MaskedArray(tensor, mask= demo_mask_arr_expanded)
+        compressed_arr = np.ma.compressed(marr)
+
     # print('compressed arr: ', compressed_arr)
     # print('compreessed shape: ', compressed_arr.shape)
     return compressed_arr
