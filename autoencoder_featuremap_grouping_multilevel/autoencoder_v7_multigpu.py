@@ -642,7 +642,6 @@ class Autoencoder:
         var_scope = 'fusion_layer_'+ suffix
         with tf.variable_scope(var_scope, reuse=tf.AUTO_REUSE):
             fuse_feature =tf.concat(axis=-1,values=feature_map_list)
-            print('fuse_feature.shape: ', fuse_feature.shape)
 
             # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, 16]
             conv1 = tf.layers.conv3d(inputs=fuse_feature, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
@@ -677,7 +676,6 @@ class Autoencoder:
             #     )
 
             out = conv3
-            print('latent representation shape: ',out.shape)
             # output size should be [batchsize, height, width, dim]
             # updated: output size should be [batchsize, 168, height, width, dim]
         return out
@@ -748,7 +746,7 @@ class Autoencoder:
             reuse_vars = False
 
             for i, d in enumerate(['/gpu:0', '/gpu:1',
-                     '/gpu:2', '/gpu:3',     '/gpu:4','/gpu:5','/gpu:6','/gpu:7']):
+                     '/gpu:2', '/gpu:3', '/gpu:4','/gpu:5','/gpu:6','/gpu:7']):
                 with tf.device(d):
 
             # Loop over all GPUs and construct their own computation graph
@@ -828,7 +826,7 @@ class Autoencoder:
                     # ------------------------------------------------#
                     # dim: latent fea dimension
                     latent_fea = self.fuse_and_train(list(second_level_output.values()),  self.is_training, '3', dim)
-                    print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 5)
+                    #print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 5)
                     # recontruction
                     print('recontruction')
                     demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr, 0)  # [1, 2]
@@ -932,7 +930,7 @@ class Autoencoder:
 
                     AdamOp = tf.train.AdamOptimizer(learning_rate=learning_rate)
                     grads = AdamOp.compute_gradients(cost, colocate_gradients_with_ops = True)
-                    print('\n'.join('{}: {}'.format(*k) for k in enumerate(grads)))
+                    # print('\n'.join('{}: {}'.format(*k) for k in enumerate(grads)))
                     # tf.get_variable_scope().reuse_variables()
 
                     tower_grads.append(grads)
