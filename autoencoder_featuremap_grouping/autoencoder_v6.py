@@ -1194,7 +1194,7 @@ class Autoencoder:
 
 
                 # save results to txt
-                txt_name = save_folder_path + 'AE_v5_df' +  '.txt'
+                txt_name = save_folder_path + 'AE_v7_df' +  '.txt'
                 with open(txt_name, 'w') as the_file:
                     #the_file.write('Only account for grids that intersect with city boundary \n')
                     the_file.write('epoch\n')

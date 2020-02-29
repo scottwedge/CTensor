@@ -37,7 +37,7 @@ import random
 
 HEIGHT = 32
 WIDTH = 20
-TIMESTEPS = 168
+TIMESTEPS = 24
 
 CHANNEL = 27  # number of all features
 
@@ -48,13 +48,13 @@ TRAINING_STEPS = 50
 
 LEARNING_RATE = 0.001
 
-HOURLY_TIMESTEPS = 168
+HOURLY_TIMESTEPS = 24
 DAILY_TIMESTEPS = 7
 THREE_HOUR_TIMESTEP = 56
 
 # stacking to form features: [9504-168, 168, 32, 20, 9]
 # target latent representation: [9504-168, 1, 32,20,1]
-def generate_fixlen_timeseries(rawdata_arr, timestep = 168):
+def generate_fixlen_timeseries(rawdata_arr, timestep = 24):
     raw_seq_list = list()
         # arr_shape: [# of timestamps, w, h]
     arr_shape = rawdata_arr.shape
@@ -429,23 +429,21 @@ def main():
     print('crime_arr.shape: ', crime_arr.shape)
     print('seattle911calls_arr.shape: ', seattle911calls_arr.shape)
 
-    building_permit_arr_seq = generate_fixlen_timeseries(building_permit_arr, 7)
-    building_permit_arr_seq_extend = np.repeat(building_permit_arr_seq, 24, axis =1)
-    collisions_arr_seq = generate_fixlen_timeseries(collisions_arr, 7)
-    collisions_arr_seq_extend = np.repeat(collisions_arr_seq, 24, axis =1)
+    building_permit_arr_seq_extend = np.repeat(building_permit_arr, 24, axis =0)
+    collisions_arr_seq_extend = np.repeat(collisions_arr, 24, axis =0)
 
     # construct dictionary
     print('use dictionary to organize data')
-    rawdata_1d_dict = {
-     'weather': weather_arr,
-    'airquality': airquality_arr,
-    }
     # rawdata_1d_dict = {
-    #  'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
-    # 'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
-    # 'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+    #  'weather': weather_arr,
     # 'airquality': airquality_arr,
     # }
+    rawdata_1d_dict = {
+     'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
+    'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
+    'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+    'airquality': airquality_arr,
+    }
 
     rawdata_2d_dict = {
          'house_price': house_price_arr,
@@ -483,115 +481,36 @@ def main():
     #                                'POI_recreation', 'POI_school']
     #             }
 
-    ####  grouping all datasets altogether using affinity propogation and Pearson correlation
-    # grouping_dict = {
-    #     'group_1': ['precipitation'],
-    #     'group_2': ['temperature', 'pressure', 'airquality'],
-    #     'group_3': ['house_price', 'slope'],
-    #     'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_publicservices',
-    #             'POI_transportation', 'transit_routes', 'transit_signals', 'seattle911calls'],
-    #     'group_5': ['POI_hospitals', 'building_permit', 'collisions'],
-    #     'group_6':['POI_recreation', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_stop', 'bikelane']
-    # }
-
-
-    ######  grouping using all raw datasets with cosine similarity ######
-    # grouping_dict = {
-    #     'group_1': ['precipitation'],
-    #     'group_2': ['temperature', 'pressure', 'airquality'],
-    #     'group_3': ['house_price', 'POI_recreation', 'POI_school', 'seattle_street',
-    #             'total_flow_count', 'transit_stop', 'slope', 'bikelane'],
-    #     'group_4': ['POI_business', 'POI_food', 'POI_government',
-    #             'POI_publicservices', 'POI_transportation', 'transit_routes',
-    #                 'transit_signals', 'seattle911calls'],
-    #     'group_5': ['POI_hospitals', 'building_permit', 'collisions']
-    #
-    # }
-
-    ########  grouping using raw datasets with cosine similarity BY DIM #########
-
-    # grouping_dict = {
-    #     'group_1': ['precipitation', 'temperature', 'pressure', 'airquality'],
-    #     'group_2': ['seattle911calls'],
-    #     'group_3': ['building_permit', 'collisions'],
-    #     'group_4': ['house_price', 'POI_recreation', 'POI_school', 'seattle_street',
-    #             'total_flow_count', 'transit_stop', 'slope', 'bikelane'],
-    #     'group_5': ['POI_business', 'POI_food', 'POI_government',
-    #             'POI_publicservices', 'POI_transportation', 'transit_routes',
-    #                 'transit_signals'],
-    #     'group_6': ['POI_hospitals', ]
-    #
-    #
-    # }
-
-    ####### grouping by ALL feature maps using cosine distance  #########################################
-    ########## sampled every 50 iterations ###################################
-    # grouping_dict = {
-    #     'group_1': ['precipitation', 'temperature', 'pressure', 'airquality'],
-    #     'group_2': ['house_price', 'POI_government', 'POI_school',
-    #                 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
-    #     'group_3': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation',
-    #                 'transit_stop', 'bikelane'],
-    #     'group_4': ['POI_hospitals', 'POI_recreation', 'slope'],
-    #     'group_5': ['building_permit'],
-    #     'group_6': ['collisions'],
-    #     'group_7': ['seattle911calls']
-    #
-    # }
-
-    ########### grouping by feature maps using cosine distance BY DIM ########
-    ########## sampled every 50 iterations ###################################
-
-    # grouping_dict = {
-    #     'group_1': ['precipitation', 'pressure'],
-    #     'group_2': ['temperature', 'airquality'],
-    #     'group_3': ['house_price', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
-    #     'group_4': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation', 'transit_stop', 'bikelane'],
-    #     'group_5': ['POI_government', 'POI_recreation', 'slope'],
-    #     'group_6': ['POI_hospitals'],
-    #     'group_7': ['building_permit', 'collisions'],
-    #     'group_8': ['seattle911calls'],
-    #
-    # }
 
 
     ########### group by ALL feature maps using cosine similarity  ####
     #### removed abs from cos similarity  #############################
     first_level_grouping_dict = {
-        'group_1': ['precipitation', 'temperature', 'pressure'],
-        'group_2': ['airquality'],
-        'group_3': ['house_price', 'POI_government', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
-        'group_4': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation',
-                    'transit_stop', 'bikelane'],
-        'group_5': ['POI_hospitals', 'POI_recreation', 'slope'],
-        'group_6': ['building_permit'],
-        'group_7': ['collisions'],
-        'group_8': ['seattle911calls'],
+    'group_1': ['precipitation', 'temperature', 'pressure'],
+    'group_2': ['airquality'],
+    'group_3': ['house_price', 'seattle_street', 'transit_signals'],
+    'group_4':['POI_business', 'POI_hospitals', 'POI_publicservices', 'POI_recreation', 'POI_school'],
+    'group_5': ['POI_food', 'POI_government', 'POI_transportation', 'transit_routes'],
+    'group_6': ['total_flow_count', 'slope', 'bikelane'],
+    'group_7': ['transit_stop'],
+    'group_8':['building_permit', 'collisions'],
+    'group_9':['seattle911calls'],
 
     }
+
 
     second_level_grouping_dict = {
-    'group_2_1': ['group_1', 'group_6', 'group_7'],  # because they are all sparse!
-    'group_2_2': ['group_2', 'group_3', 'group_4', 'group_5', 'group_8']
+    'group_2_1': ['group_1'],  # because they are all sparse!
+    'group_2_2': ['group_2'],
+    'group_2_3': ['group_3', 'group_6', 'group_8', 'group_9'],
+    'group_2_4': ['group_4', 'group_5', 'group_7'],
+
     }
 
-
-
-
-    ########### group by ALL feature maps using cosine similarity  ####
-    #### removed abs from cos similarity, flatten 3d tensors into 1d to compare ###
-    # grouping_dict = {
-    #     'group_1': ['precipitation', 'pressure', 'POI_government', 'POI_recreation', 'slope'],
-    #     'group_2': ['temperature', 'house_price', 'POI_school', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_signals'],
-    #     'group_3': ['airquality'],
-    #     'group_4': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_transportation', 'transit_stop', 'bikelane'],
-    #     'group_5': ['POI_hospitals'],
-    #     'group_6': ['building_permit'],
-    #     'group_7': ['collisions'],
-    #     'group_8': ['seattle911calls'],
-    #
-    # }
-
+#    0 ['group_1']
+# 1 ['group_2']
+# 3 ['group_3', 'group_6', 'group_8', 'group_9']
+# 2 ['group_4', 'group_5', 'group_7']
 
 
 
