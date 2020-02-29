@@ -734,39 +734,42 @@ class Autoencoder:
     # take a latent fea, decode into [batchsize, 32, 20, dim_decode]
     # update: latent_fea: [batchsize, 168, height, width, dim]
     #         -> [None, 168, 32, 20, dim_decode]
-    def branching(self, latent_fea, dim_decode, is_training):
-        padding = 'SAME'
-        stride = [1, 1]
-        #  [None, 32, 20, dim] - > [None, 32, 20, 16]
-        # conv1 = tf.layers.conv2d(latent_fea, 16, 3, padding='same',activation=None)
-        # conv1 = tf.layers.batch_normalization(conv1, training=is_training)
-        # conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
-        #
-        # conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
-        # conv2 = tf.layers.batch_normalization(conv2, training=is_training)
-        # conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
-        #
-        # conv3 = tf.layers.conv2d(conv2, dim_decode, 3, padding='same',activation=None)
-        # conv3 = tf.layers.batch_normalization(conv3, training=is_training)
-        # conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
+    def branching(self, latent_fea, dim_decode, suffix = '', is_training):
+        var_scope = 'branching_layer_'+ suffix
+        with tf.variable_scope(var_scope, reuse=tf.AUTO_REUSE):
 
-        conv1 = tf.layers.conv3d(inputs=latent_fea, filters=16, kernel_size=[3,3,3], padding='same', activation=None, reuse = tf.AUTO_REUSE)
-        conv1 = tf.layers.batch_normalization(conv1, training=is_training, reuse = tf.AUTO_REUSE)
-        conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
-        # conv => 16*16*16
-        conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None, reuse = tf.AUTO_REUSE)
-        conv2 = tf.layers.batch_normalization(conv2, training=is_training, reuse = tf.AUTO_REUSE)
-        conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
-        # pool => 8*8*8
+            padding = 'SAME'
+            stride = [1, 1]
+            #  [None, 32, 20, dim] - > [None, 32, 20, 16]
+            # conv1 = tf.layers.conv2d(latent_fea, 16, 3, padding='same',activation=None)
+            # conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+            # conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
+            #
+            # conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
+            # conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            # conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+            #
+            # conv3 = tf.layers.conv2d(conv2, dim_decode, 3, padding='same',activation=None)
+            # conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+            # conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
 
-        # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, dim]
-        conv3 = tf.layers.conv3d(inputs=conv2, filters= dim_decode, kernel_size=[3,3,3], padding='same', activation=None, reuse = tf.AUTO_REUSE)
-        conv3 = tf.layers.batch_normalization(conv3, training=is_training, reuse = tf.AUTO_REUSE)
-        conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
+            conv1 = tf.layers.conv3d(inputs=latent_fea, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
+            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
+            # conv => 16*16*16
+            conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+            # pool => 8*8*8
 
-        # previous [None,32, 20 32] -> [None, 32, 20, dim_2d]
-        # [batchsize, 168, height, width, dim] -> [None, 168, 32, 20, dim_decode]
-        return conv3
+            # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, dim]
+            conv3 = tf.layers.conv3d(inputs=conv2, filters= dim_decode, kernel_size=[3,3,3], padding='same', activation=None)
+            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+            conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
+
+            # previous [None,32, 20 32] -> [None, 32, 20, dim_2d]
+            # [batchsize, 168, height, width, dim] -> [None, 168, 32, 20, dim_decode]
+            return conv3
 
 
 
@@ -888,8 +891,9 @@ class Autoencoder:
                     # branching into 2 groups
                     second_level_decode = dict()  # [group name: latent rep], e.g. [latent rep -> 'group_2_1' and 'group_2_2']
                     for grp in list(second_level_grouping_dict.keys()):
+                            scope_name = '1_'+ grp
                             # store the representation of, e.g., 'group_2_1'
-                            second_level_decode[grp] = self.branching(latent_fea, dim, self.is_training)
+                            second_level_decode[grp] = self.branching(latent_fea, dim, scope_name, self.is_training)
 
                 # ------ first level branching ------------------ #
                     # for each group in second_level_decode, decode into first level
@@ -898,7 +902,8 @@ class Autoencoder:
                     # grp: 'group_2_1';   data_list: ['group_1', 'group_6', 'group_7']
                     for grp, data_list in second_level_grouping_dict.items():
                         for ds in data_list:
-                            first_level_decode[ds] = self.branching(second_level_decode[grp], dim, self.is_training)
+                            scope_name = '2_'+ ds
+                            first_level_decode[ds] = self.branching(second_level_decode[grp], dim,scope_name, self.is_training)
 
 
                     # branch one latent feature into [# of groups]'s latent representations
