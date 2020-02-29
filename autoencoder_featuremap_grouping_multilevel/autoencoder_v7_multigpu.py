@@ -969,11 +969,11 @@ class Autoencoder:
                     # print(variable_to_restore)
                     variables_to_update = [v for v in tf.global_variables() if v not in variable_to_restore]
 
-                    with tf.name_scope("training"):
+                    # with tf.name_scope("training"):
                         # optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost,
                         #         global_step = self.global_step)
-                        AdamOp = tf.train.AdamOptimizer(learning_rate=learning_rate)
-                        grads = AdamOp.compute_gradients(cost, colocate_gradients_with_ops = True)
+                    AdamOp = tf.train.AdamOptimizer(learning_rate=learning_rate)
+                    grads = AdamOp.compute_gradients(cost, colocate_gradients_with_ops = True)
 
 
 
