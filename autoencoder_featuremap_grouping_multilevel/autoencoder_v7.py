@@ -724,14 +724,17 @@ class Autoencoder:
         dataset_output = dict()
         for k, v in self.rawdata_1d_tf_x_dict.items():
             prediction_1d = self.cnn_1d_model(v, self.is_training, k)
-            prediction_1d = tf.expand_dims(prediction_1d, 1)
-            prediction_1d = tf.expand_dims(prediction_1d, 1)
-            prediction_1d_expand = tf.tile(prediction_1d, [1, HEIGHT,
+            prediction_1d = tf.expand_dims(prediction_1d, 2)
+            prediction_1d = tf.expand_dims(prediction_1d, 2)
+            prediction_1d_expand = tf.tile(prediction_1d, [1, 1, HEIGHT,
                                                     WIDTH ,1])
             dataset_output[k] = prediction_1d_expand
 
         for k, v in self.rawdata_2d_tf_x_dict.items():
             prediction_2d = self.cnn_2d_model(v, self.is_training, k)
+            prediction_2d = tf.expand_dims(prediction_2d, 1)
+            prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
+                                                    1 ,1])
             dataset_output[k] = prediction_2d
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
@@ -1259,14 +1262,17 @@ class Autoencoder:
         dataset_output = dict()
         for k, v in self.rawdata_1d_tf_x_dict.items():
             prediction_1d = self.cnn_1d_model(v, self.is_training, k)
-            prediction_1d = tf.expand_dims(prediction_1d, 1)
-            prediction_1d = tf.expand_dims(prediction_1d, 1)
-            prediction_1d_expand = tf.tile(prediction_1d, [1, HEIGHT,
+            prediction_1d = tf.expand_dims(prediction_1d, 2)
+            prediction_1d = tf.expand_dims(prediction_1d, 2)
+            prediction_1d_expand = tf.tile(prediction_1d, [1, 1, HEIGHT,
                                                     WIDTH ,1])
             dataset_output[k] = prediction_1d_expand
 
         for k, v in self.rawdata_2d_tf_x_dict.items():
             prediction_2d = self.cnn_2d_model(v, self.is_training, k)
+            prediction_2d = tf.expand_dims(prediction_2d, 1)
+            prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
+                                                    1 ,1])
             dataset_output[k] = prediction_2d
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
