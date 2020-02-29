@@ -60,7 +60,7 @@ def generate_mask_array(intersect_pos_set):
 # return a flatten tensor of 500 * n
 # should deal with [24, 32, 20, 3]
 def remove_outside_cells(tensor, mask_arr):
-    if len(mask_arr.shape) == 3: # for first level
+    if len(tensor.shape) == 3: # for first level
         demo_mask_arr_expanded = np.expand_dims(mask_arr, 2)  # [1, 2]
                 # [1, 32, 20, 1]  -> [1, 1, 32, 20, 1]
                 # [1, 32, 20, 1] -> [batchsize, 32, 20, 1]
@@ -71,7 +71,7 @@ def remove_outside_cells(tensor, mask_arr):
         marr = np.ma.MaskedArray(tensor, mask= demo_mask_arr_expanded)
         compressed_arr = np.ma.compressed(marr)
         return compressed_arr
-    if len(mask_arr.shape) == 4:  # for second level
+    if len(tensor.shape) == 4:  # for second level
         demo_mask_arr_expanded = np.expand_dims(mask_arr, 2)  # [1, 2]
         demo_mask_arr_expanded = np.tile(demo_mask_arr_expanded, [1,1, tensor.shape[-1]])
         demo_mask_arr_expanded = np.expand_dims(mask_arr, 0)  # [1, 2]
@@ -566,11 +566,11 @@ def second_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
         print('n: ', n)
         for ds_name1 in all_keys:
             temp_arr1 = feature_map_dict[ds_name1]
-            print('temp_arr1.shape: ', temp_arr1.shape)
+            # print('temp_arr1.shape: ', temp_arr1.shape)
 
             for ds_name2 in all_keys:
                 temp_arr2 = feature_map_dict[ds_name2]
-                print('temp_arr2[n, :, :, :,:].shape',temp_arr2[n, :, :, :,:].shape, len(temp_arr2[n, :, :, :,:].shape))
+                #print('temp_arr2[n, :, :, :,:].shape',temp_arr2[n, :, :, :,:].shape, len(temp_arr2[n, :, :, :,:].shape))
                 compress_arr2 = remove_outside_cells( temp_arr2[n, :, :, :,:], mask_arr)
                 compress_arr1 = remove_outside_cells( temp_arr1[n, :, :, :,:], mask_arr)
 
