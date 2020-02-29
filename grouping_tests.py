@@ -74,8 +74,9 @@ def remove_outside_cells(tensor, mask_arr):
     if len(tensor.shape) == 4:  # for second level
         demo_mask_arr_expanded = np.expand_dims(mask_arr, 2)  # [1, 2]
         demo_mask_arr_expanded = np.tile(demo_mask_arr_expanded, [1,1, tensor.shape[-1]])
-        demo_mask_arr_expanded = np.expand_dims(mask_arr, 0)  # [1, 2]
+        demo_mask_arr_expanded = np.expand_dims(demo_mask_arr_expanded, 0)  # [1, 2]
         demo_mask_arr_expanded = np.tile(demo_mask_arr_expanded, [tensor.shape[0], 1, 1, 1])
+        #print('demo_mask_arr_expanded.shape', demo_mask_arr_expanded.shape)
 
         marr = np.ma.MaskedArray(tensor, mask= demo_mask_arr_expanded)
         compressed_arr = np.ma.compressed(marr)
