@@ -43,7 +43,6 @@ THREE_HOUR_TIMESTEP = 56
 
 num_gpus = 8
 
-tf.debugging.set_log_device_placement(True)
 
 # By default, all variables will be placed on '/gpu:0'
 # So we need a custom device function, to assign all variables to '/cpu:0'
@@ -998,7 +997,7 @@ class Autoencoder:
                 # config.gpu_options.allocator_type ='BFC'
                 # config.gpu_options.per_process_gpu_memory_fraction = 0.90
                 # config.gpu_options.allow_growth=True
-                config = tf.ConfigProto(allow_soft_placement = True)
+                config = tf.ConfigProto(allow_soft_placement = True, log_device_placement=True)
 
                 batch_size = BATCH_SIZE * num_gpus
 
