@@ -999,8 +999,11 @@ class Autoencoder:
                 batch_size = BATCH_SIZE * num_gpus
 
                 ########### start session ########################
+                init = tf.global_variables_initializer()
                 with tf.Session() as sess:
-                    sess.run(tf.global_variables_initializer())
+                    # Run the initializer
+                    sess.run(init)
+
                     # ----- if initialized with pretrained weights ----
                     if use_pretrained:
                         pretrained_saver.restore(sess, pretrained_ckpt_path)
