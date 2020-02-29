@@ -970,6 +970,8 @@ class Autoencoder:
                     # with tf.name_scope("training"):
                         # optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost,
                         #         global_step = self.global_step)
+
+                    tf.get_variable_scope().reuse_variables()
                     AdamOp = tf.train.AdamOptimizer(learning_rate=learning_rate)
                     grads = AdamOp.compute_gradients(cost, colocate_gradients_with_ops = True)
                     print('\n'.join('{}: {}'.format(*k) for k in enumerate(grads)))
