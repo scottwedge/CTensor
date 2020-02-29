@@ -735,7 +735,7 @@ class Autoencoder:
             prediction_2d = tf.expand_dims(prediction_2d, 1)
             prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
                                                     1 ,1])
-            dataset_output[k] = prediction_2d
+            dataset_output[k] = prediction_2d_expand
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
             prediction_3d = self.cnn_model(v, self.is_training, k)
@@ -1273,7 +1273,7 @@ class Autoencoder:
             prediction_2d = tf.expand_dims(prediction_2d, 1)
             prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
                                                     1 ,1])
-            dataset_output[k] = prediction_2d
+            dataset_output[k] = prediction_2d_expand
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
             prediction_3d = self.cnn_model(v, self.is_training, k)
