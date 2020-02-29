@@ -60,6 +60,25 @@ def generate_fixlen_timeseries(rawdata_arr, timestep = TIMESTEPS):
     raw_seq_arr = np.swapaxes(raw_seq_arr,0,1)
     return raw_seq_arr
 
+def generate_fixlen_timeseries_nonoverlapping(rawdata_arr, timestep = TIMESTEPS):
+    raw_seq_list = list()
+    # arr_shape: [# of timestamps, w, h]
+    arr_shape = rawdata_arr.shape
+    # e.g., 50 (batchsize * timestep), or 21 (leftover)
+    for i in range(0, arr_shape[0], timestep):
+        start = i
+        end = i+ (timestep )
+        # ignore if a small sequence of data that is shorter than timestep
+        if end <= arr_shape[0]:
+            # temp_seq = rawdata_arr[start: end, :, :]
+            temp_seq = rawdata_arr[start: end]
+            raw_seq_list.append(temp_seq)
+
+    raw_seq_arr = np.array(raw_seq_list)
+    raw_seq_arr = np.swapaxes(raw_seq_arr,0,1)
+    return raw_seq_arr
+
+
 
 # create sequences in real time
 def create_mini_batch_1d(start_idx, end_idx,  data_1d):
