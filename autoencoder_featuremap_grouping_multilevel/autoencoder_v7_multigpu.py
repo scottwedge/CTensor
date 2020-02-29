@@ -791,7 +791,7 @@ class Autoencoder:
             tower_grads = []
             reuse_vars = False
 
-            for i, d in enumerate(['/gpu:0']):
+            for i, d in enumerate(['/gpu:0', '/gpu:1']):
                      #'/gpu:2', '/gpu:3',     '/gpu:4','/gpu:5','/gpu:6','/gpu:7']):
                 with tf.device(d):
 
@@ -868,8 +868,6 @@ class Autoencoder:
 
                         second_order_encoder_list.append(group_fusion_featuremap)
                         keys_list.append(grp)
-
-
 
                     # ------------------------------------------------#
                     # dim: latent fea dimension
@@ -974,11 +972,13 @@ class Autoencoder:
                         #         global_step = self.global_step)
                     AdamOp = tf.train.AdamOptimizer(learning_rate=learning_rate)
                     grads = AdamOp.compute_gradients(cost, colocate_gradients_with_ops = True)
+                    print('\n'.join('{}: {}'.format(*k) for k in enumerate(grads)))
 
                     tower_grads.append(grads)
                     # var_list=variables_to_update
             tower_grads = average_gradients(tower_grads)
             optimizer = AdamOp.apply_gradients(tower_grads)
+
 
 
             train_result = list()
@@ -1008,7 +1008,8 @@ class Autoencoder:
             # # config.gpu_options.allocator_type ='BFC'
             # config.gpu_options.per_process_gpu_memory_fraction = 0.90
             # config.gpu_options.allow_growth=True
-            config = tf.ConfigProto(allow_soft_placement = True, log_device_placement=True)
+            config = tf.ConfigProto(allow_soft_placement = True)
+            # log_device_placement=True
 
             batch_size = BATCH_SIZE * num_gpus
 
