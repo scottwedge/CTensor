@@ -787,7 +787,8 @@ class Autoencoder:
 
             # Loop over all GPUs and construct their own computation graph
             for i in range(num_gpus):
-                with tf.device(assign_to_device('/gpu:{}'.format(i), ps_device='/cpu:0')):
+                #with tf.device(assign_to_device('/gpu:{}'.format(i), ps_device='/cpu:0')):
+                with tf.device('/gpu:{}'.format(i)):
 
                     # Split data between GPUs
                     # _x = X[i * batch_size: (i+1) * batch_size]
