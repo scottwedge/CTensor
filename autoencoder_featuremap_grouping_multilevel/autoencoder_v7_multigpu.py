@@ -760,7 +760,7 @@ class Autoencoder:
         # pool => 8*8*8
 
         # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, dim]
-        conv3 = tf.layers.conv3d(inputs=conv2, filters= dim_decode, kernel_size=[3,3,3], padding='same', activation=None)
+        conv3 = tf.layers.conv3d(inputs=conv2, filters= dim_decode, kernel_size=[3,3,3], padding='same', activation=None, reuse = tf.AUTO_REUSE)
         conv3 = tf.layers.batch_normalization(conv3, training=is_training, reuse = tf.AUTO_REUSE)
         conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
 
