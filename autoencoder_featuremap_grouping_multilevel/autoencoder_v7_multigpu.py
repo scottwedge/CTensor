@@ -343,7 +343,7 @@ class Autoencoder:
     def cnn_model(self, x_train_data, is_training, suffix = '', output_dim = 1, keep_rate=0.7, seed=None):
         # output from 3d cnn (?, 168, 32, 20, 1)  * weight + b = (?, 32, 20, 1)
         var_scope = "3d_data_process_" + suffix
-        with tf.variable_scope(var_scope):
+        with tf.variable_scope(var_scope, reuse=tf.AUTO_REUSE):
             # conv => 16*16*16
             # input: (?, 168, 32, 20, 2)
             conv1 = tf.layers.conv3d(inputs=x_train_data, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
@@ -388,7 +388,7 @@ class Autoencoder:
     '''
     def cnn_2d_model(self, x_2d_train_data, is_training, suffix = '', output_dim = 1, seed=None):
         var_scope = "2d_data_process_" + suffix
-        with tf.variable_scope(var_scope):
+        with tf.variable_scope(var_scope, reuse=tf.AUTO_REUSE):
             '''
             # conv => 16*16*16
             conv1 = tf.layers.conv3d(inputs=x_train_data, filters=16, kernel_size=[3,3,3], padding='same', activation=my_leaky_relu)
@@ -434,7 +434,7 @@ class Autoencoder:
     # (batchsize, 168, # of features)
     def cnn_1d_model(self, x_1d_train_data, is_training, suffix = '', output_dim =1, seed=None):
         var_scope = "1d_data_process_" + suffix
-        with tf.variable_scope(var_scope):
+        with tf.variable_scope(var_scope, reuse=tf.AUTO_REUSE):
             # https://www.tensorflow.org/api_docs/python/tf/layers/conv1d
             '''
             # conv => 16*16*16
@@ -681,7 +681,7 @@ class Autoencoder:
     # use 3d conv instead of 2d
     def fuse_and_train(self, feature_map_list, is_training, suffix = '', dim=3):
         var_scope = 'fusion_layer_'+ suffix
-        with tf.variable_scope(var_scope):
+        with tf.variable_scope(var_scope, reuse=tf.AUTO_REUSE):
             fuse_feature =tf.concat(axis=-1,values=feature_map_list)
             print('fuse_feature.shape: ', fuse_feature.shape)
 
@@ -783,6 +783,7 @@ class Autoencoder:
 
         with tf.device('/cpu:0'):
             tower_grads = []
+            reuse_vars = False
 
             for i, d in enumerate(['/gpu:0', '/gpu:1', '/gpu:2', '/gpu:3',
                             '/gpu:4','/gpu:5','/gpu:6','/gpu:7']):
