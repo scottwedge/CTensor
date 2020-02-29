@@ -783,7 +783,7 @@ class Autoencoder:
 
         with tf.device('/cpu:0'):
             tower_grads = []
-            reuse_vars = False
+
             for i, d in enumerate(['/gpu:0', '/gpu:1', '/gpu:2', '/gpu:3',
                             '/gpu:4','/gpu:5','/gpu:6','/gpu:7']):
                 with tf.device(d):
@@ -969,320 +969,320 @@ class Autoencoder:
                         grads = AdamOp.compute_gradients(cost)
 
 
-                    reuse_vars = True
+
                     tower_grads.append(grads)
                     # var_list=variables_to_update
-                tower_grads = average_gradients(tower_grads)
-                optimizer = AdamOp.apply_gradients(tower_grads)
+            tower_grads = average_gradients(tower_grads)
+            optimizer = AdamOp.apply_gradients(tower_grads)
 
 
-                train_result = list()
-                test_result = list()
-                encoded_list = list()  # output last layer of encoded for further grouping
+            train_result = list()
+            test_result = list()
+            encoded_list = list()  # output last layer of encoded for further grouping
 
-                if not os.path.exists(save_folder_path):
-                    os.makedirs(save_path)
+            if not os.path.exists(save_folder_path):
+                os.makedirs(save_path)
 
 
-                # --- dealing with model saver ------ #
-                if not use_pretrained:
-                    saver = tf.train.Saver()
+            # --- dealing with model saver ------ #
+            if not use_pretrained:
+                saver = tf.train.Saver()
+            else:
+                print('Restoring saver from pretrained model....', pretrained_ckpt_path)
+                # train from pretrained model_fusion
+                vars_to_restore_dict = {}
+                # make the dictionary, note that everything here will have “:0”, avoid it.
+                for v in variable_to_restore:
+                    vars_to_restore_dict[v.name[:-2]] = v
+                # only for restoring pretrained model weights
+                pretrained_saver = tf.train.Saver(vars_to_restore_dict)
+                 # save all variables
+                saver = tf.train.Saver()
+
+            # config = tf.ConfigProto()
+            # # config.gpu_options.allocator_type ='BFC'
+            # config.gpu_options.per_process_gpu_memory_fraction = 0.90
+            # config.gpu_options.allow_growth=True
+            config = tf.ConfigProto(allow_soft_placement = True, log_device_placement=True)
+
+            batch_size = BATCH_SIZE * num_gpus
+
+            ########### start session ########################
+            init = tf.global_variables_initializer()
+            with tf.Session(config = config) as sess:
+                # Run the initializer
+                sess.run(init)
+
+                # ----- if initialized with pretrained weights ----
+                if use_pretrained:
+                    pretrained_saver.restore(sess, pretrained_ckpt_path)
+
+                # ---- if resume training -----
+                if resume_training:
+                    if checkpoint_path is not None:
+                        saver.restore(sess, checkpoint_path)
+                    else:
+                        saver.restore(sess, tf.train.latest_checkpoint(save_folder_path))
+                    # check global step
+                    print("global step: ", sess.run([self.global_step]))
+                    print("Model restore finished, current globle step: %d" % self.global_step.eval())
+
+                    # get new epoch num
+                    print("int(train_hours / batch_size +1): ", int(train_hours / batch_size +1))
+                    start_epoch_num = tf.div(self.global_step, int(train_hours / batch_size +1))
+                    #self.global_step/ (len(x_train_data) / batch_size +1) -1
+                    print("start_epoch_num: ", start_epoch_num.eval())
+                    start_epoch = start_epoch_num.eval()
                 else:
-                    print('Restoring saver from pretrained model....', pretrained_ckpt_path)
-                    # train from pretrained model_fusion
-                    vars_to_restore_dict = {}
-                    # make the dictionary, note that everything here will have “:0”, avoid it.
-                    for v in variable_to_restore:
-                        vars_to_restore_dict[v.name[:-2]] = v
-                    # only for restoring pretrained model weights
-                    pretrained_saver = tf.train.Saver(vars_to_restore_dict)
-                     # save all variables
-                    saver = tf.train.Saver()
+                    start_epoch = 0
 
-                # config = tf.ConfigProto()
-                # # config.gpu_options.allocator_type ='BFC'
-                # config.gpu_options.per_process_gpu_memory_fraction = 0.90
-                # config.gpu_options.allow_growth=True
-                config = tf.ConfigProto(allow_soft_placement = True, log_device_placement=True)
+                # temporary
+                # train_hours = 200
+                # train_hours: train_start_time = '2014-02-01',train_end_time = '2018-10-31',
+                if train_hours%batch_size ==0:
+                    iterations = int(train_hours/batch_size)
+                else:
+                    iterations = int(train_hours/batch_size) + 1
 
-                batch_size = BATCH_SIZE * num_gpus
+                for epoch in range(start_epoch, epochs):
+                    print('Epoch', epoch, 'started', end='')
+                    start_time = datetime.datetime.now()
+                    epoch_loss = 0
+                    epoch_subloss = {}  # ave loss for each dataset
+                    epoch_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
-                ########### start session ########################
-                init = tf.global_variables_initializer()
-                with tf.Session(config = config) as sess:
-                    # Run the initializer
-                    sess.run(init)
+                    epoch_subrmse = {}  # ave loss for each dataset
+                    epoch_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
-                    # ----- if initialized with pretrained weights ----
-                    if use_pretrained:
-                        pretrained_saver.restore(sess, pretrained_ckpt_path)
+                    final_output = list()
+                    final_encoded_list = list()
 
-                    # ---- if resume training -----
-                    if resume_training:
-                        if checkpoint_path is not None:
-                            saver.restore(sess, checkpoint_path)
+                    # mini batch
+                    for itr in range(iterations):
+                        start_idx = itr*batch_size
+                        if train_hours < (itr+1)*batch_size:
+                            end_idx = train_hours
                         else:
-                            saver.restore(sess, tf.train.latest_checkpoint(save_folder_path))
-                        # check global step
-                        print("global step: ", sess.run([self.global_step]))
-                        print("Model restore finished, current globle step: %d" % self.global_step.eval())
+                            end_idx = (itr+1)*batch_size
+                        print('itr, start_idx, end_idx', itr, start_idx, end_idx)
 
-                        # get new epoch num
-                        print("int(train_hours / batch_size +1): ", int(train_hours / batch_size +1))
-                        start_epoch_num = tf.div(self.global_step, int(train_hours / batch_size +1))
-                        #self.global_step/ (len(x_train_data) / batch_size +1) -1
-                        print("start_epoch_num: ", start_epoch_num.eval())
-                        start_epoch = start_epoch_num.eval()
-                    else:
-                        start_epoch = 0
+                        # create feed_dict
+                        feed_dict_all = {}  # tf_var:  tensor
+                        # create batches for 1d
+                        for k, v in rawdata_1d_dict.items():
+                            temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
+                            feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
+                            feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
 
-                    # temporary
-                    # train_hours = 200
-                    # train_hours: train_start_time = '2014-02-01',train_end_time = '2018-10-31',
-                    if train_hours%batch_size ==0:
-                        iterations = int(train_hours/batch_size)
-                    else:
-                        iterations = int(train_hours/batch_size) + 1
+                        # create batches for 2d
+                        for k, v in rawdata_2d_dict.items():
+                            temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
+                            feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+                            feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
 
-                    for epoch in range(start_epoch, epochs):
-                        print('Epoch', epoch, 'started', end='')
-                        start_time = datetime.datetime.now()
-                        epoch_loss = 0
-                        epoch_subloss = {}  # ave loss for each dataset
-                        epoch_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+                         # create batches for 3d
+                        for k, v in rawdata_3d_dict.items():
+                            timestep = TIMESTEPS
+                            # else:
+                            #     timestep = DAILY_TIMESTEPS
+                            temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
+                            feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+                            feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
 
-                        epoch_subrmse = {}  # ave loss for each dataset
-                        epoch_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+                        # is_training: True
+                        feed_dict_all[self.is_training] = True
+                        batch_cost, batch_loss_dict, batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict=feed_dict_all)
+                        # get encoded representation
+                        # # [None, 1, 32, 20, 1]
+                        batch_output, batch_encoded_list = sess.run([latent_fea, second_order_encoder_list], feed_dict= feed_dict_all)
+                        final_output.extend(batch_output)
 
-                        final_output = list()
-                        final_encoded_list = list()
+                        # record results every 50 iterations, that is about 900 samples
+                        if itr% 50 == 0:
+                            final_encoded_list.append(batch_encoded_list)
 
-                        # mini batch
-                        for itr in range(iterations):
-                            start_idx = itr*batch_size
-                            if train_hours < (itr+1)*batch_size:
-                                end_idx = train_hours
-                            else:
-                                end_idx = (itr+1)*batch_size
-                            print('itr, start_idx, end_idx', itr, start_idx, end_idx)
-
-                            # create feed_dict
-                            feed_dict_all = {}  # tf_var:  tensor
-                            # create batches for 1d
-                            for k, v in rawdata_1d_dict.items():
-                                temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
-                                feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
-                                feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
-
-                            # create batches for 2d
-                            for k, v in rawdata_2d_dict.items():
-                                temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
-                                feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
-                                feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
-
-                             # create batches for 3d
-                            for k, v in rawdata_3d_dict.items():
-                                timestep = TIMESTEPS
-                                # else:
-                                #     timestep = DAILY_TIMESTEPS
-                                temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
-                                feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
-                                feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
-
-                            # is_training: True
-                            feed_dict_all[self.is_training] = True
-                            batch_cost, batch_loss_dict, batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict=feed_dict_all)
-                            # get encoded representation
-                            # # [None, 1, 32, 20, 1]
-                            batch_output, batch_encoded_list = sess.run([latent_fea, second_order_encoder_list], feed_dict= feed_dict_all)
-                            final_output.extend(batch_output)
-
-                            # record results every 50 iterations, that is about 900 samples
-                            if itr% 50 == 0:
-                                final_encoded_list.append(batch_encoded_list)
-
-                            epoch_loss += batch_cost
-                            for k, v in epoch_subloss.items():
-                                epoch_subloss[k] += batch_loss_dict[k]
-
-                            for k, v in epoch_subrmse.items():
-                                epoch_subrmse[k] += batch_rmse_dict[k]
-
-
-                            if itr%10 == 0:
-                                print("Iter/Epoch: {}/{}...".format(itr, epoch),
-                                    "Training loss: {:.4f}".format(batch_cost))
-                                for k, v in batch_loss_dict.items():
-                                    print('loss for k :', k, v)
-
-
-                        # report loss per epoch
-                        epoch_loss = epoch_loss/ iterations
-                        print('epoch: ', epoch, 'Trainig Set Epoch total Cost: ',epoch_loss)
-                        end_time = datetime.datetime.now()
-                        train_time_per_epoch = end_time - start_time
-                        train_time_per_sample = train_time_per_epoch/ train_hours
-
-                        print(' Training Time per epoch: ', str(train_time_per_epoch), 'Time per sample: ', str(train_time_per_sample))
-
+                        epoch_loss += batch_cost
                         for k, v in epoch_subloss.items():
-                            epoch_subloss[k] = v/iterations
-                            print('epoch: ', epoch, 'k: ', k, 'mean train loss: ', epoch_subloss[k])
+                            epoch_subloss[k] += batch_loss_dict[k]
 
                         for k, v in epoch_subrmse.items():
-                            epoch_subrmse[k] = v/iterations
-                            print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
+                            epoch_subrmse[k] += batch_rmse_dict[k]
 
 
-                        save_path = saver.save(sess, save_folder_path +'autoencoder_v7_' +str(epoch)+'.ckpt', global_step=self.global_step)
-                        # save_path = saver.save(sess, './autoencoder.ckpt')
-                        print('Model saved to {}'.format(save_path))
-
-                        # Testing per epoch
-                        # -----------------------------------------------------------------
-                        print('testing per epoch, for epoch: ', epoch)
-                        # train_hours  = 41616  # train_start_time = '2014-02-01',train_end_time = '2018-10-31'
-                        test_start = train_hours
-                        test_end = rawdata_1d_dict[list(rawdata_1d_dict.keys())[0]].shape[0] -TIMESTEPS  # 45984 - 168
-                        test_len = test_end - test_start  # 4200
-                        print('test_start: ', test_start) # 41616
-                        print('test_end: ', test_end)
-                        print('test_len: ', test_len) #  4200
-                        test_start_time = datetime.datetime.now()
-
-                        test_cost = 0
-                        test_final_output = list()
-                        test_subloss = {}  # ave loss for each dataset
-                        test_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
-
-                        test_subrmse = {}  # ave loss for each dataset
-                        test_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+                        if itr%10 == 0:
+                            print("Iter/Epoch: {}/{}...".format(itr, epoch),
+                                "Training loss: {:.4f}".format(batch_cost))
+                            for k, v in batch_loss_dict.items():
+                                print('loss for k :', k, v)
 
 
-                        if test_len%batch_size ==0:
-                            itrs = int(test_len/batch_size)
+                    # report loss per epoch
+                    epoch_loss = epoch_loss/ iterations
+                    print('epoch: ', epoch, 'Trainig Set Epoch total Cost: ',epoch_loss)
+                    end_time = datetime.datetime.now()
+                    train_time_per_epoch = end_time - start_time
+                    train_time_per_sample = train_time_per_epoch/ train_hours
+
+                    print(' Training Time per epoch: ', str(train_time_per_epoch), 'Time per sample: ', str(train_time_per_sample))
+
+                    for k, v in epoch_subloss.items():
+                        epoch_subloss[k] = v/iterations
+                        print('epoch: ', epoch, 'k: ', k, 'mean train loss: ', epoch_subloss[k])
+
+                    for k, v in epoch_subrmse.items():
+                        epoch_subrmse[k] = v/iterations
+                        print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
+
+
+                    save_path = saver.save(sess, save_folder_path +'autoencoder_v7_' +str(epoch)+'.ckpt', global_step=self.global_step)
+                    # save_path = saver.save(sess, './autoencoder.ckpt')
+                    print('Model saved to {}'.format(save_path))
+
+                    # Testing per epoch
+                    # -----------------------------------------------------------------
+                    print('testing per epoch, for epoch: ', epoch)
+                    # train_hours  = 41616  # train_start_time = '2014-02-01',train_end_time = '2018-10-31'
+                    test_start = train_hours
+                    test_end = rawdata_1d_dict[list(rawdata_1d_dict.keys())[0]].shape[0] -TIMESTEPS  # 45984 - 168
+                    test_len = test_end - test_start  # 4200
+                    print('test_start: ', test_start) # 41616
+                    print('test_end: ', test_end)
+                    print('test_len: ', test_len) #  4200
+                    test_start_time = datetime.datetime.now()
+
+                    test_cost = 0
+                    test_final_output = list()
+                    test_subloss = {}  # ave loss for each dataset
+                    test_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+
+                    test_subrmse = {}  # ave loss for each dataset
+                    test_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+
+
+                    if test_len%batch_size ==0:
+                        itrs = int(test_len/batch_size)
+                    else:
+                        itrs = int(test_len/batch_size) + 1
+
+                    for itr in range(itrs):
+                        start_idx = itr*batch_size + test_start
+                        if test_len < (itr+1)*batch_size:
+                            end_idx = test_end
                         else:
-                            itrs = int(test_len/batch_size) + 1
+                            end_idx = (itr+1)*batch_size + test_start
+                        print('testing: start_idx, end_idx', start_idx, end_idx)
+                        # create feed_dict
+                        test_feed_dict_all = {}  # tf_var:  tensor
+                        # create batches for 1d
+                        for k, v in rawdata_1d_dict.items():
+                            temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
+                            test_feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
+                            test_feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
 
-                        for itr in range(itrs):
-                            start_idx = itr*batch_size + test_start
-                            if test_len < (itr+1)*batch_size:
-                                end_idx = test_end
-                            else:
-                                end_idx = (itr+1)*batch_size + test_start
-                            print('testing: start_idx, end_idx', start_idx, end_idx)
-                            # create feed_dict
-                            test_feed_dict_all = {}  # tf_var:  tensor
-                            # create batches for 1d
-                            for k, v in rawdata_1d_dict.items():
-                                temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
-                                test_feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
-                                test_feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
+                        # create batches for 2d
+                        for k, v in rawdata_2d_dict.items():
+                            temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
+                            test_feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+                            test_feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
 
-                            # create batches for 2d
-                            for k, v in rawdata_2d_dict.items():
-                                temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
-                                test_feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
-                                test_feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
+                         # create batches for 3d
+                        for k, v in rawdata_3d_dict.items():
+                            timestep = TIMESTEPS
+                            temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
+                            test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+                            test_feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
 
-                             # create batches for 3d
-                            for k, v in rawdata_3d_dict.items():
-                                timestep = TIMESTEPS
-                                temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
-                                test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
-                                test_feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+                        # is_training: True
+                        test_feed_dict_all[self.is_training] = True
 
-                            # is_training: True
-                            test_feed_dict_all[self.is_training] = True
-
-                            test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict,  _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict= test_feed_dict_all)
-                            # get encoded representation
-                            # # [None, 1, 32, 20, 1]
-                            test_batch_output = sess.run([latent_fea], feed_dict= test_feed_dict_all)
-                            test_final_output.extend(test_batch_output)
-
-                            for k, v in test_subloss.items():
-                                test_subloss[k] += test_batch_loss_dict[k]
-
-                            for k, v in test_subrmse.items():
-                                test_subrmse[k] += test_batch_rmse_dict[k]
-
-
-                            if itr%10 == 0:
-                                print("Iter/Epoch: {}/{}...".format(itr, epoch),
-                                    "testing loss: {:.4f}".format(test_batch_cost))
-
-
-                            # test_mini_batch_x = self.create_mini_batch(start_idx, end_idx, data_1d, data_2d, data_3d)
-                            #
-                            # test_batch_cost, _ = sess.run([cost, optimizer], feed_dict={self.x: test_mini_batch_x,
-                            #                                                 self.y: test_mini_batch_x})
-                            # get encoded representation
-                            # # [None, 1, 32, 20, 1]
-                            # test_batch_output = sess.run([encoded], feed_dict={self.x: test_mini_batch_x,
-                            #                                                 self.y: test_mini_batch_x})
-
-                            test_cost += test_batch_cost
-
-                        test_epoch_loss = test_cost/ itrs
-                        print('epoch: ', epoch, 'Test Set Epoch total Cost: ',test_epoch_loss)
-                        test_end_time = datetime.datetime.now()
-                        test_time_per_epoch = test_end_time - test_start_time
-                        test_time_per_sample = test_time_per_epoch/ test_len
-                        print(' test Time elapse: ', str(test_time_per_epoch), 'test Time per sample: ', str(test_time_per_sample))
+                        test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict,  _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict= test_feed_dict_all)
+                        # get encoded representation
+                        # # [None, 1, 32, 20, 1]
+                        test_batch_output = sess.run([latent_fea], feed_dict= test_feed_dict_all)
+                        test_final_output.extend(test_batch_output)
 
                         for k, v in test_subloss.items():
-                            test_subloss[k] = v/itrs
-                            print('epoch: ', epoch, 'k: ', k, 'mean test loss: ', test_subloss[k])
-                            print('test loss for k :', k, v)
+                            test_subloss[k] += test_batch_loss_dict[k]
 
                         for k, v in test_subrmse.items():
-                            test_subrmse[k] = v/itrs
-                            print('epoch: ', epoch, 'k: ', k, 'mean test rmse: ', test_subrmse[k])
-                            print('test rmse for k :', k, v)
+                            test_subrmse[k] += test_batch_rmse_dict[k]
 
 
-                        # -----------------------------------------------------------------------
+                        if itr%10 == 0:
+                            print("Iter/Epoch: {}/{}...".format(itr, epoch),
+                                "testing loss: {:.4f}".format(test_batch_cost))
 
 
-                        # save epoch statistics to csv
-                        ecoch_res_df = pd.DataFrame([[epoch_loss, test_epoch_loss]],
-                            columns=[ 'train_loss', 'test_loss'])
-                        res_csv_path = save_folder_path + 'autoencoder_ecoch_res_df' +'.csv'
-                        with open(res_csv_path, 'a') as f:
-                            # Add header if file is being created, otherwise skip it
-                            ecoch_res_df.to_csv(f, header=f.tell()==0)
+                        # test_mini_batch_x = self.create_mini_batch(start_idx, end_idx, data_1d, data_2d, data_3d)
+                        #
+                        # test_batch_cost, _ = sess.run([cost, optimizer], feed_dict={self.x: test_mini_batch_x,
+                        #                                                 self.y: test_mini_batch_x})
+                        # get encoded representation
+                        # # [None, 1, 32, 20, 1]
+                        # test_batch_output = sess.run([encoded], feed_dict={self.x: test_mini_batch_x,
+                        #                                                 self.y: test_mini_batch_x})
+
+                        test_cost += test_batch_cost
+
+                    test_epoch_loss = test_cost/ itrs
+                    print('epoch: ', epoch, 'Test Set Epoch total Cost: ',test_epoch_loss)
+                    test_end_time = datetime.datetime.now()
+                    test_time_per_epoch = test_end_time - test_start_time
+                    test_time_per_sample = test_time_per_epoch/ test_len
+                    print(' test Time elapse: ', str(test_time_per_epoch), 'test Time per sample: ', str(test_time_per_sample))
+
+                    for k, v in test_subloss.items():
+                        test_subloss[k] = v/itrs
+                        print('epoch: ', epoch, 'k: ', k, 'mean test loss: ', test_subloss[k])
+                        print('test loss for k :', k, v)
+
+                    for k, v in test_subrmse.items():
+                        test_subrmse[k] = v/itrs
+                        print('epoch: ', epoch, 'k: ', k, 'mean test rmse: ', test_subrmse[k])
+                        print('test rmse for k :', k, v)
 
 
-                        train_sub_res_df = pd.DataFrame([list(epoch_subloss.values())],
-                            columns= list(epoch_subloss.keys()))
-                        train_sub_res_csv_path = save_folder_path + 'autoencoder_train_sub_res' +'.csv'
-                        with open(train_sub_res_csv_path, 'a') as f:
-                            train_sub_res_df.to_csv(f, header=f.tell()==0)
+                    # -----------------------------------------------------------------------
+
+
+                    # save epoch statistics to csv
+                    ecoch_res_df = pd.DataFrame([[epoch_loss, test_epoch_loss]],
+                        columns=[ 'train_loss', 'test_loss'])
+                    res_csv_path = save_folder_path + 'autoencoder_ecoch_res_df' +'.csv'
+                    with open(res_csv_path, 'a') as f:
+                        # Add header if file is being created, otherwise skip it
+                        ecoch_res_df.to_csv(f, header=f.tell()==0)
+
+
+                    train_sub_res_df = pd.DataFrame([list(epoch_subloss.values())],
+                        columns= list(epoch_subloss.keys()))
+                    train_sub_res_csv_path = save_folder_path + 'autoencoder_train_sub_res' +'.csv'
+                    with open(train_sub_res_csv_path, 'a') as f:
+                        train_sub_res_df.to_csv(f, header=f.tell()==0)
 
 
 
-                        test_sub_res_df = pd.DataFrame([list(test_subloss.values())],
-                                        columns= list(test_subloss.keys()))
-                        test_sub_res_csv_path = save_folder_path + 'autoencoder_test_sub_res' +'.csv'
-                        with open(test_sub_res_csv_path, 'a') as f:
-                            test_sub_res_df.to_csv(f, header=f.tell()==0)
+                    test_sub_res_df = pd.DataFrame([list(test_subloss.values())],
+                                    columns= list(test_subloss.keys()))
+                    test_sub_res_csv_path = save_folder_path + 'autoencoder_test_sub_res' +'.csv'
+                    with open(test_sub_res_csv_path, 'a') as f:
+                        test_sub_res_df.to_csv(f, header=f.tell()==0)
 
 
-                        # --- rmse ------
-                        train_sub_rmse_df = pd.DataFrame([list(epoch_subrmse.values())],
-                            columns= list(epoch_subrmse.keys()))
-                        train_sub_rmse_csv_path = save_folder_path + 'autoencoder_train_sub_rmse' +'.csv'
-                        with open(train_sub_rmse_csv_path, 'a') as f:
-                            train_sub_rmse_df.to_csv(f, header=f.tell()==0)
+                    # --- rmse ------
+                    train_sub_rmse_df = pd.DataFrame([list(epoch_subrmse.values())],
+                        columns= list(epoch_subrmse.keys()))
+                    train_sub_rmse_csv_path = save_folder_path + 'autoencoder_train_sub_rmse' +'.csv'
+                    with open(train_sub_rmse_csv_path, 'a') as f:
+                        train_sub_rmse_df.to_csv(f, header=f.tell()==0)
 
 
 
-                        test_sub_rmse_df = pd.DataFrame([list(test_subrmse.values())],
-                                        columns= list(test_subrmse.keys()))
-                        test_sub_rmse_csv_path = save_folder_path + 'autoencoder_test_sub_rmse' +'.csv'
-                        with open(test_sub_rmse_csv_path, 'a') as f:
-                            test_sub_rmse_df.to_csv(f, header=f.tell()==0)
+                    test_sub_rmse_df = pd.DataFrame([list(test_subrmse.values())],
+                                    columns= list(test_subrmse.keys()))
+                    test_sub_rmse_csv_path = save_folder_path + 'autoencoder_test_sub_rmse' +'.csv'
+                    with open(test_sub_rmse_csv_path, 'a') as f:
+                        test_sub_rmse_df.to_csv(f, header=f.tell()==0)
 
 
 
