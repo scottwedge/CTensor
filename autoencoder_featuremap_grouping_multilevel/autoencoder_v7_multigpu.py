@@ -957,15 +957,15 @@ class Autoencoder:
                     with tf.name_scope("training"):
                         # optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost,
                         #         global_step = self.global_step)
-                        optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-                        grads = optimizer.compute_gradients(cost)
+                        AdamOp = tf.train.AdamOptimizer(learning_rate=learning_rate)
+                        grads = AdamOp.compute_gradients(cost)
 
 
                     reuse_vars = True
                     tower_grads.append(grads)
                     # var_list=variables_to_update
                 tower_grads = average_gradients(tower_grads)
-                train_op = optimizer.apply_gradients(tower_grads)
+                optimizer = AdamOp.apply_gradients(tower_grads)
 
 
                 train_result = list()
