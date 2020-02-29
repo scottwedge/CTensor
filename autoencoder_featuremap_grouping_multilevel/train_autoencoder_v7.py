@@ -326,6 +326,9 @@ def parse_args():
     				help="A boolean value whether or not to start from pretrained model")
     parser.add_argument('-pc',   '--pretrained_checkpoint',
                      action="store", help = 'checkpoint path to pretrained model', default = None)
+    parser.add_argument("-i","--inference", type=bool, default=False,
+        				help="inference")
+
 
 
     return parser.parse_args()
@@ -346,6 +349,8 @@ def main():
 
     use_pretrained = args.use_pretrained
     pretrained_checkpoint = args.pretrained_checkpoint
+
+    inference = args.inference
 
 
     print("resume_training: ", resume_training)
@@ -500,18 +505,20 @@ def main():
 
 
     second_level_grouping_dict = {
-    'group_2_1': ['group_1'],  # because they are all sparse!
+    'group_2_1': ['group_1'],
     'group_2_2': ['group_2'],
     'group_2_3': ['group_3', 'group_6', 'group_8', 'group_9'],
     'group_2_4': ['group_4', 'group_5', 'group_7'],
 
     }
 
-#    0 ['group_1']
-# 1 ['group_2']
-# 3 ['group_3', 'group_6', 'group_8', 'group_9']
-# 2 ['group_4', 'group_5', 'group_7']
 
+    # force it to be two groups to save time
+    # second_level_grouping_dict = {
+    # 'group_2_1': ['group_1', 'group_2'],
+    # 'group_2_2': ['group_3', 'group_6', 'group_8', 'group_9', 'group_4', 'group_5', 'group_7'],
+    #
+    # }
 
 
     # ------ grouping within 2d datasets ------  #
@@ -556,14 +563,24 @@ def main():
     timer = str(time.time())
     if resume_training == False:
     # Model fusion without fairness
-        print('Train Model')
-        latent_representation = autoencoder_v7.Autoencoder_entry(train_obj,
-                                rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
-                                 demo_mask_arr,  save_path, dim,
-                                 first_level_grouping_dict, second_level_grouping_dict,
-                            HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
-                            use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
-                    ).train_lat_rep
+        if inference == False:
+            print('Train Model')
+            latent_representation = autoencoder_v7.Autoencoder_entry(train_obj,
+                                    rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+                                     demo_mask_arr,  save_path, dim,
+                                     first_level_grouping_dict, second_level_grouping_dict,
+                                HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
+                                use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
+                        ).train_lat_rep
+        else:
+            latent_representation = autoencoder_v6_individual_init.Autoencoder_entry(train_obj,
+                                    rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+                                     demo_mask_arr,  save_path, dim,
+                                      first_level_grouping_dict, second_level_grouping_dict,
+                                HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
+                                True, checkpoint, False, train_dir,
+                                use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
+                        ).final_lat_rep
     else:
          # resume training
         print('resume trainging from : ', train_dir)
