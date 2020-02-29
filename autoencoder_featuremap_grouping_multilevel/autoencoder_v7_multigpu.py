@@ -41,7 +41,7 @@ HOURLY_TIMESTEPS = 24
 DAILY_TIMESTEPS = 1
 THREE_HOUR_TIMESTEP = 56
 
-num_gpus = 8
+num_gpus = 4
 
 
 # By default, all variables will be placed on '/gpu:0'
@@ -746,7 +746,8 @@ class Autoencoder:
             reuse_vars = False
 
             for i, d in enumerate(['/gpu:0', '/gpu:1',
-                     '/gpu:2', '/gpu:3', '/gpu:4','/gpu:5','/gpu:6','/gpu:7']):
+                     '/gpu:2', '/gpu:3']):
+                     # '/gpu:4','/gpu:5','/gpu:6','/gpu:7']):
                 with tf.device(d):
 
             # Loop over all GPUs and construct their own computation graph
@@ -762,7 +763,8 @@ class Autoencoder:
 
 
 
-                    starter_learning_rate = LEARNING_RATE
+                    starter_learning_rate = float(LEARNING_RATE / num_gpus)
+                    print('start learning rate: ',starter_learning_rate )
                     learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
                                                    5000, 0.96, staircase=True)
                     # dataset output [dataset name: encoded dataset]
