@@ -791,8 +791,8 @@ class Autoencoder:
             tower_grads = []
             reuse_vars = False
 
-            for i, d in enumerate(['/gpu:0', '/gpu:1', '/gpu:2', '/gpu:3',
-                            '/gpu:4','/gpu:5','/gpu:6','/gpu:7']):
+            for i, d in enumerate(['/gpu:0', '/gpu:1']):
+                     #'/gpu:2', '/gpu:3',     '/gpu:4','/gpu:5','/gpu:6','/gpu:7']):
                 with tf.device(d):
 
             # Loop over all GPUs and construct their own computation graph
