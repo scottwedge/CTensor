@@ -650,7 +650,7 @@ def parse_args():
     parser.add_argument('-n',   '--n_clusters',  type=int,
                      action="store", help = 'number of clusters', default = 5)
     parser.add_argument('-g',   '--n_groups',  type=int,
-                     action="store", help = 'number of groups to be grouped', default = 7)
+                     action="store", help = 'number of groups to be grouped', default = 9)
     return parser.parse_args()
 
 
