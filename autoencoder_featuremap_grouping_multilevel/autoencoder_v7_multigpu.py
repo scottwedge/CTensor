@@ -769,7 +769,11 @@ class Autoencoder:
                                                    5000, 0.96, staircase=True)
                     # dataset output [dataset name: encoded dataset]
                     dataset_output = dict()
+
+
+
                     for k, v in self.rawdata_1d_tf_x_dict.items():
+
                         _v = v[i * BATCH_SIZE: (i+1) * BATCH_SIZE]
                         prediction_1d = self.cnn_1d_model(_v, self.is_training, k)
                         prediction_1d = tf.expand_dims(prediction_1d, 2)
@@ -1005,6 +1009,13 @@ class Autoencoder:
                 # temporary
                 # train_hours = 200
                 # train_hours: train_start_time = '2014-02-01',train_end_time = '2018-10-31',
+
+
+                # for multi-gpu
+
+                train_hours = train_hours - train_hours%(batch_size)
+                print('adjusted train_hours: ', train_hours)
+
                 if train_hours%batch_size ==0:
                     iterations = int(train_hours/batch_size)
                 else:
@@ -1111,10 +1122,15 @@ class Autoencoder:
                     test_start = train_hours
                     test_end = rawdata_1d_dict[list(rawdata_1d_dict.keys())[0]].shape[0] -TIMESTEPS  # 45984 - 168
                     test_len = test_end - test_start  # 4200
+
+                    # adjust for multi GPU
+                    test_len = test_len - test_len % (batch_size)
+                    test_end = test_start+ test_len
                     print('test_start: ', test_start) # 41616
                     print('test_end: ', test_end)
                     print('test_len: ', test_len) #  4200
                     test_start_time = datetime.datetime.now()
+
 
                     test_cost = 0
                     test_final_output = list()
