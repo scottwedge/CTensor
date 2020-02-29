@@ -784,11 +784,16 @@ class Autoencoder:
         with tf.device('/cpu:0'):
             tower_grads = []
             reuse_vars = False
+            for i, d in enumerate(['/gpu:0', '/gpu:1', '/gpu:2', '/gpu:3',
+                            '/gpu:4','/gpu:5','/gpu:6','/gpu:7']):
+                with tf.device(d):
 
             # Loop over all GPUs and construct their own computation graph
-            for i in range(num_gpus):
-                #with tf.device(assign_to_device('/gpu:{}'.format(i), ps_device='/cpu:0')):
-                with tf.device('/gpu:{}'.format(i)):
+            # for i in range(num_gpus):
+            #     print('device i: ', i)
+                # with tf.device(assign_to_device('/gpu:{}'.format(i), ps_device='/cpu:0')):
+
+                #with tf.device('/gpu:{}'.format(i)):
 
                     # Split data between GPUs
                     # _x = X[i * batch_size: (i+1) * batch_size]
@@ -996,8 +1001,8 @@ class Autoencoder:
 
                 # config = tf.ConfigProto()
                 # config.gpu_options.allocator_type ='BFC'
-                # config.gpu_options.per_process_gpu_memory_fraction = 0.90
-                # config.gpu_options.allow_growth=True
+                config.gpu_options.per_process_gpu_memory_fraction = 0.90
+                config.gpu_options.allow_growth=True
                 config = tf.ConfigProto(allow_soft_placement = True, log_device_placement=True)
 
                 batch_size = BATCH_SIZE * num_gpus
