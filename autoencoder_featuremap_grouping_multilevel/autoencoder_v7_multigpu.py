@@ -70,7 +70,6 @@ def average_gradients(tower_grads):
             print('g: ', g)
             # Add 0 dimension to the gradients to represent the tower.
             expanded_g = tf.expand_dims(g, 0)
-
             # Append on a 'tower' dimension which we will average over below.
             grads.append(expanded_g)
 
@@ -792,7 +791,7 @@ class Autoencoder:
             tower_grads = []
             reuse_vars = False
 
-            for i, d in enumerate(['/gpu:0', '/gpu:1']):
+            for i, d in enumerate(['/gpu:0']):
                      #'/gpu:2', '/gpu:3',     '/gpu:4','/gpu:5','/gpu:6','/gpu:7']):
                 with tf.device(d):
 
@@ -975,8 +974,6 @@ class Autoencoder:
                         #         global_step = self.global_step)
                     AdamOp = tf.train.AdamOptimizer(learning_rate=learning_rate)
                     grads = AdamOp.compute_gradients(cost, colocate_gradients_with_ops = True)
-
-
 
                     tower_grads.append(grads)
                     # var_list=variables_to_update
