@@ -521,18 +521,19 @@ class Autoencoder:
             # print('output reconstruction 3d shape: ', output.shape)
 
             # [None, 168, 32, 20, dim_decode] ->  [None, DAILY_TIMESTEPS, height, width, 1]
-        conv1 = tf.layers.conv3d(inputs=latent_fea, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
-        conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+        conv1 = tf.layers.conv3d(inputs=latent_fea, filters=16, kernel_size=[3,3,3],
+            padding='same', activation=None, reuse = tf.AUTO_REUSE)
+        conv1 = tf.layers.batch_normalization(conv1, training=is_training, reuse = tf.AUTO_REUSE)
         conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
             # conv => 16*16*16
-        conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
-        conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+        conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None, reuse = tf.AUTO_REUSE)
+        conv2 = tf.layers.batch_normalization(conv2, training=is_training, reuse = tf.AUTO_REUSE)
         conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
             # pool => 8*8*8
 
             # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, dim]
-        conv3 = tf.layers.conv3d(inputs=conv2, filters= 1, kernel_size=[3,3,3], padding='same', activation=None)
-        conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+        conv3 = tf.layers.conv3d(inputs=conv2, filters= 1, kernel_size=[3,3,3], padding='same', activation=None, reuse = tf.AUTO_REUSE)
+        conv3 = tf.layers.batch_normalization(conv3, training=is_training, reuse = tf.AUTO_REUSE)
         conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
 
         output = conv3
@@ -597,17 +598,17 @@ class Autoencoder:
         # (None, 1, 32, 20, dim_decode)  -> (None,  32, 20, dim_decode)
         conv1 = tf.squeeze(conv1, axis = 1)
 
-        conv2 = tf.layers.conv2d(conv1, 16, 3, padding='same',activation=None)
-        conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+        conv2 = tf.layers.conv2d(conv1, 16, 3, padding='same',activation=None, reuse = tf.AUTO_REUSE)
+        conv2 = tf.layers.batch_normalization(conv2, training=is_training, reuse = tf.AUTO_REUSE)
         conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
 
-        conv3 = tf.layers.conv2d(conv2, 32, 3, padding='same',activation=None)
-        conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+        conv3 = tf.layers.conv2d(conv2, 32, 3, padding='same',activation=None, reuse = tf.AUTO_REUSE)
+        conv3 = tf.layers.batch_normalization(conv3, training=is_training, reuse = tf.AUTO_REUSE)
         conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
         # [None, 32, 20, 16]  -> [None,32, 20 32]
 
-        conv4 = tf.layers.conv2d(conv3, dim_2d, 3, padding='same',activation=None)
-        conv4 = tf.layers.batch_normalization(conv4, training=is_training)
+        conv4 = tf.layers.conv2d(conv3, dim_2d, 3, padding='same',activation=None, reuse = tf.AUTO_REUSE)
+        conv4 = tf.layers.batch_normalization(conv4, training=is_training, reuse = tf.AUTO_REUSE)
         conv4 = tf.nn.leaky_relu(conv4, alpha=0.2)
 
         #[None,32, 20 32] -> [None, 32, 20, dim_2d]
@@ -624,18 +625,18 @@ class Autoencoder:
         # [None,168, 1,  dim_decode]  -> [None,168, dim_decode]
         conv1 = tf.squeeze(conv1, axis = 2)
 
-        conv2 = tf.layers.conv1d(conv1, 16, 3, padding='same',activation=None)
-        conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+        conv2 = tf.layers.conv1d(conv1, 16, 3, padding='same',activation=None, reuse = tf.AUTO_REUSE)
+        conv2 = tf.layers.batch_normalization(conv2, training=is_training, reuse = tf.AUTO_REUSE)
         conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
 
         #  Convolution Layer with 64 filters and a kernel size of 3
         # output shape: None, 168,16
         # conv2 change from 16 to 32
-        conv3 = tf.layers.conv1d(conv2, 32, 3,padding='same', activation=None)
-        conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+        conv3 = tf.layers.conv1d(conv2, 32, 3,padding='same', activation=None, reuse = tf.AUTO_REUSE)
+        conv3 = tf.layers.batch_normalization(conv3, training=is_training, reuse = tf.AUTO_REUSE)
         conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
 
-        conv4 = tf.layers.conv1d(conv3, dim_1d, 3,padding='same', activation=None)
+        conv4 = tf.layers.conv1d(conv3, dim_1d, 3,padding='same', activation=None, reuse = tf.AUTO_REUSE)
         conv4 = tf.layers.batch_normalization(conv4, training=is_training)
         conv4 = tf.nn.leaky_relu(conv4, alpha=0.2)
 
@@ -749,18 +750,18 @@ class Autoencoder:
         # conv3 = tf.layers.batch_normalization(conv3, training=is_training)
         # conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
 
-        conv1 = tf.layers.conv3d(inputs=latent_fea, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
-        conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+        conv1 = tf.layers.conv3d(inputs=latent_fea, filters=16, kernel_size=[3,3,3], padding='same', activation=None, reuse = tf.AUTO_REUSE)
+        conv1 = tf.layers.batch_normalization(conv1, training=is_training, reuse = tf.AUTO_REUSE)
         conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
         # conv => 16*16*16
-        conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
-        conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+        conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None, reuse = tf.AUTO_REUSE)
+        conv2 = tf.layers.batch_normalization(conv2, training=is_training, reuse = tf.AUTO_REUSE)
         conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
         # pool => 8*8*8
 
         # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, dim]
         conv3 = tf.layers.conv3d(inputs=conv2, filters= dim_decode, kernel_size=[3,3,3], padding='same', activation=None)
-        conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+        conv3 = tf.layers.batch_normalization(conv3, training=is_training, reuse = tf.AUTO_REUSE)
         conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
 
         # previous [None,32, 20 32] -> [None, 32, 20, dim_2d]
