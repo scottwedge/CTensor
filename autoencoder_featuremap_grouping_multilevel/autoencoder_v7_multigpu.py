@@ -273,6 +273,12 @@ def get_scopes_to_restore(rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
     return scopes_to_reserve
 
 
+def _compute_gradients(tensor, var_list):
+  grads = tf.gradients(tensor, var_list)
+  return [grad if grad is not None else tf.zeros_like(var)
+          for var, grad in zip(var_list, grads)]
+
+
 class Autoencoder:
     # input_dim = 1, seq_size = 168,
     def __init__(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
@@ -959,15 +965,15 @@ class Autoencoder:
                     scopes_to_reserve = get_scopes_to_restore(rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
                                         first_level_grouping_dict)
                     variable_to_restore = get_variables_to_restore(variables, scopes_to_reserve)
-                    print('variable_to_restore: ')
-                    print(variable_to_restore)
+                    # print('variable_to_restore: ')
+                    # print(variable_to_restore)
                     variables_to_update = [v for v in tf.global_variables() if v not in variable_to_restore]
 
                     with tf.name_scope("training"):
                         # optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost,
                         #         global_step = self.global_step)
                         AdamOp = tf.train.AdamOptimizer(learning_rate=learning_rate)
-                        grads = AdamOp.compute_gradients(cost)
+                        grads = AdamOp.compute_gradients(cost, colocate_gradients_with_ops = True)
 
 
 
