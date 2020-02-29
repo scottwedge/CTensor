@@ -556,6 +556,7 @@ def second_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
         print('n: ', n)
         for ds_name1 in all_keys:
             temp_arr1 = feature_map_dict[ds_name1]
+            print('temp_arr1.shape: ', temp_arr1.shape)
 
             for ds_name2 in all_keys:
                 temp_arr2 = feature_map_dict[ds_name2]
