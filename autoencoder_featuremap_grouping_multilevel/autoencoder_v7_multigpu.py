@@ -734,7 +734,7 @@ class Autoencoder:
     # take a latent fea, decode into [batchsize, 32, 20, dim_decode]
     # update: latent_fea: [batchsize, 168, height, width, dim]
     #         -> [None, 168, 32, 20, dim_decode]
-    def branching(self, latent_fea, dim_decode, suffix = '', is_training):
+    def branching(self, latent_fea, dim_decode,  is_training, suffix = '',):
         var_scope = 'branching_layer_'+ suffix
         with tf.variable_scope(var_scope, reuse=tf.AUTO_REUSE):
 
@@ -893,7 +893,7 @@ class Autoencoder:
                     for grp in list(second_level_grouping_dict.keys()):
                             scope_name = '1_'+ grp
                             # store the representation of, e.g., 'group_2_1'
-                            second_level_decode[grp] = self.branching(latent_fea, dim, scope_name, self.is_training)
+                            second_level_decode[grp] = self.branching(latent_fea, dim, self.is_training, scope_name)
 
                 # ------ first level branching ------------------ #
                     # for each group in second_level_decode, decode into first level
@@ -903,7 +903,7 @@ class Autoencoder:
                     for grp, data_list in second_level_grouping_dict.items():
                         for ds in data_list:
                             scope_name = '2_'+ ds
-                            first_level_decode[ds] = self.branching(second_level_decode[grp], dim,scope_name, self.is_training)
+                            first_level_decode[ds] = self.branching(second_level_decode[grp], dim,self.is_training,scope_name)
 
 
                     # branch one latent feature into [# of groups]'s latent representations
