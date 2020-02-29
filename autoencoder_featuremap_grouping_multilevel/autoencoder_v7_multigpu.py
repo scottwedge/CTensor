@@ -991,16 +991,17 @@ class Autoencoder:
                      # save all variables
                     saver = tf.train.Saver()
 
-                config = tf.ConfigProto()
-                config.gpu_options.allocator_type ='BFC'
-                config.gpu_options.per_process_gpu_memory_fraction = 0.90
-                config.gpu_options.allow_growth=True
+                # config = tf.ConfigProto()
+                # config.gpu_options.allocator_type ='BFC'
+                # config.gpu_options.per_process_gpu_memory_fraction = 0.90
+                # config.gpu_options.allow_growth=True
+                config = tf.ConfigProto(allow_soft_placement = True)
 
                 batch_size = BATCH_SIZE * num_gpus
 
                 ########### start session ########################
                 init = tf.global_variables_initializer()
-                with tf.Session() as sess:
+                with tf.Session(config = config) as sess:
                     # Run the initializer
                     sess.run(init)
 
