@@ -911,20 +911,21 @@ class Autoencoder:
                             if ds in keys_1d:
                                 dim_1d = rawdata_1d_dict[ds].shape[-1]
                                 reconstruction_1d = self.reconstruct_1d(first_level_decode[grp], dim_1d, self.is_training)
-                                temp_loss = tf.losses.absolute_difference(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds])
+
+                                temp_loss = tf.losses.absolute_difference(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds][i * BATCH_SIZE: (i+1) * BATCH_SIZE])
                                 total_loss += temp_loss
                                 loss_dict[ds] = temp_loss
 
-                                temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
+                                temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds][i * BATCH_SIZE: (i+1) * BATCH_SIZE]))
                                 rmse_dict[ds] = temp_rmse
 
                             if ds in keys_2d:
                                 dim_2d = rawdata_2d_dict[ds].shape[-1]
                                 reconstruction_2d = self.reconstruct_2d(first_level_decode[grp], dim_2d, self.is_training)
-                                temp_loss = tf.losses.absolute_difference(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds])
+                                temp_loss = tf.losses.absolute_difference(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds][i * BATCH_SIZE: (i+1) * BATCH_SIZE])
                                 total_loss += temp_loss
                                 loss_dict[ds] = temp_loss
-                                temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds]))
+                                temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds][i * BATCH_SIZE: (i+1) * BATCH_SIZE]))
                                 rmse_dict[ds] = temp_rmse
 
                             if ds in keys_3d:
@@ -934,10 +935,10 @@ class Autoencoder:
                                 # 3d weight: (?, 32, 20, 1) -> (?, 7, 32, 20, 1)
                                 demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
                                 weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
-                                temp_loss = tf.losses.absolute_difference(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds], weight_3d)
+                                temp_loss = tf.losses.absolute_difference(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds][i * BATCH_SIZE: (i+1) * BATCH_SIZE], weight_3d)
                                 total_loss += temp_loss
                                 loss_dict[ds] = temp_loss
-                                temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds]))
+                                temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds][i * BATCH_SIZE: (i+1) * BATCH_SIZE]))
                                 rmse_dict[ds] = temp_rmse
 
 
