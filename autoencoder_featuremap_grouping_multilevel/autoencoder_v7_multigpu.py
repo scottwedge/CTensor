@@ -43,6 +43,8 @@ THREE_HOUR_TIMESTEP = 56
 
 num_gpus = 8
 
+tf.debugging.set_log_device_placement(True)
+
 # By default, all variables will be placed on '/gpu:0'
 # So we need a custom device function, to assign all variables to '/cpu:0'
 # Note: If GPUs are peered, '/gpu:0' can be a faster option
