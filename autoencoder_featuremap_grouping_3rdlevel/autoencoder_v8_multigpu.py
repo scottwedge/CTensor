@@ -866,7 +866,7 @@ class Autoencoder:
                     variables = tf.global_variables()
                     # get scopes_to_reserve for second level
                     scopes_to_reserve = get_scopes_to_restore(rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
-                                        first_level_grouping_dict)
+                                        first_level_grouping_dict, second_level_grouping_dict)
                     variable_to_restore = get_variables_to_restore(variables, scopes_to_reserve)
                     # print('variable_to_restore: ')
                     # print(variable_to_restore)
