@@ -758,7 +758,7 @@ class Autoencoder:
 
                     # ------------------------------------------------#
                     # dim: latent fea dimension
-                    latent_fea = self.fuse_and_train(list(second_level_output.values()),  self.is_training, '4', dim)
+                    latent_fea = self.fuse_and_train(list(third_level_output.values()),  self.is_training, '4', dim)
                     #print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 5)
                     # recontruction
                     print('recontruction')
