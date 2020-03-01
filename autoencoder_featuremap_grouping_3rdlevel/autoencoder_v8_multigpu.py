@@ -1503,6 +1503,7 @@ class Autoencoder:
             # temporary
             # train_hours = 200
             # train_hours: train_start_time = '2014-02-01',train_end_time = '2018-10-31',
+            batch_size = BATCH_SIZE
             step = batch_size * TIMESTEPS  # 32 * 24 = 768
             if total_len%step ==0:
                 iterations = int(total_len/step)
@@ -1522,6 +1523,7 @@ class Autoencoder:
 
             # mini batch
             for itr in range(iterations):
+
                 # e.g. itr = 1, start_idx = 50, end_idx = 100
                 start_idx = itr*step
                 if total_len < (itr+1)*step:
@@ -1556,7 +1558,7 @@ class Autoencoder:
                     feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
                     feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
 
-                feed_dict_all[self.is_training] = True
+                feed_dict_all[self.is_training] = False
                 batch_cost, batch_loss_dict, batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]

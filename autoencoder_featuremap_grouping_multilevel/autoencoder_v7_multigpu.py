@@ -1574,7 +1574,7 @@ class Autoencoder:
                     feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
                     feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
 
-                feed_dict_all[self.is_training] = True
+                feed_dict_all[self.is_training] = False
                 batch_cost, batch_loss_dict, batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
