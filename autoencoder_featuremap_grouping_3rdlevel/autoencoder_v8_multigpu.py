@@ -1281,13 +1281,16 @@ class Autoencoder:
     # the input sequence (24 hours or 168 hours) should have no overlapps
     def get_latent_rep(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, train_hours,
                      demo_mask_arr, save_folder_path, dim,
-                     first_level_grouping_dict, second_level_grouping_dict,
+                     first_level_grouping_dict, second_level_grouping_dict, third_level_grouping_dict,
                     checkpoint_path = None,
                        epochs=1, batch_size=32):
         # dataset output [dataset name: encoded dataset]
         dataset_output = dict()
+
         for k, v in self.rawdata_1d_tf_x_dict.items():
-            prediction_1d = self.cnn_1d_model(v, self.is_training, k)
+
+            _v = v[i * BATCH_SIZE: (i+1) * BATCH_SIZE]
+            prediction_1d = self.cnn_1d_model(_v, self.is_training, k)
             prediction_1d = tf.expand_dims(prediction_1d, 2)
             prediction_1d = tf.expand_dims(prediction_1d, 2)
             prediction_1d_expand = tf.tile(prediction_1d, [1, 1, HEIGHT,
@@ -1295,20 +1298,21 @@ class Autoencoder:
             dataset_output[k] = prediction_1d_expand
 
         for k, v in self.rawdata_2d_tf_x_dict.items():
-            prediction_2d = self.cnn_2d_model(v, self.is_training, k)
+            _v = v[i * BATCH_SIZE: (i+1) * BATCH_SIZE]
+            prediction_2d = self.cnn_2d_model(_v, self.is_training, k)
             prediction_2d = tf.expand_dims(prediction_2d, 1)
             prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
                                                     1 ,1])
             dataset_output[k] = prediction_2d_expand
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
-            prediction_3d = self.cnn_model(v, self.is_training, k)
+            _v = v[i * BATCH_SIZE: (i+1) * BATCH_SIZE]
+            prediction_3d = self.cnn_model(_v, self.is_training, k)
             dataset_output[k] = prediction_3d
 
         # ------------ first level grouping in encoder ------------- #
         # [group name: feature maps]
         first_level_output = dict()
-
 
         for grp, data_list in first_level_grouping_dict.items():
             # group a list of dataset in a group
@@ -1323,9 +1327,9 @@ class Autoencoder:
 
         # ------ second round grouping in encoder -------------- #
         second_level_output = dict()  # e.g., 'group_2_1': ['group_1', 'group_6', 'group_7']
-        second_order_encoder_list = []  # output feature maps for grouping
+        #second_order_encoder_list = []  # output feature maps for grouping
         # second level key list, a list of group names to be used for further grouping
-        keys_list = []
+        # keys_list = []
         for grp, data_list in second_level_grouping_dict.items():
                 # group a list of dataset in a group
             temp_list = [] # a list of feature maps belonging to the same group from first level training
@@ -1336,14 +1340,33 @@ class Autoencoder:
             group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, scope_name, dim=3) # fuse and train
             second_level_output[grp] = group_fusion_featuremap
 
-            second_order_encoder_list.append(group_fusion_featuremap)
+            # second_order_encoder_list.append(group_fusion_featuremap)
+            # keys_list.append(grp)
+
+
+        # ---------- third level encocding ---------------#
+        third_level_output = dict()  # e.g., 'group_2_1': ['group_1', 'group_6', 'group_7']
+        third_order_encoder_list = []  # output feature maps for grouping
+        # second level key list, a list of group names to be used for further grouping
+        keys_list = []
+        for grp, data_list in third_level_grouping_dict.items():
+                # group a list of dataset in a group
+            temp_list = [] # a list of feature maps belonging to the same group from first level training
+            for ds in data_list:
+                temp_list.append(second_level_output[ds])
+
+            scope_name = '3_'+ grp
+            group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, scope_name, dim=3) # fuse and train
+            third_level_output[grp] = group_fusion_featuremap
+
+            third_order_encoder_list.append(group_fusion_featuremap)
             keys_list.append(grp)
 
 
         # ------------------------------------------------#
         # dim: latent fea dimension
-        latent_fea = self.fuse_and_train(list(second_level_output.values()),  self.is_training, '3', dim)
-        print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 5)
+        latent_fea = self.fuse_and_train(list(third_level_output.values()),  self.is_training, '4', dim)
+        #print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 5)
         # recontruction
         print('recontruction')
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr, 0)  # [1, 2]
@@ -1354,12 +1377,29 @@ class Autoencoder:
         weight = tf.cast(tf.greater(demo_mask_arr_expanded, 0), tf.float32)
 
         # ------------------ branching -----------------------------#
+         # -----third level branching --------------------- #
+        # branching into 2 groups
+        third_level_decode = dict()  # [group name: latent rep], e.g. [latent rep -> 'group_3_1' and 'group_3_2']
+        for grp in list(third_level_grouping_dict.keys()):
+                scope_name = '1_'+ grp
+                # store the representation of, e.g., 'group_2_1'
+                third_level_decode[grp] = self.branching(latent_fea, dim, self.is_training, scope_name)
+
          # -----second level branching --------------------- #
         # branching into 2 groups
         second_level_decode = dict()  # [group name: latent rep], e.g. [latent rep -> 'group_2_1' and 'group_2_2']
-        for grp in list(second_level_grouping_dict.keys()):
-                # store the representation of, e.g., 'group_2_1'
-                second_level_decode[grp] = self.branching(latent_fea, dim, self.is_training)
+        # for grp in list(second_level_grouping_dict.keys()):
+        #         scope_name = '2_'+ grp
+        #         # store the representation of, e.g., 'group_2_1'
+        #         second_level_decode[grp] = self.branching(latent_fea, dim, self.is_training, scope_name)
+
+        # 'group_3_1' -> ['group_2_1', 'group_2_2']
+        for grp, subgroup_list in third_level_grouping_dict.items():
+            # ['group_2_1', 'group_2_2']
+            for subgroup in subgroup_list:
+                scope_name = '2_'+ subgroup
+                second_level_decode[subgroup] = self.branching(third_level_decode[grp], dim, self.is_training, scope_name)
+
 
     # ------ first level branching ------------------ #
         # for each group in second_level_decode, decode into first level
@@ -1368,7 +1408,8 @@ class Autoencoder:
         # grp: 'group_2_1';   data_list: ['group_1', 'group_6', 'group_7']
         for grp, data_list in second_level_grouping_dict.items():
             for ds in data_list:
-                first_level_decode[ds] = self.branching(second_level_decode[grp], dim, self.is_training)
+                scope_name = '3_'+ ds
+                first_level_decode[ds] = self.branching(second_level_decode[grp], dim,self.is_training,scope_name)
 
 
         # branch one latent feature into [# of groups]'s latent representations
@@ -1393,34 +1434,35 @@ class Autoencoder:
                 # reconstruct each
                 if ds in keys_1d:
                     dim_1d = rawdata_1d_dict[ds].shape[-1]
-                    reconstruction_1d = self.reconstruct_1d(first_level_decode[grp], dim_1d, self.is_training)
-                    temp_loss = tf.losses.absolute_difference(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds])
+                    reconstruction_1d = self.reconstruct_1d(first_level_decode[grp], dim_1d, self.is_training, ds)
+
+                    temp_loss = tf.losses.absolute_difference(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds][i * BATCH_SIZE: (i+1) * BATCH_SIZE])
                     total_loss += temp_loss
                     loss_dict[ds] = temp_loss
 
-                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
+                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds][i * BATCH_SIZE: (i+1) * BATCH_SIZE]))
                     rmse_dict[ds] = temp_rmse
 
                 if ds in keys_2d:
                     dim_2d = rawdata_2d_dict[ds].shape[-1]
-                    reconstruction_2d = self.reconstruct_2d(first_level_decode[grp], dim_2d, self.is_training)
-                    temp_loss = tf.losses.absolute_difference(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds])
+                    reconstruction_2d = self.reconstruct_2d(first_level_decode[grp], dim_2d, self.is_training, ds)
+                    temp_loss = tf.losses.absolute_difference(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds][i * BATCH_SIZE: (i+1) * BATCH_SIZE])
                     total_loss += temp_loss
                     loss_dict[ds] = temp_loss
-                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds]))
+                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds][i * BATCH_SIZE: (i+1) * BATCH_SIZE]))
                     rmse_dict[ds] = temp_rmse
 
                 if ds in keys_3d:
                     timestep_3d = self.rawdata_3d_tf_y_dict[ds].shape[1]
-                    reconstruction_3d = self.reconstruct_3d(first_level_decode[grp], timestep_3d, self.is_training)
+                    reconstruction_3d = self.reconstruct_3d(first_level_decode[grp], timestep_3d, self.is_training, ds)
             #         print('reconstruction_3d.shape: ', reconstruction_3d.shape) # (?, 7, 32, 20, 1)
                     # 3d weight: (?, 32, 20, 1) -> (?, 7, 32, 20, 1)
                     demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
                     weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
-                    temp_loss = tf.losses.absolute_difference(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds], weight_3d)
+                    temp_loss = tf.losses.absolute_difference(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds][i * BATCH_SIZE: (i+1) * BATCH_SIZE], weight_3d)
                     total_loss += temp_loss
                     loss_dict[ds] = temp_loss
-                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds]))
+                    temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds][i * BATCH_SIZE: (i+1) * BATCH_SIZE]))
                     rmse_dict[ds] = temp_rmse
 
 
@@ -1583,7 +1625,7 @@ class Autoencoder:
 
 
             # save results to txt
-            txt_name = save_folder_path + 'infer_AE_v6_latent_rep' +  '.txt'
+            txt_name = save_folder_path + 'infer_AE_v8_latent_rep' +  '.txt'
             with open(txt_name, 'w') as the_file:
                     #the_file.write('Only account for grids that intersect with city boundary \n')
                 # the_file.write('epoch\n')
