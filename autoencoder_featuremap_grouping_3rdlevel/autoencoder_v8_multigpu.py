@@ -1560,7 +1560,7 @@ class Autoencoder:
                 batch_cost, batch_loss_dict, batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
-                batch_output, batch_encoded_list = sess.run([latent_fea, second_order_encoder_list], feed_dict= feed_dict_all)
+                batch_output = sess.run([latent_fea], feed_dict= feed_dict_all)
                 final_output.extend(batch_output)
 
                 final_encoded_list.append(batch_encoded_list)
