@@ -1563,7 +1563,6 @@ class Autoencoder:
                 batch_output = sess.run([latent_fea], feed_dict= feed_dict_all)
                 final_output.extend(batch_output)
 
-                final_encoded_list.append(batch_encoded_list)
 
 
                 # # temp, only ouput the first batch of reconstruction
@@ -1649,7 +1648,7 @@ class Autoencoder:
 
             final_output = np.array(final_output)
             train_result.extend(final_output)
-            encoded_list.extend(final_encoded_list)
+
 
             print('saving output_arr ....')
             train_encoded_res = train_result
