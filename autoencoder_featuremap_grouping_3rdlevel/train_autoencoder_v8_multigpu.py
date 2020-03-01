@@ -513,8 +513,8 @@ def main():
     }
 
     third_level_grouping_dict = {
-    'group_3_1':['group_2_1', 'group_2_2'],
-    'group_3_2':['group_2_3', 'group_2_4']
+    'group_3_1':['group_2_1' ],
+    'group_3_2':['group_2_2', 'group_2_3', 'group_2_4']
     }
 
 
