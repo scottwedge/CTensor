@@ -715,8 +715,6 @@ def main():
         #      mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
 
 
-
-
     if level == 'second':
         keys_list = []
         for i in range(1, n_groups+1):
@@ -724,6 +722,15 @@ def main():
         feature_map_dict = dict(zip(keys_list, encoded_list_rearrange_concat))
         relation_all_df = second_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
                     mask_arr, keys_list)
+
+    if level == 'third':
+        keys_list = []
+        for i in range(1, n_groups+1):
+            keys_list.append('group_2_' + str(i))
+        feature_map_dict = dict(zip(keys_list, encoded_list_rearrange_concat))
+        relation_all_df = second_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
+                    mask_arr, keys_list)
+
 
 
     # -------------------  relation_all_df -------------------------- #
