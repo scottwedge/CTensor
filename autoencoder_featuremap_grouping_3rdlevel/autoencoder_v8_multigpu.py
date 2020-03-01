@@ -878,7 +878,7 @@ class Autoencoder:
 
                     AdamOp = tf.train.AdamOptimizer(learning_rate=learning_rate)
                     grads = AdamOp.compute_gradients(cost, colocate_gradients_with_ops = True)
-                    # print('\n'.join('{}: {}'.format(*k) for k in enumerate(grads)))
+                    print('\n'.join('{}: {}'.format(*k) for k in enumerate(grads)))
                     # tf.get_variable_scope().reuse_variables()
 
                     tower_grads.append(grads)
