@@ -1631,7 +1631,7 @@ class Autoencoder_entry:
     def __init__(self, train_obj,
               rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                     demo_mask_arr, save_path, dim,
-                     first_level_grouping_dict, second_level_grouping_dict,
+                     first_level_grouping_dict, second_level_grouping_dict,third_level_grouping_dict,
                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                      is_inference = False, checkpoint_path = None,
                      resume_training = False, train_dir = None,
@@ -1651,6 +1651,7 @@ class Autoencoder_entry:
         self.dim = dim
         self.first_level_grouping_dict = first_level_grouping_dict
         self.second_level_grouping_dict = second_level_grouping_dict
+        self.third_level_grouping_dict = third_level_grouping_dict
 
 
         globals()['HEIGHT']  = HEIGHT
@@ -1718,14 +1719,14 @@ class Autoencoder_entry:
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
                         self.intersect_pos_set,
                      self.demo_mask_arr, self.dim,
-                     self.first_level_grouping_dict, self.second_level_grouping_dict,
+                     self.first_level_grouping_dict, self.second_level_grouping_dict,self.third_level_grouping_dict,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
         # (9337, 1, 32, 20, 1)
         train_lat_rep, test_lat_rep, encoded_list, keys_list = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim,
-                         self.first_level_grouping_dict, self.second_level_grouping_dict,
+                         self.first_level_grouping_dict, self.second_level_grouping_dict, self.third_level_grouping_dict,
                 use_pretrained =  self.use_pretrained, pretrained_ckpt_path = self.pretrained_ckpt_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
@@ -1741,13 +1742,13 @@ class Autoencoder_entry:
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
                         self.intersect_pos_set,
                      self.demo_mask_arr, self.dim,
-                    self.first_level_grouping_dict, self.second_level_grouping_dict,
+                    self.first_level_grouping_dict, self.second_level_grouping_dict, self.third_level_grouping_dict,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
         train_lat_rep, test_lat_rep, encoded_list, keys_list = predictor.train_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim,
-                         self.first_level_grouping_dict, self.second_level_grouping_dict,
+                         self.first_level_grouping_dict, self.second_level_grouping_dict,self.third_level_grouping_dict,
                          True, self.checkpoint_path,
                           self.use_pretrained, self.pretrained_ckpt_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
@@ -1767,13 +1768,13 @@ class Autoencoder_entry:
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
                         self.intersect_pos_set,
                      self.demo_mask_arr, self.dim,
-        self.first_level_grouping_dict, self.second_level_grouping_dict,
+        self.first_level_grouping_dict, self.second_level_grouping_dict,self.third_level_grouping_dict,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
         train_lat_rep = predictor.get_latent_rep(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim,
-                         self.first_level_grouping_dict, self.second_level_grouping_dict,
+                         self.first_level_grouping_dict, self.second_level_grouping_dict, self.third_level_grouping_dict,
                         self.checkpoint_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
