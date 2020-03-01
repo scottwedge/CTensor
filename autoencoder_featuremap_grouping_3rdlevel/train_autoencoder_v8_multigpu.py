@@ -578,7 +578,7 @@ def main():
                                 use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
                         ).train_lat_rep
         else:
-            latent_representation = autoencoder_v7.Autoencoder_entry(train_obj,
+            latent_representation = autoencoder_v8.Autoencoder_entry(train_obj,
                                     rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                      demo_mask_arr,  save_path, dim,
                                       first_level_grouping_dict, second_level_grouping_dict,third_level_grouping_dict,
@@ -589,7 +589,7 @@ def main():
     else:
          # resume training
         print('resume trainging from : ', train_dir)
-        latent_representation = autoencoder_v7.Autoencoder_entry(train_obj,
+        latent_representation = autoencoder_v8.Autoencoder_entry(train_obj,
                             rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                          demo_mask_arr,
                             train_dir, dim,
