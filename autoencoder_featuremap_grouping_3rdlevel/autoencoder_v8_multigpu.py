@@ -1289,8 +1289,8 @@ class Autoencoder:
 
         for k, v in self.rawdata_1d_tf_x_dict.items():
 
-            _v = v[i * BATCH_SIZE: (i+1) * BATCH_SIZE]
-            prediction_1d = self.cnn_1d_model(_v, self.is_training, k)
+            # _v = v[i * BATCH_SIZE: (i+1) * BATCH_SIZE]
+            prediction_1d = self.cnn_1d_model(v, self.is_training, k)
             prediction_1d = tf.expand_dims(prediction_1d, 2)
             prediction_1d = tf.expand_dims(prediction_1d, 2)
             prediction_1d_expand = tf.tile(prediction_1d, [1, 1, HEIGHT,
@@ -1298,16 +1298,16 @@ class Autoencoder:
             dataset_output[k] = prediction_1d_expand
 
         for k, v in self.rawdata_2d_tf_x_dict.items():
-            _v = v[i * BATCH_SIZE: (i+1) * BATCH_SIZE]
-            prediction_2d = self.cnn_2d_model(_v, self.is_training, k)
+            # _v = v[i * BATCH_SIZE: (i+1) * BATCH_SIZE]
+            prediction_2d = self.cnn_2d_model(v, self.is_training, k)
             prediction_2d = tf.expand_dims(prediction_2d, 1)
             prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
                                                     1 ,1])
             dataset_output[k] = prediction_2d_expand
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
-            _v = v[i * BATCH_SIZE: (i+1) * BATCH_SIZE]
-            prediction_3d = self.cnn_model(_v, self.is_training, k)
+            # _v = v[i * BATCH_SIZE: (i+1) * BATCH_SIZE]
+            prediction_3d = self.cnn_model(v, self.is_training, k)
             dataset_output[k] = prediction_3d
 
         # ------------ first level grouping in encoder ------------- #
@@ -1342,7 +1342,6 @@ class Autoencoder:
 
             # second_order_encoder_list.append(group_fusion_featuremap)
             # keys_list.append(grp)
-
 
         # ---------- third level encocding ---------------#
         third_level_output = dict()  # e.g., 'group_2_1': ['group_1', 'group_6', 'group_7']
