@@ -790,7 +790,7 @@ class Autoencoder:
                     for grp, subgroup_list in third_level_grouping_dict.items():
                         # ['group_2_1', 'group_2_2']
                         for subgroup in subgroup_list:
-                            scope_name = '2_'+ grp
+                            scope_name = '2_'+ subgroup
                             second_level_decode[subgroup] = self.branching(third_level_decode[grp], dim, self.is_training, scope_name)
 
 
