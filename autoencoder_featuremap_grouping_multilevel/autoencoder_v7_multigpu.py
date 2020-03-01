@@ -1415,8 +1415,9 @@ class Autoencoder:
         # branching into 2 groups
         second_level_decode = dict()  # [group name: latent rep], e.g. [latent rep -> 'group_2_1' and 'group_2_2']
         for grp in list(second_level_grouping_dict.keys()):
+            scope_name = '1_'+ grp
                 # store the representation of, e.g., 'group_2_1'
-                second_level_decode[grp] = self.branching(latent_fea, dim, self.is_training)
+            second_level_decode[grp] = self.branching(latent_fea, dim, self.is_training, scope_name)
 
     # ------ first level branching ------------------ #
         # for each group in second_level_decode, decode into first level
@@ -1425,7 +1426,8 @@ class Autoencoder:
         # grp: 'group_2_1';   data_list: ['group_1', 'group_6', 'group_7']
         for grp, data_list in second_level_grouping_dict.items():
             for ds in data_list:
-                first_level_decode[ds] = self.branching(second_level_decode[grp], dim, self.is_training)
+                scope_name = '2_'+ ds
+                first_level_decode[ds] = self.branching(second_level_decode[grp], dim, self.is_training, scope_name)
 
 
         # branch one latent feature into [# of groups]'s latent representations
@@ -1450,7 +1452,7 @@ class Autoencoder:
                 # reconstruct each
                 if ds in keys_1d:
                     dim_1d = rawdata_1d_dict[ds].shape[-1]
-                    reconstruction_1d = self.reconstruct_1d(first_level_decode[grp], dim_1d, self.is_training)
+                    reconstruction_1d = self.reconstruct_1d(first_level_decode[grp], dim_1d, self.is_training, ds)
                     temp_loss = tf.losses.absolute_difference(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds])
                     total_loss += temp_loss
                     loss_dict[ds] = temp_loss
@@ -1460,7 +1462,7 @@ class Autoencoder:
 
                 if ds in keys_2d:
                     dim_2d = rawdata_2d_dict[ds].shape[-1]
-                    reconstruction_2d = self.reconstruct_2d(first_level_decode[grp], dim_2d, self.is_training)
+                    reconstruction_2d = self.reconstruct_2d(first_level_decode[grp], dim_2d, self.is_training, ds)
                     temp_loss = tf.losses.absolute_difference(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds])
                     total_loss += temp_loss
                     loss_dict[ds] = temp_loss
@@ -1469,7 +1471,7 @@ class Autoencoder:
 
                 if ds in keys_3d:
                     timestep_3d = self.rawdata_3d_tf_y_dict[ds].shape[1]
-                    reconstruction_3d = self.reconstruct_3d(first_level_decode[grp], timestep_3d, self.is_training)
+                    reconstruction_3d = self.reconstruct_3d(first_level_decode[grp], timestep_3d, self.is_training, ds)
             #         print('reconstruction_3d.shape: ', reconstruction_3d.shape) # (?, 7, 32, 20, 1)
                     # 3d weight: (?, 32, 20, 1) -> (?, 7, 32, 20, 1)
                     demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
