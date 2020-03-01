@@ -780,7 +780,7 @@ class Autoencoder:
 
                      # -----second level branching --------------------- #
                     # branching into 2 groups
-                    # second_level_decode = dict()  # [group name: latent rep], e.g. [latent rep -> 'group_2_1' and 'group_2_2']
+                    second_level_decode = dict()  # [group name: latent rep], e.g. [latent rep -> 'group_2_1' and 'group_2_2']
                     # for grp in list(second_level_grouping_dict.keys()):
                     #         scope_name = '2_'+ grp
                     #         # store the representation of, e.g., 'group_2_1'
