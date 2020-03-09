@@ -1477,9 +1477,9 @@ class Autoencoder:
 
         #------ -------------  preserve below ----------------
 
-        save_folder_path = os.path.join(save_folder_path, 'latent_rep/')
-        if not os.path.exists(save_folder_path):
-            os.makedirs(save_folder_path)
+        save_folder_path_latent_rep = os.path.join(save_folder_path, 'latent_rep/')
+        if not os.path.exists(save_folder_path_latent_rep):
+            os.makedirs(save_folder_path_latent_rep)
 
         saver = tf.train.Saver()
 
@@ -1488,6 +1488,7 @@ class Autoencoder:
             sess.run(tf.global_variables_initializer())
             # ---- if resume training -----
             if checkpoint_path is not None:
+                print('restoring checkpoint_path: ', checkpoint_path)
                 saver.restore(sess, checkpoint_path)
             else:
                 saver.restore(sess, tf.train.latest_checkpoint(save_folder_path))
@@ -1611,7 +1612,7 @@ class Autoencoder:
             # save epoch statistics to csv
             ecoch_res_df = pd.DataFrame([[epoch_loss]],
                     columns=[ 'inference_loss'])
-            res_csv_path = save_folder_path + 'inference_loss_df' +'.csv'
+            res_csv_path = save_folder_path_latent_rep + 'inference_loss_df' +'.csv'
             with open(res_csv_path, 'a') as f:
                     # Add header if file is being created, otherwise skip it
                 ecoch_res_df.to_csv(f, header=f.tell()==0)
@@ -1619,15 +1620,13 @@ class Autoencoder:
 
             train_sub_res_df = pd.DataFrame([list(epoch_subloss.values())],
                     columns= list(epoch_subloss.keys()))
-            train_sub_res_csv_path = save_folder_path + 'inference_loss_sub_res' +'.csv'
+            train_sub_res_csv_path = save_folder_path_latent_rep + 'inference_loss_sub_res' +'.csv'
             with open(train_sub_res_csv_path, 'a') as f:
                 train_sub_res_df.to_csv(f, header=f.tell()==0)
 
 
-
-
             # save results to txt
-            txt_name = save_folder_path + 'infer_AE_v8_latent_rep' +  '.txt'
+            txt_name = save_folder_path_latent_rep + 'infer_AE_v8_latent_rep' +  '.txt'
             with open(txt_name, 'w') as the_file:
                     #the_file.write('Only account for grids that intersect with city boundary \n')
                 # the_file.write('epoch\n')
