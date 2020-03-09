@@ -772,6 +772,7 @@ class Autoencoder:
                     # ------------------ branching -----------------------------#
                      # -----third level branching --------------------- #
                     # branching into 2 groups
+                    # # TODO: branching dimension should be 3, but not latent representation's dimension.
                     third_level_decode = dict()  # [group name: latent rep], e.g. [latent rep -> 'group_3_1' and 'group_3_2']
                     for grp in list(third_level_grouping_dict.keys()):
                             scope_name = '1_'+ grp
