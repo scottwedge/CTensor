@@ -1284,10 +1284,10 @@ class Autoencoder:
                      first_level_grouping_dict, second_level_grouping_dict, third_level_grouping_dict,
                     checkpoint_path = None,
                        epochs=1, batch_size=32):
+
+
         # dataset output [dataset name: encoded dataset]
-
-
-
+        dataset_output = dict()
         for k, v in self.rawdata_1d_tf_x_dict.items():
 
             # _v = v[i * BATCH_SIZE: (i+1) * BATCH_SIZE]
