@@ -1491,6 +1491,7 @@ class Autoencoder:
                 print('restoring checkpoint_path: ', checkpoint_path)
                 saver.restore(sess, checkpoint_path)
             else:
+                print('checkpoint is None!')
                 saver.restore(sess, tf.train.latest_checkpoint(save_folder_path))
                 # check global step
 
