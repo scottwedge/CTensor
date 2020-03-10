@@ -1275,8 +1275,6 @@ class Autoencoder:
 
 
 
-
-
     # do inference using existing checkpoint
     # get latent representation for train and test data altogether
     # the input sequence (24 hours or 168 hours) should have no overlapps
@@ -1382,18 +1380,13 @@ class Autoencoder:
         # branching into 2 groups
         third_level_decode = dict()  # [group name: latent rep], e.g. [latent rep -> 'group_3_1' and 'group_3_2']
         for grp in list(third_level_grouping_dict.keys()):
-                scope_name = '1_'+ grp
-                # store the representation of, e.g., 'group_2_1'
-                third_level_decode[grp] = self.branching(latent_fea, dim, self.is_training, scope_name)
+            scope_name = '1_'+ grp
+            # store the representation of, e.g., 'group_2_1'
+            third_level_decode[grp] = self.branching(latent_fea, dim, self.is_training, scope_name)
 
          # -----second level branching --------------------- #
         # branching into 2 groups
         second_level_decode = dict()  # [group name: latent rep], e.g. [latent rep -> 'group_2_1' and 'group_2_2']
-        # for grp in list(second_level_grouping_dict.keys()):
-        #         scope_name = '2_'+ grp
-        #         # store the representation of, e.g., 'group_2_1'
-        #         second_level_decode[grp] = self.branching(latent_fea, dim, self.is_training, scope_name)
-
         # 'group_3_1' -> ['group_2_1', 'group_2_2']
         for grp, subgroup_list in third_level_grouping_dict.items():
             # ['group_2_1', 'group_2_2']
@@ -1562,7 +1555,7 @@ class Autoencoder:
                     feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
                     feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
 
-                feed_dict_all[self.is_training] = False
+                feed_dict_all[self.is_training] = True
                 batch_cost, batch_loss_dict, batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
