@@ -263,7 +263,7 @@ class lstm:
         tf.reset_default_graph()
 
         predictor = SeriesPredictor(self.save_path, input_dim=1, seq_size=TIMESTEPS, hidden_dim=N_HIDDEN,
-                                resume_training, checkpoint_path)
+                                resume_training =resume_training , checkpoint_path = checkpoint_path)
         #data = data_loader.load_series('international-airline-passengers.csv')
         data = generateData(train_series, TIMESTEPS, BATCH_SIZE)
         # # DEBUG:
