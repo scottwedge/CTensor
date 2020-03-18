@@ -182,7 +182,7 @@ class SeriesPredictor:
 
             if self.resume_training:
                 if self.checkpoint_path is not None:
-                    self.saver.restore(sess, checkpoint_path)
+                    self.saver.restore(sess, self.checkpoint_path)
                 else:
                     self.saver.restore(sess, tf.train.latest_checkpoint(self.save_path))
                 # check global step
