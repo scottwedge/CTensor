@@ -102,12 +102,16 @@ class generateData(object):
 
 class SeriesPredictor:
     # input_dim = 1, seq_size = 168, hidden_dim = ?
-    def __init__(self, save_path, input_dim, seq_size, hidden_dim):
+    def __init__(self, save_path, input_dim, seq_size, hidden_dim,
+                resume_training, checkpoint_path):
         # Hyperparameters
         self.input_dim = input_dim
         self.seq_size = seq_size
         self.hidden_dim = hidden_dim
         self.save_path = save_path
+
+        self.resume_training = resume_training
+        self.checkpoint_path = checkpoint_path
 
         # Weight variables and input placeholders
         self.W_out = tf.Variable(tf.random_normal([hidden_dim, 1]), name='W_out')
@@ -117,12 +121,19 @@ class SeriesPredictor:
         #self.y = tf.placeholder(tf.float32, [None, seq_size])
         # modified y dimension, only need predict 1 y, not seq_size y
         self.y = tf.placeholder(tf.float32, [None, 1])
+        self.global_step = tf.Variable(0, trainable=False)
 
         # Cost optimizer
         #self.cost = tf.reduce_mean(tf.square(self.model() - self.y))
         #acc_loss = tf.losses.absolute_difference(prediction, self.y, weight)
         self.cost = tf.losses.absolute_difference(self.model(), self.y)
-        self.train_op = tf.train.AdamOptimizer(learning_rate=LEARNING_RATE).minimize(self.cost)
+
+        starter_learning_rate = LEARNING_RATE
+        learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
+                                       5000, 0.96, staircase=True)
+
+        # self.train_op = tf.train.AdamOptimizer(learning_rate=LEARNING_RATE).minimize(self.cost)
+        self.train_op = tf.train.AdamOptimizer(learning_rate).minimize(cost, global_step = self.global_step)
 
         # Auxiliary ops
         self.saver = tf.train.Saver()
@@ -168,7 +179,21 @@ class SeriesPredictor:
         with tf.Session(config = config) as sess:
             tf.get_variable_scope().reuse_variables()
             sess.run(tf.global_variables_initializer())
-            for i in range(TRAINING_STEPS):
+
+            if resume_training:
+                if checkpoint_path is not None:
+                    self.saver.restore(sess, checkpoint_path)
+                else:
+                    self.saver.restore(sess, tf.train.latest_checkpoint(self.save_path))
+                # check global step
+                print("global step: ", sess.run([self.global_step]))
+                print("Model restore finished, current globle step: %d" % self.global_step.eval())
+                start_epoch = self.global_step.eval()
+            else:
+                start_epoch = 0
+
+
+            for i in range(start_epoch,TRAINING_STEPS):
                 batch_x, batch_y = data.train_next()
                # batch_test_x, batch_test_y = data.test_next()
 
@@ -192,7 +217,9 @@ class SeriesPredictor:
 class lstm:
     def __init__(self, train_obj, save_path,
                     TIMESTEPS,
-                    TRAINING_STEPS, LEARNING_RATE):
+                    TRAINING_STEPS, LEARNING_RATE,
+                     is_inference = False, checkpoint_path = None,
+                     resume_training = False, train_dir = None):
         self.train_obj = train_obj
         self.train_df = train_obj.train_df
         self.test_df = train_obj.test_df
@@ -207,6 +234,12 @@ class lstm:
         print('len(self.train_df):', len(self.train_df))
         print('len(self.test_df):', len(self.test_df))
 
+        self.is_inference = is_inference
+        self.checkpoint_path = checkpoint_path
+
+        self.resume_training = resume_training
+        self.train_dir = train_dir
+
 
 
         # get prediction results
@@ -214,17 +247,23 @@ class lstm:
         self.fea = 'total_count'  # total_count of frement bridge west and east
         #print('self.train_df[self.fea]: ', self.train_df[self.fea])
 
-        self.lstm_predicted = self.run_lstm_for_single_grid(self.train_df[self.fea], self.test_df[self.fea])
+        if resume_training == False:
+            self.lstm_predicted = self.run_lstm_for_single_grid(self.train_df[self.fea], self.test_df[self.fea])
+        else:
+            self.lstm_predicted = self.run_lstm_for_single_grid(self.train_df[self.fea], self.test_df[self.fea],
+                                        self.train_dir, self.checkpoint_path)
 
     # TODO: save results for every grid's predction, and recover after resuming
     # input_series: time series for a single grid
-    def run_lstm_for_single_grid(self, train_series, test_series):
+    def run_lstm_for_single_grid(self, train_series, test_series,
+            resume_training = False, checkpoint_path = None):
         # lstm_predicted = pd.DataFrame(np.nan,
         #                         index=self.test_df[self.train_obj.predict_start_time: self.train_obj.predict_end_time].index,
         #                         columns= [self.fea])
         tf.reset_default_graph()
 
-        predictor = SeriesPredictor(self.save_path, input_dim=1, seq_size=TIMESTEPS, hidden_dim=N_HIDDEN)
+        predictor = SeriesPredictor(self.save_path, input_dim=1, seq_size=TIMESTEPS, hidden_dim=N_HIDDEN，
+                                resume_training, checkpoint_path)
         #data = data_loader.load_series('international-airline-passengers.csv')
         data = generateData(train_series, TIMESTEPS, BATCH_SIZE)
         # # DEBUG:
@@ -275,6 +314,8 @@ class lstm:
             the_file.write(str(rmse))
             the_file.write('mae for lstm\n')
             the_file.write(str(mae))
+            the_file.write('epochs\n')
+            the_file.write(str(TRAINING_STEPS))
             the_file.close()
     #     plot_predicted, = plt.plot(predicted, label='predicted')
     #     plot_test, = plt.plot(test_data.y, label='test')

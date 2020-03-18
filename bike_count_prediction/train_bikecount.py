@@ -153,12 +153,21 @@ def main():
 
     # lstm
     print('lstm prediction')
+    if resume_training == False:
     #lstm_predicted = pd.read_csv(save_path + 'lstm_predicted.csv', index_col=0)
     #lstm_predicted.index = pd.to_datetime(lstm_predicted.index)
-    lstm_predicted = lstm.lstm(train_obj,save_path,
-                TIMESTEPS,
-           TRAINING_STEPS, LEARNING_RATE).lstm_predicted
-    lstm_predicted.to_csv(save_path + 'lstm_predicted.csv')
+        lstm_predicted = lstm.lstm(train_obj,save_path,
+                    TIMESTEPS,
+               TRAINING_STEPS, LEARNING_RATE).lstm_predicted
+        lstm_predicted.to_csv(save_path + 'lstm_predicted.csv')
+    else:
+        print('resume trainging from : ', train_dir)
+        lstm_predicted = lstm.lstm(train_obj,save_path,
+                    TIMESTEPS,
+               TRAINING_STEPS, LEARNING_RATE,
+               False, checkpoint, True, train_dir).lstm_predicted
+        lstm_predicted.to_csv(save_path + 'lstm_predicted.csv')
+
     # eval_obj6 = evaluation.evaluation(train_obj.test_df, lstm_predicted)
     # print('rmse for lstm: ',eval_obj6.rmse_val)
     # print('mae for lstm: ', eval_obj6.mae_val)
