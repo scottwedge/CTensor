@@ -25,6 +25,7 @@ import datetime_utils
 import ha
 import sarima
 import arima
+import argparse
 
 import lstm
 import lstm_attn
@@ -33,6 +34,11 @@ import evaluation
 
 MAX_TIMESTEPS = 336
 MIN_TIMESTEPS = 24
+
+TRAINING_STEPS = 3000
+LEARNING_RATE = 0.001
+TIMESTEPS = 168
+
 
 class train:
     # TODO: increase window size to 4 weeks
@@ -69,9 +75,58 @@ class train:
         # self.grid_list = list(raw_df)
 
 
+def parse_args():
+    parser = argparse.ArgumentParser()
+    #                 action="store", help = 'whether to multi-var fairloss. If True, include aga, race, and edu. Otherwise, use race')
+    parser.add_argument('-s',   '--suffix',
+                     action="store", help = 'save path suffix', default = '')
+    parser.add_argument("-r","--resume_training", type=bool, default=False,
+    				help="A boolean value whether or not to resume training from checkpoint")
+    parser.add_argument('-t',   '--train_dir',
+                     action="store", help = 'training dir containing checkpoints', default = '')
+    parser.add_argument('-c',   '--checkpoint',
+                     action="store", help = 'checkpoint path (resume training)', default = None)
+    parser.add_argument('-p',   '--place',
+                     action="store", help = 'city to train on: Seattle or Austin', default = 'Seattle')
+    parser.add_argument('-e',   '--epoch',  type=int,
+                     action="store", help = 'epochs to train', default = 3000)
+    parser.add_argument('-l',   '--learning_rate',  type=float,
+                     action="store", help = 'epochs to train', default = 0.001)
+    parser.add_argument('-d',   '--encoding_dir',
+                     action="store", help = 'dir containing latent representations', default = '')
 
+
+    return parser.parse_args()
 
 def main():
+
+    args = parse_args()
+    suffix = args.suffix
+
+    # the following arguments for resuming training
+    resume_training = args.resume_training
+    train_dir = args.train_dir
+    checkpoint = args.checkpoint
+    place = args.place
+    epoch = args.epoch
+    learning_rate= args.learning_rate
+    encoding_dir = args.encoding_dir
+
+    print("resume_training: ", resume_training)
+    print("training dir path: ", train_dir)
+    print("checkpoint: ", checkpoint)
+    print("place: ", place)
+    print("epochs to train: ", epoch)
+    print("start learning rate: ", learning_rate)
+
+    if checkpoint is not None:
+        checkpoint = train_dir + checkpoint
+        print('pick up checkpoint: ', checkpoint)
+
+    globals()['TRAINING_STEPS']  = epoch
+    globals()['LEARNING_RATE']  = learning_rate
+    print('TRAINING_STEPS: ', TRAINING_STEPS)
+
     #hourly_grid_timeseries = pd.read_csv('./hourly_grid_1000_timeseries_trail.csv', index_col = 0)
     hourly_grid_timeseries = pd.read_csv('../data_processing/Fremont_bicycle_count_clean_final.csv', index_col = 0)
     hourly_grid_timeseries.index = pd.to_datetime(hourly_grid_timeseries.index)
@@ -79,14 +134,30 @@ def main():
     # ################## !!!!! ####################################
     # need to specify window size if varying window scheme is used
     train_obj = train(hourly_grid_timeseries,  window = 168)
-    save_path = './'
+
+    if suffix == '':
+        save_path =  './'
+    else:
+        save_path = './'+ suffix  +'/'
+
+    if train_dir:
+        save_path = train_dir
+
+    # print("training dir: ", train_dir)
+    print("save_path: ", save_path)
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    # save_path = './'
 
 
     # lstm
     print('lstm prediction')
     #lstm_predicted = pd.read_csv(save_path + 'lstm_predicted.csv', index_col=0)
     #lstm_predicted.index = pd.to_datetime(lstm_predicted.index)
-    lstm_predicted = lstm.lstm(train_obj).lstm_predicted
+    lstm_predicted = lstm.lstm(train_obj,save_path,
+                TIMESTEPS,
+           TRAINING_STEPS, LEARNING_RATE).lstm_predicted
     lstm_predicted.to_csv(save_path + 'lstm_predicted.csv')
     # eval_obj6 = evaluation.evaluation(train_obj.test_df, lstm_predicted)
     # print('rmse for lstm: ',eval_obj6.rmse_val)

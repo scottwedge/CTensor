@@ -37,6 +37,7 @@ TRAINING_STEPS = 3000
 BATCH_SIZE = 60
 #PRINT_STEPS = TRAINING_STEPS / 100
 N_HIDDEN = 30
+LEARNING_RATE = 0.001
 
 class generateData(object):
     def __init__(self, rawdata, timesteps, batchsize):
@@ -120,7 +121,7 @@ class SeriesPredictor:
         #self.cost = tf.reduce_mean(tf.square(self.model() - self.y))
         #acc_loss = tf.losses.absolute_difference(prediction, self.y, weight)
         self.cost = tf.losses.absolute_difference(self.model(), self.y)
-        self.train_op = tf.train.AdamOptimizer(learning_rate=0.001).minimize(self.cost)
+        self.train_op = tf.train.AdamOptimizer(learning_rate=LEARNING_RATE).minimize(self.cost)
 
         # Auxiliary ops
         self.saver = tf.train.Saver()
@@ -188,13 +189,19 @@ class SeriesPredictor:
 
 
 class lstm:
-    def __init__(self, train_obj):
+    def __init__(self, train_obj, save_path,
+                    TIMESTEPS,
+                    TRAINING_STEPS, LEARNING_RATE):
         self.train_obj = train_obj
         self.train_df = train_obj.train_df
         self.test_df = train_obj.test_df
+        self.save_path = save_path
 
-        # adjust for prediction_start_time if window size changed
-        # TODO
+        globals()['TIMESTEPS']  = TIMESTEPS
+        # globals()['BATCH_SIZE']  = BATCH_SIZE
+        globals()['TRAINING_STEPS']  = TRAINING_STEPS
+        globals()['LEARNING_RATE']  = LEARNING_RATE
+        #globals()['LATENT_CHANNEL'] = self.latent_test_series.shape[-1]
 
 
         # get prediction results
@@ -240,7 +247,7 @@ class lstm:
 
 
 
-        path = os.path.join(self.train_obj.save_path, 'lstm_temp/')
+        path = os.path.join(self.save_path, 'lstm_temp/')
         if not os.path.exists(path):
             print("path doesn't exist. trying to make", path)
             os.makedirs(path)
