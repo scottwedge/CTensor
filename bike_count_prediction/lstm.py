@@ -232,6 +232,8 @@ class lstm:
             print('predicted_vals', np.shape(predicted_vals))
 
         predicted = np.transpose(predicted_vals)
+        # debug
+        print('predicted: ', predicted)
 
         #mse = mean_absolute_error(y['test'], predicted)
         #print ("Error: %f" % mse)
