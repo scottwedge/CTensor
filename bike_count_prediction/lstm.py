@@ -181,7 +181,7 @@ class SeriesPredictor:
             sess.run(tf.global_variables_initializer())
 
             if self.resume_training:
-                if checkpoint_path is not None:
+                if self.checkpoint_path is not None:
                     self.saver.restore(sess, checkpoint_path)
                 else:
                     self.saver.restore(sess, tf.train.latest_checkpoint(self.save_path))
