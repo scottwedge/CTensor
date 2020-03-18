@@ -203,6 +203,10 @@ class lstm:
         globals()['LEARNING_RATE']  = LEARNING_RATE
         #globals()['LATENT_CHANNEL'] = self.latent_test_series.shape[-1]
 
+        print('len(self.train_df):', self.train_df)
+        print('len(self.test_df):', self.test_df)
+        print('self.train_df[self.fea]: ', self.train_df[self.fea])
+
 
         # get prediction results
         print('get prediction results')
