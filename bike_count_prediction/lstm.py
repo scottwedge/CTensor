@@ -258,18 +258,17 @@ class lstm:
         print('MAE: %f' %mae)
 
 
-
-        path = os.path.join(self.save_path, 'lstm_temp/')
-        if not os.path.exists(path):
-            print("path doesn't exist. trying to make", path)
-            os.makedirs(path)
-        filename = os.path.join(path, self.fea+'.csv')
+        # path = os.path.join(self.save_path, 'lstm_temp/')
+        # if not os.path.exists(path):
+        #     print("path doesn't exist. trying to make", path)
+        #     os.makedirs(path)
+        filename = os.path.join(self.save_path, self.fea+'.csv')
         # lstm_predicted[self.fea] = predicted_vals.tolist()
         temp_res = pd.DataFrame({self.fea:predicted_vals.tolist()})
         print('saving files to ', filename)
         temp_res.to_csv(filename)
 
-        txt_path = os.path.join(path, 'lstm_bikecount_output.txt')
+        txt_path = os.path.join(self.save_path, 'lstm_bikecount_output.txt')
 
         with open(txt_path, 'w') as the_file:
             the_file.write('rmse for lstm\n')
