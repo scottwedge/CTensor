@@ -237,12 +237,12 @@ class lstm:
         #print ("Error: %f" % mse)
         rmse = np.sqrt((np.asarray((np.subtract(predicted, test_data.y))) ** 2).mean())
         # this previous code for rmse was incorrect, array and not matricies was needed: rmse = np.sqrt(((predicted - y['test']) ** 2).mean())
-        score = mean_squared_error(predicted, test_data.y)
+        #score = mean_squared_error(predicted, test_data.y)
         #nmse = score / np.var(test_data.y) # should be variance of original data and not data from fitted model, worth to double check
         mae = mean_absolute_error(predicted, test_data.y)
         print("RSME: %f" % rmse)
         #print("NSME: %f" % nmse)
-        print("MSE: %f" % score)
+        #print("MSE: %f" % score)
         print('MAE: %f' %mae)
 
 
