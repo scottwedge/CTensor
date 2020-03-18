@@ -102,11 +102,12 @@ class generateData(object):
 
 class SeriesPredictor:
     # input_dim = 1, seq_size = 168, hidden_dim = ?
-    def __init__(self, input_dim, seq_size, hidden_dim):
+    def __init__(self, save_path, input_dim, seq_size, hidden_dim):
         # Hyperparameters
         self.input_dim = input_dim
         self.seq_size = seq_size
         self.hidden_dim = hidden_dim
+        self.save_path = save_path
 
         # Weight variables and input placeholders
         self.W_out = tf.Variable(tf.random_normal([hidden_dim, 1]), name='W_out')
@@ -177,12 +178,12 @@ class SeriesPredictor:
 
 
             #save_path = self.saver.save(sess, 'model.ckpt')
-            save_path = self.saver.save(sess, './model.ckpt')
+            save_path = self.saver.save(sess, save_path +'/model.ckpt')
             print('Model saved to {}'.format(save_path))
 
     def test(self, sess, data):
         tf.get_variable_scope().reuse_variables()
-        self.saver.restore(sess, './model.ckpt')
+        self.saver.restore(sess, save_path +'/model.ckpt')
         #batch_test_x, batch_test_y = data.test_next()
         output = sess.run(self.model(), feed_dict={self.x: data.X})
         return output
@@ -211,7 +212,7 @@ class lstm:
         # get prediction results
         print('get prediction results')
         self.fea = 'total_count'  # total_count of frement bridge west and east
-        print('self.train_df[self.fea]: ', self.train_df[self.fea])
+        #print('self.train_df[self.fea]: ', self.train_df[self.fea])
 
         self.lstm_predicted = self.run_lstm_for_single_grid(self.train_df[self.fea], self.test_df[self.fea])
 
@@ -223,9 +224,11 @@ class lstm:
         #                         columns= [self.fea])
         tf.reset_default_graph()
 
-        predictor = SeriesPredictor(input_dim=1, seq_size=TIMESTEPS, hidden_dim=N_HIDDEN)
+        predictor = SeriesPredictor(self.save_path, input_dim=1, seq_size=TIMESTEPS, hidden_dim=N_HIDDEN)
         #data = data_loader.load_series('international-airline-passengers.csv')
         data = generateData(train_series, TIMESTEPS, BATCH_SIZE)
+        # # DEBUG:
+        #print('train data.x', data.X)
         # create batches, feed batches into predictor
         predictor.train(data)
         print('finished training')
