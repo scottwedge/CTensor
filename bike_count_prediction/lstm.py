@@ -133,7 +133,7 @@ class SeriesPredictor:
                                        5000, 0.96, staircase=True)
 
         # self.train_op = tf.train.AdamOptimizer(learning_rate=LEARNING_RATE).minimize(self.cost)
-        self.train_op = tf.train.AdamOptimizer(learning_rate).minimize(cost, global_step = self.global_step)
+        self.train_op = tf.train.AdamOptimizer(learning_rate).minimize(self.cost, global_step = self.global_step)
 
         # Auxiliary ops
         self.saver = tf.train.Saver()
