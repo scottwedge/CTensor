@@ -226,6 +226,7 @@ class lstm:
 
         # prep test data
         test_data = generateData(test_series, TIMESTEPS, BATCH_SIZE)
+        print('test_data.y: ', test_data.y)
 
         with tf.Session() as sess:
             predicted_vals = predictor.test(sess, test_data)[:,0]
