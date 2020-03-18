@@ -178,12 +178,12 @@ class SeriesPredictor:
 
 
             #save_path = self.saver.save(sess, 'model.ckpt')
-            save_path = self.saver.save(sess, save_path +'/model.ckpt')
+            save_path = self.saver.save(sess, self.save_path +'/model.ckpt')
             print('Model saved to {}'.format(save_path))
 
     def test(self, sess, data):
         tf.get_variable_scope().reuse_variables()
-        self.saver.restore(sess, save_path +'/model.ckpt')
+        self.saver.restore(sess, self.save_path +'/model.ckpt')
         #batch_test_x, batch_test_y = data.test_next()
         output = sess.run(self.model(), feed_dict={self.x: data.X})
         return output
