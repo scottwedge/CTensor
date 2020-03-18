@@ -203,14 +203,16 @@ class lstm:
         globals()['LEARNING_RATE']  = LEARNING_RATE
         #globals()['LATENT_CHANNEL'] = self.latent_test_series.shape[-1]
 
-        print('len(self.train_df):', self.train_df)
-        print('len(self.test_df):', self.test_df)
-        print('self.train_df[self.fea]: ', self.train_df[self.fea])
+        print('len(self.train_df):', len(self.train_df))
+        print('len(self.test_df):', len(self.test_df))
+
 
 
         # get prediction results
         print('get prediction results')
         self.fea = 'total_count'  # total_count of frement bridge west and east
+        print('self.train_df[self.fea]: ', self.train_df[self.fea])
+
         self.lstm_predicted = self.run_lstm_for_single_grid(self.train_df[self.fea], self.test_df[self.fea])
 
     # TODO: save results for every grid's predction, and recover after resuming
