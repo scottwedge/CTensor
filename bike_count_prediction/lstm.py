@@ -195,17 +195,22 @@ class SeriesPredictor:
                 start_epoch = 0
 
             # training
+            loss_per100 = 0
             for i in range(start_epoch,TRAINING_STEPS):
                 batch_x, batch_y = data.train_next()
                # batch_test_x, batch_test_y = data.test_next()
                 _, train_err = sess.run([self.train_op, self.cost], feed_dict={self.x: batch_x, self.y: batch_y})
+                loss_per100 += train_err
                 if i % 100 == 0:
                     print('step: {}\t\ttrain err: {}'.format(i, train_err))
+                    loss_per100 = float(loss_per100/100)
+                    print('step: {}\t\ttrain err per100: {}'.format(i, loss_per100))
+                    loss_per100 = 0
 
                     # Testing
                     _, test_err = sess.run([self.train_op, self.cost], feed_dict={self.x: test_data.X, self.y: test_data.y})
                     # save epoch statistics to csv
-                    ecoch_res_df = pd.DataFrame([[train_err, test_err]],
+                    ecoch_res_df = pd.DataFrame([[loss_per100, test_err]],
                         columns=[ 'train_loss', 'test_loss_per100'])
 
                     res_csv_path = self.save_path + 'err_df' +'.csv'
