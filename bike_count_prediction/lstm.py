@@ -205,18 +205,18 @@ class SeriesPredictor:
                     print('step: {}\t\ttrain err: {}'.format(i, train_err))
                     loss_per100 = float(loss_per100/100)
                     print('step: {}\t\ttrain err per100: {}'.format(i, loss_per100))
-                    loss_per100 = 0
 
                     # Testing
                     _, test_err = sess.run([self.train_op, self.cost], feed_dict={self.x: test_data.X, self.y: test_data.y})
                     # save epoch statistics to csv
                     ecoch_res_df = pd.DataFrame([[loss_per100, test_err]],
-                        columns=[ 'train_loss', 'test_loss_per100'])
+                        columns=[ 'train_loss', 'test_lost'])
 
                     res_csv_path = self.save_path + 'err_df' +'.csv'
                     with open(res_csv_path, 'a') as f:
                         # Add header if file is being created, otherwise skip it
                         ecoch_res_df.to_csv(f, header=f.tell()==0)
+                    loss_per100 = 0
 
 
             #save_path = self.saver.save(sess, 'model.ckpt')
