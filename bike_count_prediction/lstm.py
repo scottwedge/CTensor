@@ -201,7 +201,7 @@ class SeriesPredictor:
                # batch_test_x, batch_test_y = data.test_next()
                 _, train_err = sess.run([self.train_op, self.cost], feed_dict={self.x: batch_x, self.y: batch_y})
                 loss_per100 += train_err
-                if i % 100 == 0:
+                if i % 100 == 0 and i!= 0:
                     print('step: {}\t\ttrain err: {}'.format(i, train_err))
                     loss_per100 = float(loss_per100/100)
                     print('step: {}\t\ttrain err per100: {}'.format(i, loss_per100))
