@@ -173,7 +173,7 @@ class SeriesPredictor:
         return out
 
 
-    def train(self, data):
+    def train(self, data, test_data):
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
 
@@ -278,14 +278,14 @@ class lstm:
                                 resume_training =resume_training , checkpoint_path = checkpoint_path)
         #data = data_loader.load_series('international-airline-passengers.csv')
         data = generateData(train_series, TIMESTEPS, BATCH_SIZE)
+        test_data = generateData(test_series, TIMESTEPS, BATCH_SIZE)
         # # DEBUG:
         #print('train data.x', data.X)
         # create batches, feed batches into predictor
-        predictor.train(data)
+        predictor.train(data, test_data)
         print('finished training')
 
         # prep test data
-        test_data = generateData(test_series, TIMESTEPS, BATCH_SIZE)
         print('test_data.y: ', test_data.y)
 
         with tf.Session() as sess:
