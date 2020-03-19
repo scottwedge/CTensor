@@ -34,7 +34,7 @@ TIMESTEPS = 168
 TRAINING_STEPS = 3000
 # if use data from 2017-10  - 2018- 03 as training data, there are 4000 data samples
 # that is 20 batches an epoch. Run 30 epoches, -> 600 steps
-BATCH_SIZE = 60
+BATCH_SIZE = 64
 #PRINT_STEPS = TRAINING_STEPS / 100
 N_HIDDEN = 30
 LEARNING_RATE = 0.001
@@ -176,6 +176,8 @@ class SeriesPredictor:
     def train(self, data):
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
+
+
         with tf.Session(config = config) as sess:
             tf.get_variable_scope().reuse_variables()
             sess.run(tf.global_variables_initializer())
@@ -192,14 +194,24 @@ class SeriesPredictor:
             else:
                 start_epoch = 0
 
-
+            # training
             for i in range(start_epoch,TRAINING_STEPS):
                 batch_x, batch_y = data.train_next()
                # batch_test_x, batch_test_y = data.test_next()
-
                 _, train_err = sess.run([self.train_op, self.cost], feed_dict={self.x: batch_x, self.y: batch_y})
-                if i % 10 == 0:
+                if i % 100 == 0:
                     print('step: {}\t\ttrain err: {}'.format(i, train_err))
+
+                    # Testing
+                    _, test_err = sess.run([self.train_op, self.cost], feed_dict={self.x: test_data.X, self.y: test_data.y})
+                    # save epoch statistics to csv
+                    ecoch_res_df = pd.DataFrame([[train_err, test_err]],
+                        columns=[ 'train_loss', 'test_loss_per100'])
+
+                    res_csv_path = self.save_path + 'err_df' +'.csv'
+                    with open(res_csv_path, 'a') as f:
+                        # Add header if file is being created, otherwise skip it
+                        ecoch_res_df.to_csv(f, header=f.tell()==0)
 
 
             #save_path = self.saver.save(sess, 'model.ckpt')
