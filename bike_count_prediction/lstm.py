@@ -179,9 +179,8 @@ class SeriesPredictor:
         index = tf.range(0, batch_size) * TIMESTEPS + (TIMESTEPS - 1)
         # Indexing
         outputs = tf.gather(tf.reshape(outputs, [-1, self.hidden_dim]), index)
-        out = tf.matmul(outputs, self.W_out) + self.b_out  # (64, )
-        # should expand dim to [64, 1]
-        out = tf.expand_dims(out, 1)
+        out = tf.matmul(outputs, self.W_out) + self.b_out 
+
         # Linear activation, using outputs computed above
         return out
 
