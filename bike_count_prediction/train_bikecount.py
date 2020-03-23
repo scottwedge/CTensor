@@ -163,9 +163,9 @@ def main():
     train_obj = train(hourly_grid_timeseries,  window = 168)
 
     if suffix == '':
-        save_path =  './'
+        save_path =  './bikecount' + '_'  +str(use_1d_fea)
     else:
-        save_path = './'+ suffix  +'/'
+        save_path = './bikecount'+ suffix + '_'  +str(use_1d_fea) +'/'
 
     if train_dir:
         save_path = train_dir
