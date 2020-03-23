@@ -148,6 +148,7 @@ def main():
         weather_arr = np.load(path_1d + 'weather_arr_20140201_20190501.npy')
         print('weather_arr.shape: ', weather_arr.shape)
         weather_arr = weather_arr[0,0,0:-24,:]  # until 20190430
+        print('weather_arr.shape: ', weather_arr.shape)
         hourly_grid_timeseries['weather'] = list(weather_arr.flatten())
 
         # hourly_grid_timeseries = np.concatenate([hourly_grid_timeseries,weather_arr], axis=1)
