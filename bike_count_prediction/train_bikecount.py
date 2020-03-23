@@ -102,7 +102,7 @@ def parse_args():
     parser.add_argument('-d',   '--encoding_dir',
                      action="store", help = 'dir containing latent representations', default = '')
 
-    
+
 
     return parser.parse_args()
 
@@ -143,7 +143,6 @@ def main():
 
     #hourly_grid_timeseries = pd.read_csv('./hourly_grid_1000_timeseries_trail.csv', index_col = 0)
     hourly_grid_timeseries = pd.read_csv('../data_processing/Fremont_bicycle_count_clean_final.csv', index_col = 0)
-    hourly_grid_timeseries.index = pd.to_datetime(hourly_grid_timeseries.index)
     hourly_grid_timeseries = pd.DataFrame(hourly_grid_timeseries['total_count'])
 
 
@@ -177,8 +176,7 @@ def main():
         # hourly_grid_timeseries['temperature'] = list(weather_arr[:,1].flatten())
         # hourly_grid_timeseries['pressure'] = list(weather_arr[:,2].flatten())
 
-
-
+    hourly_grid_timeseries.index = pd.to_datetime(hourly_grid_timeseries.index)
     print(hourly_grid_timeseries.head())
     print(list(hourly_grid_timeseries))
     # ################## !!!!! ####################################
