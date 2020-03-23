@@ -36,7 +36,7 @@ TRAINING_STEPS = 3000
 # that is 20 batches an epoch. Run 30 epoches, -> 600 steps
 BATCH_SIZE = 64
 #PRINT_STEPS = TRAINING_STEPS / 100
-N_HIDDEN = 30
+N_HIDDEN = 64 # previously 30
 LEARNING_RATE = 0.001
 CHANNEL = 1
 
@@ -179,7 +179,7 @@ class SeriesPredictor:
         index = tf.range(0, batch_size) * TIMESTEPS + (TIMESTEPS - 1)
         # Indexing
         outputs = tf.gather(tf.reshape(outputs, [-1, self.hidden_dim]), index)
-        out = tf.matmul(outputs, self.W_out) + self.b_out 
+        out = tf.matmul(outputs, self.W_out) + self.b_out
 
         # Linear activation, using outputs computed above
         return out
