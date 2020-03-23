@@ -84,6 +84,9 @@ def parse_args():
     parser.add_argument('-use_1d_fea',   type=bool, default=False,
                     action="store", help = 'whether to use 1d features. If use this option, set to True. Otherwise, default False')
 
+    parser.add_argument('-use_latent_fea',   type=bool, default=False,
+                        action="store", help = 'whether to use latent features. If use this option, set to True. Otherwise, default False')
+
     parser.add_argument("-r","--resume_training", type=bool, default=False,
     				help="A boolean value whether or not to resume training from checkpoint")
     parser.add_argument('-t',   '--train_dir',
@@ -96,6 +99,9 @@ def parse_args():
                      action="store", help = 'epochs to train', default = 3000)
     parser.add_argument('-l',   '--learning_rate',  type=float,
                      action="store", help = 'epochs to train', default = 0.001)
+    parser.add_argument('-d',   '--encoding_dir',
+                     action="store", help = 'dir containing latent representations', default = '')
+
     parser.add_argument('-d',   '--encoding_dir',
                      action="store", help = 'dir containing latent representations', default = '')
 
@@ -117,6 +123,8 @@ def main():
     encoding_dir = args.encoding_dir
 
     use_1d_fea = bool(args.use_1d_fea)
+    use_latent_fea = bool(args.use_latent_fea)
+    encoding_dir = args.encoding_dir
 
     print("resume_training: ", resume_training)
     print("training dir path: ", train_dir)
@@ -125,6 +133,7 @@ def main():
     print("epochs to train: ", epoch)
     print("start learning rate: ", learning_rate)
     print("use_1d_fea: ", use_1d_fea)
+    print("use_latent_fea: ", use_latent_fea)
 
     if checkpoint is not None:
         checkpoint = train_dir + checkpoint
@@ -155,6 +164,22 @@ def main():
 
         # hourly_grid_timeseries = np.concatenate([hourly_grid_timeseries,weather_arr], axis=1)
         # print('hourly_grid_timeseries.shape', hourly_grid_timeseries.shape)
+
+    if use_latent_fea:
+        latent_rep_path = '/home/ubuntu/CTensor/' + encoding_dir + 'latent_rep/final_lat_rep.npy'
+        latent_rep = np.load(latent_rep_path)
+        # deprecated: (41616, 1, 32, 20, 1) for v1,  (41616, 32, 20, 1) for v2
+        print('latent_rep.shape: ', latent_rep.shape)
+        # (45960, 5)
+        latent_bridge_rep = latent_rep[:, 11, 8, :]  # the location of fremont bridge
+        latent_bridge_rep = latent_bridge_rep[:-24, :]
+        latent_df = pd.DataFrame(latent_bridge_rep)
+        hourly_grid_timeseries = pd.concat([hourly_grid_timeseries,latent_df], axis=1)
+        # hourly_grid_timeseries['precipitation'] = list(weather_arr[:,0].flatten())
+        # hourly_grid_timeseries['temperature'] = list(weather_arr[:,1].flatten())
+        # hourly_grid_timeseries['pressure'] = list(weather_arr[:,2].flatten())
+
+
 
     print(hourly_grid_timeseries.head())
     print(list(hourly_grid_timeseries))
