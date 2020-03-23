@@ -137,9 +137,9 @@ def main():
     #hourly_grid_timeseries = pd.read_csv('./hourly_grid_1000_timeseries_trail.csv', index_col = 0)
     hourly_grid_timeseries = pd.read_csv('../data_processing/Fremont_bicycle_count_clean_final.csv', index_col = 0)
     hourly_grid_timeseries.index = pd.to_datetime(hourly_grid_timeseries.index)
-    hourly_grid_timeseries = hourly_grid_timeseries['total_count']
+    hourly_grid_timeseries = pd.DataFrame(hourly_grid_timeseries['total_count'])
     print(hourly_grid_timeseries.head())
-    print(hourly_grid_timeseries.columns.values.tolist())
+    print(list(hourly_grid_timeseries))
 
     # -------  load extra features --------------------- #
     path_1d = '../data_processing/1d_source_data/'
