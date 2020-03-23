@@ -165,7 +165,7 @@ def main():
     if suffix == '':
         save_path =  './bikecount' + '_'  +str(use_1d_fea)
     else:
-        save_path = './bikecount'+ suffix + '_'  +str(use_1d_fea) +'/'
+        save_path = './bikecount'+ '_'  +suffix + '_'  +str(use_1d_fea) +'/'
 
     if train_dir:
         save_path = train_dir
