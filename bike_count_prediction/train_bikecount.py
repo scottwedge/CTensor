@@ -139,6 +139,7 @@ def main():
     hourly_grid_timeseries.index = pd.to_datetime(hourly_grid_timeseries.index)
     hourly_grid_timeseries = hourly_grid_timeseries['total_count']
     print(hourly_grid_timeseries.head())
+    print(list(hourly_grid_timeseries))
 
     # -------  load extra features --------------------- #
     path_1d = '../data_processing/1d_source_data/'
