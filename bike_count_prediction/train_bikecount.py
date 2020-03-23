@@ -172,7 +172,8 @@ def main():
         latent_bridge_rep = latent_bridge_rep[:-24, :]
         latent_df = pd.DataFrame(latent_bridge_rep)
         print(latent_df.head())
-        hourly_grid_timeseries = pd.concat([hourly_grid_timeseries,latent_df], axis=1, join='outer')
+        #hourly_grid_timeseries = pd.concat([hourly_grid_timeseries,latent_df], axis=1, join='outer')
+        hourly_grid_timeseries = hourly_grid_timeseries.append(latent_df, ignore_index=True)
         # hourly_grid_timeseries['precipitation'] = list(weather_arr[:,0].flatten())
         # hourly_grid_timeseries['temperature'] = list(weather_arr[:,1].flatten())
         # hourly_grid_timeseries['pressure'] = list(weather_arr[:,2].flatten())
