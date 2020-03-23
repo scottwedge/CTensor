@@ -102,9 +102,7 @@ def parse_args():
     parser.add_argument('-d',   '--encoding_dir',
                      action="store", help = 'dir containing latent representations', default = '')
 
-    parser.add_argument('-d',   '--encoding_dir',
-                     action="store", help = 'dir containing latent representations', default = '')
-
+    
 
     return parser.parse_args()
 
