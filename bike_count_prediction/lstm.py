@@ -73,6 +73,7 @@ class generateData(object):
                 data_ = data.iloc[i: i + self.timesteps].as_matrix()
                 rnn_df.append(data_ if len(data_.shape) > 1 else [[i] for i in data_])
 
+
         return np.array(rnn_df, dtype=np.float32)
 
 
@@ -83,6 +84,11 @@ class generateData(object):
             data = pd.DataFrame(data)
         train_x = self.rnn_data(data)
         train_y =self.rnn_data(data, labels = True)
+        # expand dim to [batchsize, 1]
+        train_y = np.expand_dims(train_y, axis=1)
+        # debug
+        print('train_x.shape: ', train_x.shape)
+        print('train_y.shape: ', train_y.shape)
         return dict(train=train_x), dict(train = train_y)
 
 
@@ -173,7 +179,9 @@ class SeriesPredictor:
         index = tf.range(0, batch_size) * TIMESTEPS + (TIMESTEPS - 1)
         # Indexing
         outputs = tf.gather(tf.reshape(outputs, [-1, self.hidden_dim]), index)
-        out = tf.matmul(outputs, self.W_out) + self.b_out
+        out = tf.matmul(outputs, self.W_out) + self.b_out  # (64, )
+        # should expand dim to [64, 1]
+        out = tf.expand_dims(out, 1)
         # Linear activation, using outputs computed above
         return out
 
