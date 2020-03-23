@@ -138,8 +138,7 @@ def main():
     hourly_grid_timeseries = pd.read_csv('../data_processing/Fremont_bicycle_count_clean_final.csv', index_col = 0)
     hourly_grid_timeseries.index = pd.to_datetime(hourly_grid_timeseries.index)
     hourly_grid_timeseries = pd.DataFrame(hourly_grid_timeseries['total_count'])
-    print(hourly_grid_timeseries.head())
-    print(list(hourly_grid_timeseries))
+
 
     # -------  load extra features --------------------- #
     path_1d = '../data_processing/1d_source_data/'
@@ -149,12 +148,16 @@ def main():
         print('weather_arr.shape: ', weather_arr.shape)
         weather_arr = weather_arr[0,0,0:-24,:]  # until 20190430
         print('weather_arr.shape: ', weather_arr.shape)
-        hourly_grid_timeseries['weather'] = list(weather_arr.flatten())
+
+        hourly_grid_timeseries['precipitation'] = list(weather_arr[:,0].flatten())
+        hourly_grid_timeseries['temperature'] = list(weather_arr[:,1].flatten())
+        hourly_grid_timeseries['pressure'] = list(weather_arr[:,2].flatten())
 
         # hourly_grid_timeseries = np.concatenate([hourly_grid_timeseries,weather_arr], axis=1)
         # print('hourly_grid_timeseries.shape', hourly_grid_timeseries.shape)
 
-
+    print(hourly_grid_timeseries.head())
+    print(list(hourly_grid_timeseries))
     # ################## !!!!! ####################################
     # need to specify window size if varying window scheme is used
     train_obj = train(hourly_grid_timeseries,  window = 168)
