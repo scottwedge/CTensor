@@ -38,6 +38,7 @@ BATCH_SIZE = 64
 #PRINT_STEPS = TRAINING_STEPS / 100
 N_HIDDEN = 30
 LEARNING_RATE = 0.001
+CHANNEL = 1
 
 class generateData(object):
     def __init__(self, rawdata, timesteps, batchsize):
@@ -64,9 +65,10 @@ class generateData(object):
         for i in range(len(data) - self.timesteps):
             if labels:
                 try:
-                    rnn_df.append(data.iloc[i + self.timesteps].as_matrix())
+                    # TODO: better not hard code 'total_count' column
+                    rnn_df.append(data['total_count'].iloc[i + self.timesteps].as_matrix())
                 except AttributeError:
-                    rnn_df.append(data.iloc[i + self.timesteps])
+                    rnn_df.append(data['total_count'].iloc[i + self.timesteps])
             else:
                 data_ = data.iloc[i: i + self.timesteps].as_matrix()
                 rnn_df.append(data_ if len(data_.shape) > 1 else [[i] for i in data_])
@@ -109,6 +111,9 @@ class SeriesPredictor:
         self.seq_size = seq_size
         self.hidden_dim = hidden_dim
         self.save_path = save_path
+
+        ## DEBUG:
+        print('input_dim: ', input_dim)
 
         self.resume_training = resume_training
         self.checkpoint_path = checkpoint_path
@@ -247,7 +252,7 @@ class lstm:
         # globals()['BATCH_SIZE']  = BATCH_SIZE
         globals()['TRAINING_STEPS']  = TRAINING_STEPS
         globals()['LEARNING_RATE']  = LEARNING_RATE
-        #globals()['LATENT_CHANNEL'] = self.latent_test_series.shape[-1]
+        # globals()['LATENT_CHANNEL'] = self.latent_test_series.shape[-1]
 
         print('len(self.train_df):', len(self.train_df))
         print('len(self.test_df):', len(self.test_df))
@@ -266,9 +271,9 @@ class lstm:
         #print('self.train_df[self.fea]: ', self.train_df[self.fea])
 
         if resume_training == False:
-            self.lstm_predicted = self.run_lstm_for_single_grid(self.train_df[self.fea], self.test_df[self.fea])
+            self.lstm_predicted = self.run_lstm_for_single_grid(self.train_df, self.test_df)
         else:
-            self.lstm_predicted = self.run_lstm_for_single_grid(self.train_df[self.fea], self.test_df[self.fea],
+            self.lstm_predicted = self.run_lstm_for_single_grid(self.train_df, self.test_df,
                                         self.train_dir, self.checkpoint_path)
 
     # TODO: save results for every grid's predction, and recover after resuming
@@ -280,7 +285,8 @@ class lstm:
         #                         columns= [self.fea])
         tf.reset_default_graph()
 
-        predictor = SeriesPredictor(self.save_path, input_dim=1, seq_size=TIMESTEPS, hidden_dim=N_HIDDEN,
+
+        predictor = SeriesPredictor(self.save_path, input_dim= len(list(train_series)), seq_size=TIMESTEPS, hidden_dim=N_HIDDEN,
                                 resume_training =resume_training , checkpoint_path = checkpoint_path)
         #data = data_loader.load_series('international-airline-passengers.csv')
         data = generateData(train_series, TIMESTEPS, BATCH_SIZE)

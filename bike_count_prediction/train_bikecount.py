@@ -80,6 +80,10 @@ def parse_args():
     #                 action="store", help = 'whether to multi-var fairloss. If True, include aga, race, and edu. Otherwise, use race')
     parser.add_argument('-s',   '--suffix',
                      action="store", help = 'save path suffix', default = '')
+
+    parser.add_argument('-use_1d_fea',   type=bool, default=False,
+                    action="store", help = 'whether to use 1d features. If use this option, set to True. Otherwise, default False')
+
     parser.add_argument("-r","--resume_training", type=bool, default=False,
     				help="A boolean value whether or not to resume training from checkpoint")
     parser.add_argument('-t',   '--train_dir',
@@ -112,12 +116,15 @@ def main():
     learning_rate= args.learning_rate
     encoding_dir = args.encoding_dir
 
+    use_1d_fea = bool(args.use_1d_fea)
+
     print("resume_training: ", resume_training)
     print("training dir path: ", train_dir)
     print("checkpoint: ", checkpoint)
     print("place: ", place)
     print("epochs to train: ", epoch)
     print("start learning rate: ", learning_rate)
+    print("use_1d_fea: ", use_1d_fea)
 
     if checkpoint is not None:
         checkpoint = train_dir + checkpoint
@@ -130,6 +137,21 @@ def main():
     #hourly_grid_timeseries = pd.read_csv('./hourly_grid_1000_timeseries_trail.csv', index_col = 0)
     hourly_grid_timeseries = pd.read_csv('../data_processing/Fremont_bicycle_count_clean_final.csv', index_col = 0)
     hourly_grid_timeseries.index = pd.to_datetime(hourly_grid_timeseries.index)
+    hourly_grid_timeseries = hourly_grid_timeseries['total_count']
+    print(hourly_grid_timeseries.head())
+
+    # -------  load extra features --------------------- #
+    path_1d = '../data_processing/1d_source_data/'
+    if use_1d_fea:
+        # 1d
+        weather_arr = np.load(path_1d + 'weather_arr_20140201_20190501.npy')
+        print('weather_arr.shape: ', weather_arr.shape)
+        weather_arr = weather_arr[0,0,0:-1,:]  # until 20190430
+        hourly_grid_timeseries['weather'] = list(weather_arr.flatten())
+
+        # hourly_grid_timeseries = np.concatenate([hourly_grid_timeseries,weather_arr], axis=1)
+        # print('hourly_grid_timeseries.shape', hourly_grid_timeseries.shape)
+
 
     # ################## !!!!! ####################################
     # need to specify window size if varying window scheme is used
