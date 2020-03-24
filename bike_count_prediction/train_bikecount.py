@@ -169,7 +169,7 @@ def main():
         # collisions_arr = np.load(path_3d + 'collisions_arr_20140201_20190501_python3.npy')
         seattle911calls_arr_bridge = seattle911calls_arr[0: -24, 11, 8]
         # collisions_arr_bridge = collisions_arr[0: -24, 11, 8]
-        print('collisions_arr_bridge.shape ', collisions_arr_bridge.shape)
+        print('seattle911calls_arr_bridge.shape ', seattle911calls_arr_bridge.shape)
         hourly_grid_timeseries['seattle_911'] = list(seattle911calls_arr_bridge.flatten())
         # hourly_grid_timeseries['collisions'] = list(collisions_arr_bridge.flatten())
 
