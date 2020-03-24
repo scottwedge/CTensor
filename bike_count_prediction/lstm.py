@@ -192,7 +192,9 @@ class SeriesPredictor:
 
         with tf.Session(config = config) as sess:
             tf.get_variable_scope().reuse_variables()
-            sess.run(tf.global_variables_initializer())
+            #sess.run(tf.global_variables_initializer())
+            # tf.variance_scaling_initializer()
+            sess.run(tf.variance_scaling_initializer())
 
             if self.resume_training:
                 if self.checkpoint_path is not None:
