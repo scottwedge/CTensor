@@ -36,7 +36,7 @@ TRAINING_STEPS = 3000
 # that is 20 batches an epoch. Run 30 epoches, -> 600 steps
 BATCH_SIZE = 64
 #PRINT_STEPS = TRAINING_STEPS / 100
-N_HIDDEN = 64 # previously 30
+N_HIDDEN = 128 # previously 30
 LEARNING_RATE = 0.001
 CHANNEL = 1
 
@@ -161,7 +161,7 @@ class SeriesPredictor:
         :param b: vector of fully-connected output layer biases
         """
         #cell = rnn.BasicLSTMCell(self.hidden_dim)
-        cell = tf.nn.rnn_cell.LSTMCell(self.hidden_dim, activation='relu')
+        cell = tf.nn.rnn_cell.LSTMCell(self.hidden_dim)
         # num_examples = batch_size = 100
         #num_examples = tf.shape(self.x)[0]
         # added->  [timesteps, batch_size, 1]
@@ -192,9 +192,8 @@ class SeriesPredictor:
 
         with tf.Session(config = config) as sess:
             tf.get_variable_scope().reuse_variables()
-            #sess.run(tf.global_variables_initializer())
-            # tf.variance_scaling_initializer()
-            sess.run(tf.variance_scaling_initializer())
+            sess.run(tf.global_variables_initializer())
+
 
             if self.resume_training:
                 if self.checkpoint_path is not None:
