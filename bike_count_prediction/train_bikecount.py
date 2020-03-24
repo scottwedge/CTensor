@@ -161,7 +161,7 @@ def main():
 
         hourly_grid_timeseries['precipitation'] = list(weather_arr[:,0].flatten())
         hourly_grid_timeseries['temperature'] = list(weather_arr[:,1].flatten())
-        hourly_grid_timeseries['pressure'] = list(weather_arr[:,2].flatten())
+        # hourly_grid_timeseries['pressure'] = list(weather_arr[:,2].flatten())
 
     if use_3d_fea:
         # (45984, 32, 20)
