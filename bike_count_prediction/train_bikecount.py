@@ -169,6 +169,7 @@ def main():
         collisions_arr = np.load(path_3d + 'collisions_arr_20140201_20190501_python3.npy')
         seattle911calls_arr_bridge = seattle911calls_arr[0: -24, 11, 8]
         collisions_arr_bridge = collisions_arr[0: -24, 11, 8]
+        print('collisions_arr_bridge.shape ', collisions_arr_bridge.shape)
         hourly_grid_timeseries['seattle_911'] = list(seattle911calls_arr_bridge.flatten())
         hourly_grid_timeseries['collisions'] = list(collisions_arr_bridge.flatten())
 
@@ -234,6 +235,18 @@ def main():
     # print('mae for lstm: ', eval_obj6.mae_val)
 
 
+    with open(save_path + 'bikecount_output.txt', 'w') as the_file:
+        the_file.write('use_1d_fea\n')
+        the_file.write(str(use_1d_fea) + '\n')
+
+        the_file.write('use_3d_fea\n')
+        the_file.write(str(use_3d_fea) + '\n')
+
+        the_file.write('use_latent_fea\n')
+        the_file.write(str(use_latent_fea) + '\n')
+        the_file.write('learning rate\n')
+        the_file.close()
+
 
     # lstm with VARYING window
     # print('lstm prediction with VARYING window')
@@ -258,12 +271,7 @@ def main():
 
 
 
-    # with open('lstm_bikecount_output.txt', 'w') as the_file:
-    #     the_file.write('rmse for lstm\n')
-    #     the_file.write(str(eval_obj6.rmse_val))
-    #     the_file.write('mae for lstm\n')
-    #     the_file.write(str(eval_obj6.mae_val))
-    #     the_file.close()
+
 
 
 
