@@ -83,6 +83,8 @@ def parse_args():
 
     parser.add_argument('-use_1d_fea',   type=bool, default=False,
                     action="store", help = 'whether to use 1d features. If use this option, set to True. Otherwise, default False')
+    parser.add_argument('-use_3d_fea',   type=bool, default=False,
+                action="store", help = 'whether to use 1d features. If use this option, set to True. Otherwise, default False')
 
     parser.add_argument('-use_latent_fea',   type=bool, default=False,
                         action="store", help = 'whether to use latent features. If use this option, set to True. Otherwise, default False')
@@ -121,6 +123,7 @@ def main():
     encoding_dir = args.encoding_dir
 
     use_1d_fea = bool(args.use_1d_fea)
+    use_3d_fea = bool(args.use_3d_fea)
     use_latent_fea = bool(args.use_latent_fea)
     encoding_dir = args.encoding_dir
 
@@ -148,6 +151,7 @@ def main():
 
     # -------  load extra features --------------------- #
     path_1d = '../data_processing/1d_source_data/'
+    path_3d = '../data_processing/3d_source_data/'
     if use_1d_fea:
         # 1d
         weather_arr = np.load(path_1d + 'weather_arr_20140201_20190501.npy')
@@ -158,6 +162,15 @@ def main():
         hourly_grid_timeseries['precipitation'] = list(weather_arr[:,0].flatten())
         hourly_grid_timeseries['temperature'] = list(weather_arr[:,1].flatten())
         hourly_grid_timeseries['pressure'] = list(weather_arr[:,2].flatten())
+
+    if use_3d_fea:
+        # (45984, 32, 20)
+        seattle911calls_arr = np.load(path_3d + 'seattle911calls_arr_20140201_20190501.npy')
+        collisions_arr = np.load(path_3d + 'collisions_arr_20140201_20190501_python3.npy')
+        seattle911calls_arr_bridge = seattle911calls_arr[0: -24, 11, 8]
+        collisions_arr_bridge = collisions_arr[0: -24, 11, 8]
+        hourly_grid_timeseries['seattle_911'] = list(seattle911calls_arr_bridge.flatten())
+        hourly_grid_timeseries['collisions'] = list(collisions_arr_bridge.flatten())
 
         # hourly_grid_timeseries = np.concatenate([hourly_grid_timeseries,weather_arr], axis=1)
         # print('hourly_grid_timeseries.shape', hourly_grid_timeseries.shape)
@@ -175,11 +188,6 @@ def main():
         print(latent_df.head())
         for fea in list(latent_df):
             hourly_grid_timeseries[fea] = latent_df[fea].values
-        #hourly_grid_timeseries = pd.concat([hourly_grid_timeseries,latent_df], axis=1, join='outer')
-        #hourly_grid_timeseries = hourly_grid_timeseries.append(latent_df, ignore_index=True)
-        # hourly_grid_timeseries['precipitation'] = list(weather_arr[:,0].flatten())
-        # hourly_grid_timeseries['temperature'] = list(weather_arr[:,1].flatten())
-        # hourly_grid_timeseries['pressure'] = list(weather_arr[:,2].flatten())
 
     hourly_grid_timeseries.index = pd.to_datetime(hourly_grid_timeseries.index)
     print(hourly_grid_timeseries.head())
@@ -189,9 +197,9 @@ def main():
     train_obj = train(hourly_grid_timeseries,  window = 168)
 
     if suffix == '':
-        save_path =  './bikecount' + '_'  +str(use_1d_fea)
+        save_path =  './bikecount' + '_'  +str(use_1d_fea) + '_'  +str(use_3d_fea)
     else:
-        save_path = './bikecount'+ '_'  +suffix + '_'  +str(use_1d_fea) +'/'
+        save_path = './bikecount'+ '_'  +suffix + '_'  +str(use_1d_fea) + '_'  +str(use_3d_fea)+'/'
 
     if train_dir:
         save_path = train_dir
