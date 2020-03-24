@@ -161,7 +161,7 @@ class SeriesPredictor:
         :param b: vector of fully-connected output layer biases
         """
         #cell = rnn.BasicLSTMCell(self.hidden_dim)
-        cell = tf.nn.rnn_cell.LSTMCell(self.hidden_dim)
+        cell = tf.nn.rnn_cell.LSTMCell(self.hidden_dim, activation='relu')
         # num_examples = batch_size = 100
         #num_examples = tf.shape(self.x)[0]
         # added->  [timesteps, batch_size, 1]
