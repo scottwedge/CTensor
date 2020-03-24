@@ -166,12 +166,12 @@ def main():
     if use_3d_fea:
         # (45984, 32, 20)
         seattle911calls_arr = np.load(path_3d + 'seattle911calls_arr_20140201_20190501.npy')
-        collisions_arr = np.load(path_3d + 'collisions_arr_20140201_20190501_python3.npy')
+        # collisions_arr = np.load(path_3d + 'collisions_arr_20140201_20190501_python3.npy')
         seattle911calls_arr_bridge = seattle911calls_arr[0: -24, 11, 8]
-        collisions_arr_bridge = collisions_arr[0: -24, 11, 8]
+        # collisions_arr_bridge = collisions_arr[0: -24, 11, 8]
         print('collisions_arr_bridge.shape ', collisions_arr_bridge.shape)
         hourly_grid_timeseries['seattle_911'] = list(seattle911calls_arr_bridge.flatten())
-        hourly_grid_timeseries['collisions'] = list(collisions_arr_bridge.flatten())
+        # hourly_grid_timeseries['collisions'] = list(collisions_arr_bridge.flatten())
 
         # hourly_grid_timeseries = np.concatenate([hourly_grid_timeseries,weather_arr], axis=1)
         # print('hourly_grid_timeseries.shape', hourly_grid_timeseries.shape)
