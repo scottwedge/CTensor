@@ -179,8 +179,10 @@ def main():
     if use_latent_fea:
         latent_rep_path = '/home/ubuntu/CTensor/' + encoding_dir + 'latent_rep/final_lat_rep.npy'
         latent_rep = np.load(latent_rep_path)
+        latent_rep =latent_rep.reshape((45960, 32, 20, 5))
         # deprecated: (41616, 1, 32, 20, 1) for v1,  (41616, 32, 20, 1) for v2
         print('latent_rep.shape: ', latent_rep.shape)
+
         # (45960, 5)
         latent_bridge_rep = latent_rep[:, 11, 8, :]  # the location of fremont bridge
         # latent_bridge_rep = latent_bridge_rep[:-24, :]
