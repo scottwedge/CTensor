@@ -348,6 +348,11 @@ class lstm:
             the_file.write(str(mae))
             the_file.write('epochs\n')
             the_file.write(str(TRAINING_STEPS))
+            the_file.write('batsch size\n')
+            the_file.write(str(BATCH_SIZE))
+            the_file.write('n_hidden\n')
+            the_file.write(str(N_HIDDEN))
+
             the_file.close()
     #     plot_predicted, = plt.plot(predicted, label='predicted')
     #     plot_test, = plt.plot(test_data.y, label='test')
