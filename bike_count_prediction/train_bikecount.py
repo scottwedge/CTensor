@@ -182,15 +182,26 @@ def main():
         latent_rep =latent_rep.reshape((45960, 32, 20, 5))
         # deprecated: (41616, 1, 32, 20, 1) for v1,  (41616, 32, 20, 1) for v2
         print('latent_rep.shape: ', latent_rep.shape)
-
         # (45960, 5)
         latent_bridge_rep = latent_rep[:, 11, 8, :]  # the location of fremont bridge
+
+        # ---- try using the surrounding three grids as latent fea  ----
+        latent_bridge_rep2 = latent_rep[:, 12, 8, :]  # the location of fremont bridge
+        latent_bridge_rep3 = latent_rep[:, 11, 9, :]  # the location of fremont bridge
+        latent_bridge_rep = np.concatenate((latent_bridge_rep, latent_bridge_rep2, latent_bridge_rep3), axis=1)
+        print('latent_bridge_rep.shape: ', latent_bridge_rep.shape)
+
         # latent_bridge_rep = latent_bridge_rep[:-24, :]
         latent_df = pd.DataFrame(latent_bridge_rep)
         print('len(latent_df): ', len(latent_df))
         print(latent_df.head())
         for fea in list(latent_df):
             hourly_grid_timeseries[fea] = latent_df[fea].values
+
+
+
+
+
 
     hourly_grid_timeseries.index = pd.to_datetime(hourly_grid_timeseries.index)
     print(hourly_grid_timeseries.head())
