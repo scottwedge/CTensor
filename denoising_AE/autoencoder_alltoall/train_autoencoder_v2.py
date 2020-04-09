@@ -522,6 +522,25 @@ def main():
     # train_obj.train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
     print('train_hours: ', train_obj.train_hours)
 
+################  read corrputed data ########################
+    rawdata_1d_corrupted_file = open(path_1d + 'rawdata_1d_corrupted_dict', 'wb')
+    with open(rawdata_1d_corrupted_file, 'rb') as handle:
+        rawdata_1d_corrupted_dict = pickle.load(handle)
+
+    rawdata_2d_corrupted_file = open(path_2d + 'rawdata_2d_corrupted_dict', 'wb')
+    with open(rawdata_2d_corrupted_file, 'rb') as handle:
+        rawdata_2d_corrupted_dict = pickle.load(handle)
+
+    rawdata_3d_corrupted_file = open(path_3d + 'rawdata_3d_corrupted_dict', 'wb')
+    with open(rawdata_3d_corrupted_file, 'rb') as handle:
+        rawdata_3d_corrupted_dict = pickle.load(handle)
+
+    # check
+    print('read corrupted data')
+    for k, v in rawdata_1d_corrupted_dict.items():
+        print(k, v.shape)
+
+
 ####################### city ignorant treatment ################
     # lamda = 0
     # if specified training dir to resume training,

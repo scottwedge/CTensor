@@ -146,7 +146,6 @@ def corrupt_3d_data_with_neg(input_arr, mask_arr):
                 inside_coor.append((j, i))
 
     for d in range(dim):
-        print(d)
         # make temp mask from sample locations
         inds=np.random.choice(np.arange(len(inside_coor)),size= int(len(inside_coor) * 0.15))
         chosen_idx = np.array(inside_coor)[inds]  # sampled coordinates
