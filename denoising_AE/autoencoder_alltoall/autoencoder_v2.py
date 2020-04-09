@@ -1344,12 +1344,6 @@ class Autoencoder:
             # cost += temp_loss
             reconstruction_dict[k] = reconstruction_1d
 
-            # if k == 'weather':
-            #     temp_loss = 0.001 * temp_loss
-            #     cost += temp_loss
-            # else:
-            #     cost += temp_loss
-
 
 
         for k, v in self.rawdata_2d_tf_y_dict.items():
@@ -1440,26 +1434,43 @@ class Autoencoder:
                     # create batches for 1d
                 for k, v in rawdata_1d_dict.items():
                     temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
-                    feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
+                    # feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
                     feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
+
+                for k, v in rawdata_1d_corrupted_dict.items():
+                    temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
+                    feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
 
                     # create batches for 2d
                 for k, v in rawdata_2d_dict.items():
                     temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
-                    feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+                    # feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
                     feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
+
+                for k, v in rawdata_2d_corrupted_dict.items():
+                    temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
+                    feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+
 
                      # create batches for 3d
                 for k, v in rawdata_3d_dict.items():
                     # if k == 'seattle911calls':
                     timestep = TIMESTEPS
-                    # else:
-                    #     timestep = DAILY_TIMESTEPS
+                    temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
+    #                     print('3d temp_batch.shape: ',temp_batch.shape)
+                    # feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+                    feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+                    # is_training: True
+                for k, v in rawdata_3d_corrupted_dict.items():
+                    # if k == 'seattle911calls':
+                    timestep = TIMESTEPS
                     temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
                     feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
-                    feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
-                    # is_training: True
+
+
+
+
                 feed_dict_all[self.is_training] = True
                 batch_cost, batch_loss_dict, batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict=feed_dict_all)
                     # get encoded representation
@@ -1553,14 +1564,25 @@ class Autoencoder:
                     # create batches for 1d
                 for k, v in rawdata_1d_dict.items():
                     temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
-                    test_feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
+                    # test_feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
                     test_feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
+
+                for k, v in rawdata_1d_corrupted_dict.items():
+                    temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
+                    test_feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
+
 
                     # create batches for 2d
                 for k, v in rawdata_2d_dict.items():
                     temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
-                    test_feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+                    # test_feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
                     test_feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
+
+                for k, v in rawdata_2d_corrupted_dict.items():
+                    temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
+                    test_feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+
+
 
                      # create batches for 3d
                 for k, v in rawdata_3d_dict.items():
@@ -1570,9 +1592,19 @@ class Autoencoder:
                         timestep = 7
                     temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
-                    test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+                    # test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
                     test_feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
 
+
+                for k, v in rawdata_3d_corrupted_dict.items():
+                    if k == 'seattle911calls':
+                        timestep = TIMESTEPS
+                    else:
+                        timestep = 7
+                    temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
+    #                     print('3d temp_batch.shape: ',temp_batch.shape)
+                    test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+                    
 
                     # is_training: True
                 test_feed_dict_all[self.is_training] = True
