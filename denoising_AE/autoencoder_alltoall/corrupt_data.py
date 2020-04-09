@@ -135,7 +135,7 @@ def corrupt_2d_data_with_neg(input_arr, mask_arr):
 # coordinates inside city
 # inside_coor
 # input (45984, 32, 20)
-def corrupt_3_data_with_neg(input_arr, mask_arr):
+def corrupt_3d_data_with_neg(input_arr, mask_arr):
     # # remove cells outside first
     dim = input_arr.shape[0]  # 45984
     new_arr = []
