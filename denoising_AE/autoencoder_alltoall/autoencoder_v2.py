@@ -2189,8 +2189,8 @@ class Autoencoder_entry:
         tf.reset_default_graph()
         # self, channel, time_steps, height, width
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
-                        self.intersect_pos_set,
                  self.rawdata_1d_corrupted_dict, self.rawdata_2d_corrupted_dict, self.rawdata_3d_corrupted_dict,
+                 self.intersect_pos_set,
                      self.demo_mask_arr, self.dim,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
@@ -2213,8 +2213,9 @@ class Autoencoder_entry:
         tf.reset_default_graph()
         # self, channel, time_steps, height, width
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
-                        self.intersect_pos_set,
+
                          self.rawdata_1d_corrupted_dict, self.rawdata_2d_corrupted_dict, self.rawdata_3d_corrupted_dict,
+                         self.intersect_pos_set,
                      self.demo_mask_arr, self.dim,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
@@ -2242,8 +2243,9 @@ class Autoencoder_entry:
     def run_inference_autoencoder(self):
         tf.reset_default_graph()
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
-                        self.intersect_pos_set,
+
                          self.rawdata_1d_corrupted_dict, self.rawdata_2d_corrupted_dict, self.rawdata_3d_corrupted_dict,
+                         self.intersect_pos_set,
                      self.demo_mask_arr, self.dim,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
@@ -2262,8 +2264,9 @@ class Autoencoder_entry:
     def run_inference_lat_rep(self):
         tf.reset_default_graph()
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
-                        self.intersect_pos_set,
+
                          self.rawdata_1d_corrupted_dict, self.rawdata_2d_corrupted_dict, self.rawdata_3d_corrupted_dict,
+                         self.intersect_pos_set,
                      self.demo_mask_arr, self.dim,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
