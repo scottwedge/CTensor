@@ -2046,8 +2046,8 @@ fixed lenght time window: 168 hours
 class Autoencoder_entry:
     def __init__(self, train_obj,
               rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
-              intersect_pos_set,
               rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
+               intersect_pos_set,
                     demo_mask_arr, save_path, dim,
                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                      is_inference = False, checkpoint_path = None,
