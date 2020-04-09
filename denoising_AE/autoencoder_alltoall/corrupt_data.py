@@ -275,14 +275,14 @@ def main():
     rawdata_2d_corrupted_dict = {}
     for k, v in rawdata_2d_dict.items():
         print('creating data for ', k)
-        corrupted_v = corrupt_2d_data_with_neg(v)
+        corrupted_v = corrupt_2d_data_with_neg(v, mask_arr)
         rawdata_2d_corrupted_dict[k] = corrupted_v
 
 
     rawdata_3d_corrupted_dict = {}
     for k, v in rawdata_3d_dict.items():
         print('creating data for ', k)
-        corrupted_v = corrupt_3d_data_with_neg(v)
+        corrupted_v = corrupt_3d_data_with_neg(v, mask_arr)
         rawdata_3d_corrupted_dict[k] = corrupted_v
 
     # save the ditionaries
