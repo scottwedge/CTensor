@@ -523,16 +523,14 @@ def main():
     print('train_hours: ', train_obj.train_hours)
 
 ################  read corrputed data ########################
-    rawdata_1d_corrupted_file = open(path_1d + 'rawdata_1d_corrupted_dict', 'rb')
-    with open(rawdata_1d_corrupted_file, 'rb') as handle:
+
+    with open(path_1d + 'rawdata_1d_corrupted_dict', 'rb') as handle:
         rawdata_1d_corrupted_dict = pickle.load(handle)
 
-    rawdata_2d_corrupted_file = open(path_2d + 'rawdata_2d_corrupted_dict', 'rb')
-    with open(rawdata_2d_corrupted_file, 'rb') as handle:
+    with open(path_2d + 'rawdata_2d_corrupted_dict', 'rb') as handle:
         rawdata_2d_corrupted_dict = pickle.load(handle)
 
-    rawdata_3d_corrupted_file = open(path_3d + 'rawdata_3d_corrupted_dict', 'rb')
-    with open(rawdata_3d_corrupted_file, 'rb') as handle:
+    with open(path_3d + 'rawdata_3d_corrupted_dict', 'rb') as handle:
         rawdata_3d_corrupted_dict = pickle.load(handle)
 
     # check
