@@ -332,7 +332,7 @@ def parse_args():
     parser.add_argument("-up","--use_pretrained", type=bool, default=True,
         				help="A boolean value whether or not to start from pretrained model")
     parser.add_argument('-pc',   '--pretrained_checkpoint',
-                         action="store", help = 'checkpoint path to pretrained models', default = None)
+                         action="store", help = 'checkpoint path to pretrained models', default = '/home/ubuntu/CTensor/autoencoder_alltoall/individual_ckpt/')
 
 
 
