@@ -576,14 +576,18 @@ def main():
         # Model fusion without fairness
             print('Train Model')
             latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
-                                    rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+                                    rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
+                                    rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
+                                    intersect_pos_set,
                                      demo_mask_arr,  save_path, dim,
                                 HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                                 use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
                         ).train_lat_rep
         else:
             latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
-                                        rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+                                        rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
+                                        rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
+                                         intersect_pos_set,
                                          demo_mask_arr,  save_path, dim,
                                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                                     True, checkpoint, False, train_dir,
@@ -594,7 +598,9 @@ def main():
          # resume training
         print('resume trainging from : ', train_dir)
         latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
-                            rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+                            rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
+                            rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
+                             intersect_pos_set,
                                          demo_mask_arr,
                             train_dir, dim,
                             HEIGHT, WIDTH, TIMESTEPS, CHANNEL,
