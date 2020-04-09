@@ -956,7 +956,7 @@ class Autoencoder:
                         feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
 
 
-                    for k, v in rawdata_2d_corrupted_dict.items():
+                    for k, v in rawdata_3d_corrupted_dict.items():
                         # if k == 'seattle911calls':
                         timestep = TIMESTEPS
                         temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
