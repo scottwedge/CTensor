@@ -3,6 +3,8 @@
 # cells outside city boundary are excluded
 # updated Jan 20, 2020
 
+# ######### DEPRECATED #################
+
 import numpy as np
 import matplotlib.pyplot as plt
 
