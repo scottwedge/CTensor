@@ -165,15 +165,15 @@ def corrupt_3_data_with_neg(input_arr, mask_arr):
 
 
 def main():
-    intersect_pos = pd.read_csv('../auxillary_data/intersect_pos_32_20.csv')
+    intersect_pos = pd.read_csv('../../auxillary_data/intersect_pos_32_20.csv')
     intersect_pos_set = set(intersect_pos['0'].tolist())
     mask_arr = generate_mask_array(intersect_pos_set)
 
     # ---- reading data ---------------------#
     print('Reading 1d, 2d, and 3d data')
-    path_1d = '../data_processing/1d_source_data/'
-    path_2d = '../data_processing/2d_source_data/'
-    path_3d = '../data_processing/3d_source_data/'
+    path_1d = '../../data_processing/1d_source_data/'
+    path_2d = '../../data_processing/2d_source_data/'
+    path_3d = '../../data_processing/3d_source_data/'
     # 1d
     weather_arr = np.load(path_1d + 'weather_arr_20140201_20190501.npy')
     airquality_arr = np.load(path_1d + 'air_quality_arr_20140201_20190501.npy')
@@ -266,21 +266,21 @@ def main():
 
     #------------------  Corruption ---------------------------- #
     rawdata_1d_corrupted_dict = {}
-    for k, v in rawdata_1d_dict.iteritems():
+    for k, v in rawdata_1d_dict.items():
         print('creating data for ', k)
         corrupted_v = corrupt_1d_data_with_neg(v)
         rawdata_1d_corrupted_dict[k] = corrupted_v
 
 
     rawdata_2d_corrupted_dict = {}
-    for k, v in rawdata_2d_dict.iteritems():
+    for k, v in rawdata_2d_dict.items():
         print('creating data for ', k)
         corrupted_v = corrupt_2d_data_with_neg(v)
         rawdata_2d_corrupted_dict[k] = corrupted_v
 
 
     rawdata_3d_corrupted_dict = {}
-    for k, v in rawdata_3d_dict.iteritems():
+    for k, v in rawdata_3d_dict.items():
         print('creating data for ', k)
         corrupted_v = corrupt_3d_data_with_neg(v)
         rawdata_3d_corrupted_dict[k] = corrupted_v
