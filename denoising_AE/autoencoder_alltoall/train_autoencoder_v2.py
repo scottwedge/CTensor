@@ -535,7 +535,7 @@ def main():
 
     # check
     print('read corrupted data')
-    for k, v in rawdata_1d_corrupted_dict.items():
+    for k, v in rawdata_3d_corrupted_dict.items():
         print(k, v.shape)
 
 

@@ -255,8 +255,8 @@ def get_scopes_to_restore_for_eachdataset(key, keys_1d, keys_2d, keys_3d):
 class Autoencoder:
     # input_dim = 1, seq_size = 168,
     def __init__(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
+               rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
                    intersect_pos_set,
-            rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
                     demo_mask_arr, dim,
                     channel, time_steps, height, width):
 
