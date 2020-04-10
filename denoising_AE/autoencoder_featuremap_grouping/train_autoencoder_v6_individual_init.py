@@ -520,7 +520,7 @@ def main():
                                    'POI_recreation', 'POI_school']
                 }
 
-
+    '''
     grouping_dict = {'one_dim_grp': ['precipitation','temperature', 'pressure', 'airquality'],
                     'two_dim_grp': ['house_price', 'POI_business','POI_food',  'POI_government',
                         'POI_hospitals', 'POI_publicservices', 'POI_recreation', 'POI_school',
@@ -528,7 +528,7 @@ def main():
                             'transit_signals', 'transit_stop', 'slope', 'bikelane'],
                      'third_dim_grp': ['building_permit', 'collisions', 'seattle911calls']
                     }
-    '''
+    
 
     # ------ Raw data grouping V1 ------------- #
     '''
