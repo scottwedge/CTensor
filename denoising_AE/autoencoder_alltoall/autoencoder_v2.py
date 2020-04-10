@@ -1746,7 +1746,9 @@ class Autoencoder:
     # do inference using existing checkpoint
     # get latent representation for train and test data altogether
     # the input sequence (24 hours or 168 hours) should have no overlapps
-    def get_latent_rep(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, train_hours,
+    def get_latent_rep(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
+                rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
+                    train_hours,
                      demo_mask_arr, save_folder_path, dim,
                      checkpoint_path = None,
                        epochs=1, batch_size=32):
@@ -1932,14 +1934,24 @@ class Autoencoder:
                     # create batches for 1d
                 for k, v in rawdata_1d_dict.items():
                     temp_batch = create_mini_batch_1d_nonoverlapping(start_idx, end_idx, v)
-                    feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
+                    # feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
                     feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
+
+                for k, v in rawdata_1d_corrupted_dict.items():
+                    temp_batch = create_mini_batch_1d_nonoverlapping(start_idx, end_idx, v)
+                    feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
+
 
                     # create batches for 2d
                 for k, v in rawdata_2d_dict.items():
                     temp_batch = create_mini_batch_2d_nonoverlapping(start_idx, end_idx, v)
-                    feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+                    # feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
                     feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
+
+                for k, v in rawdata_2d_corrupted_dict.items():
+                    temp_batch = create_mini_batch_2d_nonoverlapping(start_idx, end_idx, v)
+                    feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+
 
                     # create batches for 3d
                 for k, v in rawdata_3d_dict.items():
@@ -1949,8 +1961,18 @@ class Autoencoder:
                     #     timestep = DAILY_TIMESTEPS
                     temp_batch = create_mini_batch_3d_nonoverlapping(start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
-                    feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+                    #feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
                     feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+
+                for k, v in rawdata_3d_corrupted_dict.items():
+                    # if k == 'seattle911calls':
+                    timestep = TIMESTEPS
+                    # else:
+                    #     timestep = DAILY_TIMESTEPS
+                    temp_batch = create_mini_batch_3d_nonoverlapping(start_idx, end_idx, v, timestep)
+    #                     print('3d temp_batch.shape: ',temp_batch.shape)
+                    feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+
 
                 feed_dict_all[self.is_training] = True
                 batch_cost, batch_loss_dict, batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict=feed_dict_all)
