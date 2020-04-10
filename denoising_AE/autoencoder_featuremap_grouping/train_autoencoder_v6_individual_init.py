@@ -612,6 +612,7 @@ def main():
 
 
     ###############  random grouping #############################
+    '''
     grouping_dict = {
     'group_1': ['temperature', 'building_permit', 'POI_recreation', 'bikelane', 'seattle911calls',
            'POI_hospitals'],
@@ -622,6 +623,7 @@ def main():
     'group_4': [ 'POI_government',
         'POI_publicservices', 'pressure', 'POI_school', 'transit_routes', 'seattle_street']
     }
+    '''
 
 
 
