@@ -381,19 +381,19 @@ def main():
     print('TRAINING_STEPS: ', TRAINING_STEPS)
 
 
-    intersect_pos = pd.read_csv('../auxillary_data/intersect_pos_32_20.csv')
+    intersect_pos = pd.read_csv('../../auxillary_data/intersect_pos_32_20.csv')
     intersect_pos_set = set(intersect_pos['0'].tolist())
     # demographic data
     # should use 2018 data
-    demo_raw = pd.read_csv('../auxillary_data/whole_grid_32_20_demo_1000_intersect_geodf_2018_corrected.csv', index_col = 0)
+    demo_raw = pd.read_csv('../../auxillary_data/whole_grid_32_20_demo_1000_intersect_geodf_2018_corrected.csv', index_col = 0)
     train_obj = train(demo_raw)
     train_obj.generate_binary_demo_attr(intersect_pos_set)
 
     # ---- reading data ---------------------#
     print('Reading 1d, 2d, and 3d data')
-    path_1d = '../data_processing/1d_source_data/'
-    path_2d = '../data_processing/2d_source_data/'
-    path_3d = '../data_processing/3d_source_data/'
+    path_1d = '../../data_processing/1d_source_data/'
+    path_2d = '../../data_processing/2d_source_data/'
+    path_3d = '../../data_processing/3d_source_data/'
     # 1d
     weather_arr = np.load(path_1d + 'weather_arr_20140201_20190501.npy')
     airquality_arr = np.load(path_1d + 'air_quality_arr_20140201_20190501.npy')
