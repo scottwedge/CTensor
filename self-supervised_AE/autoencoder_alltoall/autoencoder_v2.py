@@ -146,7 +146,7 @@ def generate_fixlen_timeseries_nonoverlapping(rawdata_arr, timestep = TIMESTEPS)
 # end_idx - start_idx = batchsize * TIMESTEPS
 
 # updated on April for next-step prediction
-# end_idx - start_idx = batchsize * TIMESTEPS still holds
+# end_idx - start_idx = batchsize * TIMESTEPS +1
 # but each sequence is now 25-hour with  1-hour overlap with the next sequence.
 def create_mini_batch_1d_nonoverlapping(start_idx, end_idx,  data_1d):
     # data_3d : (45984, 32, 20, ?)
@@ -1803,7 +1803,7 @@ class Autoencoder:
                 if total_len < (itr+1)*step:
                     end_idx = total_len
                 else:
-                    end_idx = (itr+1)*step
+                    end_idx = (itr+1)*step + 1  # added for next-step prediction
                 print('itr, start_idx, end_idx', itr, start_idx, end_idx)
 
                 # create feed_dict
