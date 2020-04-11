@@ -580,8 +580,11 @@ class Autoencoder:
                     #reuse = tf.AUTO_REUSE
                 )
 
+            # [None, dim_1d, 1]
             conv5_bn = tf.layers.batch_normalization(inputs=conv5, training= is_training)
+            conv5_bn = tf.squeeze(conv5_bn, axis = 2)
 
+            # print('reconstruct_1d: conv5_bn.shape: ', conv5_bn.shape)
 
         return conv5_bn
 
