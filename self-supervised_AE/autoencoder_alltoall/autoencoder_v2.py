@@ -172,7 +172,8 @@ def create_mini_batch_2d_nonoverlapping(start_idx, end_idx,  data_2d):
 
         test_data_2d = np.tile(test_data_2d,(BATCH_SIZE,1,1,1))
     else:
-        test_data_2d = np.tile(test_data_2d,(int(test_size / TIMESTEPS),1,1,1))
+        # next-step prediction : int(test_size / TIMESTEPS) -> (int(test_size / TIMESTEPS) -1
+        test_data_2d = np.tile(test_data_2d,(int(test_size / TIMESTEPS) -1 ,1,1,1))
     # (batchsize, 32, 20, 20)
     return test_data_2d
 
