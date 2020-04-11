@@ -502,7 +502,7 @@ class Autoencoder:
             with tf.name_scope("3d_batch_norm_b"):
                 conv5_bn = tf.layers.batch_normalization(inputs=conv5, training= is_training)
             # (?, 32, 20, 1)
-            out = conv5_bn
+            output = conv5_bn
             # output = conv3
         return output
 
