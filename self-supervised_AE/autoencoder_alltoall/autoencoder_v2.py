@@ -118,7 +118,10 @@ def create_mini_batch_3d(start_idx, end_idx,data_3d, timestep = TIMESTEPS+1):
     # (timestep (168/56/7), batchsize, 32, 20, 1)
     return test_data_3d_seq
 
-
+# updated on April for next-step prediction
+# end_idx - start_idx = batchsize * TIMESTEPS still holds
+# but each sequence is now 25-hour with  1-hour overlap with the next sequence.
+# e.g. [0, 25], [24, 49]...
 def generate_fixlen_timeseries_nonoverlapping(rawdata_arr, timestep = TIMESTEPS):
     raw_seq_list = list()
     # arr_shape: [# of timestamps, w, h]
@@ -126,7 +129,7 @@ def generate_fixlen_timeseries_nonoverlapping(rawdata_arr, timestep = TIMESTEPS)
     # e.g., 50 (batchsize * timestep), or 21 (leftover)
     for i in range(0, arr_shape[0], timestep):
         start = i
-        end = i+ (timestep )
+        end = i+ (timestep + 1)
         # ignore if a small sequence of data that is shorter than timestep
         if end <= arr_shape[0]:
             # temp_seq = rawdata_arr[start: end, :, :]
@@ -141,6 +144,10 @@ def generate_fixlen_timeseries_nonoverlapping(rawdata_arr, timestep = TIMESTEPS)
 # create non-overlapping sequences
 # create a batchsize (e.g., 32) of 24-hour non-overlapping sequences
 # end_idx - start_idx = batchsize * TIMESTEPS
+
+# updated on April for next-step prediction
+# end_idx - start_idx = batchsize * TIMESTEPS still holds
+# but each sequence is now 25-hour with  1-hour overlap with the next sequence.
 def create_mini_batch_1d_nonoverlapping(start_idx, end_idx,  data_1d):
     # data_3d : (45984, 32, 20, ?)
     # data_1d: (45984, ?)
@@ -176,29 +183,7 @@ def create_mini_batch_3d_nonoverlapping(start_idx, end_idx, data_3d, timestep):
     # data_1d: (45984, ?)
     # data_2d: (32, 20, ?)
     test_size = end_idx - start_idx
-    # handle different time frame
-    # shape should be (batchsize, 7, 32, 20, 1), but for 24 hours in a day
-    # the sequence should be the same.
-    # if timestep == DAILY_TIMESTEPS:
-    #     # input  (1, 45840, 32, 20) and 768 indexes
-    #     # output should be [32,1,32,20,1]
-    #     # for every 24 timestep, take one slice
-    #     test_data_3d_list = list()
-    #     for i in range(start_idx, end_idx, TIMESTEPS):
-    #         start = i
-    #         end = i+ (timestep )
-    #         # ignore if a small sequence of data that is shorter than timestep
-    #         if end <= end_idx:
-    #             # temp_seq = rawdata_arr[start: end, :, :]
-    #             temp_seq = data_3d[:, start, :, :]  # (1, 32, 20)
-    #             test_data_3d_list.append(temp_seq)
-    #     test_data_3d_seq = np.array(test_data_3d_list)
-    #     test_data_3d_seq = np.swapaxes(test_data_3d_seq,0,1)
-    #
-    #     # should be [32,1,32,20,1]
-    #     test_data_3d_seq = np.expand_dims(test_data_3d_seq, axis=4)
-    #     test_data_3d_seq = np.swapaxes(test_data_3d_seq,0,1)
-    # else:  # 911 data
+
     test_data_3d = data_3d[start_idx :end_idx, :, :]
     test_data_3d_seq = generate_fixlen_timeseries_nonoverlapping(test_data_3d, timestep)
     test_data_3d_seq = np.expand_dims(test_data_3d_seq, axis=4)
@@ -1248,12 +1233,7 @@ class Autoencoder:
             # if k == 'seattle911calls':
             first_level_output[k] = prediction_3d
             first_order_encoder_list.append(prediction_3d)
-            # else:
-            #     # [None, 1, height, width, 1] -> [None, 24, height, width, 1]
-            #     prediction_3d_expand = tf.tile(prediction_3d, [1, TIMESTEPS, 1,
-            #                                             1 ,1])
-            #     first_level_output[k] = prediction_3d_expand
-            #     first_order_encoder_list.append(prediction_3d_expand)
+
 
             keys_list.append(k)
 
@@ -1290,12 +1270,6 @@ class Autoencoder:
             # cost += temp_loss
             reconstruction_dict[k] = reconstruction_1d
 
-            # if k == 'weather':
-            #     temp_loss = 0.001 * temp_loss
-            #     cost += temp_loss
-            # else:
-            #     cost += temp_loss
-
 
 
         for k, v in self.rawdata_2d_tf_y_dict.items():
@@ -1318,12 +1292,12 @@ class Autoencoder:
         for k, v in self.rawdata_3d_tf_y_dict.items():
             timestep_3d = v.shape[1]
             reconstruction_3d = self.reconstruct_3d(latent_fea, timestep_3d, self.is_training, k)
-            demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
-            weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
-            temp_loss = tf.losses.absolute_difference(reconstruction_3d, v, weight_3d)
+            #demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
+            #weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
+            temp_loss = tf.losses.absolute_difference(reconstruction_3d, v, weight)
             total_loss += temp_loss
             loss_dict[k] = temp_loss
-            temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, v, weight_3d))
+            temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, v, weight))
             rmse_dict[k] = temp_rmse
             reconstruction_dict[k] = reconstruction_3d
 
@@ -1695,12 +1669,6 @@ class Autoencoder:
             first_level_output[k] = prediction_3d
             first_order_encoder_list.append(prediction_3d)
             # else:
-            #     # [None, 1, height, width, 1] -> [None, 24, height, width, 1]
-            #     prediction_3d_expand = tf.tile(prediction_3d, [1, TIMESTEPS, 1,
-            #                                             1 ,1])
-            #     first_level_output[k] = prediction_3d_expand
-            #     first_order_encoder_list.append(prediction_3d_expand)
-
 
 
         # dim: latent fea dimension
@@ -1735,13 +1703,6 @@ class Autoencoder:
             # cost += temp_loss
             reconstruction_dict[k] = reconstruction_1d
 
-            # if k == 'weather':
-            #     temp_loss = 0.001 * temp_loss
-            #     cost += temp_loss
-            # else:
-            #     cost += temp_loss
-
-
 
         for k, v in self.rawdata_2d_tf_y_dict.items():
             dim_2d = rawdata_2d_dict[k].shape[-1]
@@ -1763,12 +1724,12 @@ class Autoencoder:
         for k, v in self.rawdata_3d_tf_y_dict.items():
             timestep_3d = v.shape[1]
             reconstruction_3d = self.reconstruct_3d(latent_fea, timestep_3d, self.is_training, k)
-            demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
-            weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
-            temp_loss = tf.losses.absolute_difference(reconstruction_3d, v, weight_3d)
+            # demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
+            # weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
+            temp_loss = tf.losses.absolute_difference(reconstruction_3d, v, weight)
             total_loss += temp_loss
             loss_dict[k] = temp_loss
-            temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, v, weight_3d))
+            temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, v, weight))
             rmse_dict[k] = temp_rmse
             reconstruction_dict[k] = reconstruction_3d
 
@@ -1811,6 +1772,10 @@ class Autoencoder:
             # nonoverlapping sequences
             # e.g., train_hours = 100. batchsize = 10, time = 5
             # iter = 2. if train_hours = 121. iter = 3. ignore the last 1 time_step
+
+            # updated on April for next step prediction
+            # the step should still be 24 hours. but X +y = 25
+            # every 25 step produces a 24-hour latent representation
             step = batch_size * TIMESTEPS  # 32 * 24 = 768
             if total_len%step ==0:
                 iterations = int(total_len/step)
@@ -1846,8 +1811,8 @@ class Autoencoder:
                     # create batches for 1d
                 for k, v in rawdata_1d_dict.items():
                     temp_batch = create_mini_batch_1d_nonoverlapping(start_idx, end_idx, v)
-                    feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
-                    feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
+                    feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch[:, 0:TIMESTEPS, :]
+                    feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch[:, -1, :]
 
                     # create batches for 2d
                 for k, v in rawdata_2d_dict.items():
@@ -1859,12 +1824,10 @@ class Autoencoder:
                 for k, v in rawdata_3d_dict.items():
                     # if k == 'seattle911calls':
                     timestep = TIMESTEPS
-                    # else:
-                    #     timestep = DAILY_TIMESTEPS
                     temp_batch = create_mini_batch_3d_nonoverlapping(start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
-                    feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
-                    feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+                    feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch[:, 0:HOURLY_TIMESTEPS, :, :, :]
+                    feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch[:, -1, :, :, :]
 
                 feed_dict_all[self.is_training] = True
                 batch_cost, batch_loss_dict, batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict=feed_dict_all)
