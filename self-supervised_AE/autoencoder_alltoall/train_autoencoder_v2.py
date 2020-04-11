@@ -23,7 +23,7 @@ import datetime
 from datetime import timedelta
 import datetime_utils
 #import lstm
-import evaluation
+# import evaluation
 import autoencoder_v2
 from matplotlib import pyplot as plt
 import random
