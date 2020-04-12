@@ -1712,11 +1712,6 @@ class Autoencoder:
             # if k == 'seattle911calls':
             first_level_output[k] = prediction_3d
 
-            # else:
-            #     # [None, 1, height, width, 1] -> [None, 24, height, width, 1]
-            #     prediction_3d_expand = tf.tile(prediction_3d, [1, TIMESTEPS, 1,
-            #                                             1 ,1])
-            #     first_level_output[k] = prediction_3d_expand
 
 
 
@@ -1802,9 +1797,9 @@ class Autoencoder:
                     reconstruction_3d = self.reconstruct_3d(first_level_decode[grp], timestep_3d, self.is_training)
             #         print('reconstruction_3d.shape: ', reconstruction_3d.shape) # (?, 7, 32, 20, 1)
                     # 3d weight: (?, 32, 20, 1) -> (?, 7, 32, 20, 1)
-                    demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
-                    weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
-                    temp_loss = tf.losses.absolute_difference(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds], weight_3d)
+                    # demo_mask_arr_temp = tf.tile(demo_mask_arr_expanded, [1, timestep_3d,1,1,1])
+                    # weight_3d = tf.cast(tf.greater(demo_mask_arr_temp, 0), tf.float32)
+                    temp_loss = tf.losses.absolute_difference(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds], weight)
                     total_loss += temp_loss
                     loss_dict[ds] = temp_loss
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds]))
@@ -1885,8 +1880,8 @@ class Autoencoder:
                     # create batches for 1d
                 for k, v in rawdata_1d_dict.items():
                     temp_batch = create_mini_batch_1d_nonoverlapping(start_idx, end_idx, v)
-                    feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
-                    feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
+                    feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch[:, 0:TIMESTEPS, :]
+                    feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch[:, -1, :]
 
                     # create batches for 2d
                 for k, v in rawdata_2d_dict.items():
@@ -1902,8 +1897,8 @@ class Autoencoder:
                         #     timestep = DAILY_TIMESTEPS
                     temp_batch = create_mini_batch_3d_nonoverlapping(start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
-                    feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
-                    feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+                    feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch[:, 0:HOURLY_TIMESTEPS, :, :, :]
+                    feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch[:, -1, :, :, :]
 
                 feed_dict_all[self.is_training] = True
                 batch_cost, batch_loss_dict, batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict=feed_dict_all)
