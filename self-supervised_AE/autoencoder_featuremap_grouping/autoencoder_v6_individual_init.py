@@ -1253,12 +1253,6 @@ class Autoencoder:
             # if k == 'seattle911calls':
             first_level_output[k] = prediction_3d
 
-            # else:
-            #     # [None, 1, height, width, 1] -> [None, 24, height, width, 1]
-            #     prediction_3d_expand = tf.tile(prediction_3d, [1, TIMESTEPS, 1,
-            #                                             1 ,1])
-            #     first_level_output[k] = prediction_3d_expand
-
 
 
         # ------------ grouping in encoder ------------- #
