@@ -706,13 +706,13 @@ def main():
         print('begin grouping')
         # relation_all_df = first_level_grouping_simplified(feature_map_dict, encoded_list_rearrange_concat,
         #             mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
-        relation_all_df = first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
-                    mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
+        # relation_all_df = first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
+        #             mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
+        #
 
 
-
-        # relation_1d_df, relation_2d_df, relation_3d_df = first_level_grouping_within_group(feature_map_dict, encoded_list_rearrange_concat,
-        #      mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
+        relation_1d_df, relation_2d_df, relation_3d_df = first_level_grouping_within_group(feature_map_dict, encoded_list_rearrange_concat,
+             mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
 
 
     if level == 'second':
