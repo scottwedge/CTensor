@@ -521,13 +521,13 @@ def main():
                 }
 
     '''
-    grouping_dict = {'one_dim_grp': ['precipitation','temperature', 'pressure', 'airquality'],
-                    'two_dim_grp': ['house_price', 'POI_business','POI_food',  'POI_government',
-                        'POI_hospitals', 'POI_publicservices', 'POI_recreation', 'POI_school',
-                        'POI_transportation', 'seattle_street', 'total_flow_count', 'transit_routes',
-                            'transit_signals', 'transit_stop', 'slope', 'bikelane'],
-                     'third_dim_grp': ['building_permit', 'collisions', 'seattle911calls']
-                    }
+    # grouping_dict = {'one_dim_grp': ['precipitation','temperature', 'pressure', 'airquality'],
+    #                 'two_dim_grp': ['house_price', 'POI_business','POI_food',  'POI_government',
+    #                     'POI_hospitals', 'POI_publicservices', 'POI_recreation', 'POI_school',
+    #                     'POI_transportation', 'seattle_street', 'total_flow_count', 'transit_routes',
+    #                         'transit_signals', 'transit_stop', 'slope', 'bikelane'],
+    #                  'third_dim_grp': ['building_permit', 'collisions', 'seattle911calls']
+    #                 }
 
 
     # ------ Raw data grouping V1 ------------- #
@@ -610,6 +610,19 @@ def main():
     # 'group_9':['seattle911calls'],
     # }
 
+    # updated on April 13, based on denoising_AE alltoall
+    # within dim, 1d2d = 0
+    grouping_dict = {
+    'group_1': ['precipitation', 'temperature', 'pressure'],
+    'group_2': ['airquality'],
+    'group_3': ['house_price', 'POI_government', 'POI_hospitals'],
+    'group_4':['POI_business', 'POI_food', 'POI_publicservices', 'POI_recreation'],
+    'group_5': ['POI_school', 'seattle_street', 'total_flow_count', 'transit_routes',
+            'transit_signals', 'transit_stop', 'bikelane'],
+    'group_6': ['POI_transportation', 'slope'],
+    'group_7': ['building_permit'],
+    'group_8': ['collisions', 'seattle911calls'],
+    }
 
     ###############  random grouping #############################
     '''
