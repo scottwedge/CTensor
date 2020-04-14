@@ -605,9 +605,9 @@ def main():
     'group_5': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_recreation', 'POI_school', 'transit_routes'],
     'group_6': ['POI_government', 'POI_hospitals', 'POI_transportation'],
     'group_7': [['total_flow_count'],
-    'group_8':['transit_signals'],
-    'group_9':['building_permit'],
-    'group_10':['collisions', 'seattle911calls'],
+    'group_8': ['transit_signals'],
+    'group_9': ['building_permit'],
+    'group_10': ['collisions', 'seattle911calls'],
     }
 
 
