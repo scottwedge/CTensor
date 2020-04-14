@@ -1871,7 +1871,7 @@ class Autoencoder:
                 if total_len < (itr+1)*step:
                     end_idx = total_len
                 else:
-                    end_idx = (itr+1)*step
+                    end_idx = (itr+1)*step + 1  # added for next-step prediction
                 print('itr, start_idx, end_idx', itr, start_idx, end_idx)
 
 
