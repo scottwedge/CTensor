@@ -612,16 +612,27 @@ def main():
 
     # updated on April 13, based on denoising_AE alltoall
     # within dim, 1d2d = 0
+    # grouping_dict = {
+    # 'group_1': ['precipitation', 'temperature', 'pressure'],
+    # 'group_2': ['airquality'],
+    # 'group_3': ['house_price', 'POI_government', 'POI_hospitals'],
+    # 'group_4':['POI_business', 'POI_food', 'POI_publicservices', 'POI_recreation'],
+    # 'group_5': ['POI_school', 'seattle_street', 'total_flow_count', 'transit_routes',
+    #         'transit_signals', 'transit_stop', 'bikelane'],
+    # 'group_6': ['POI_transportation', 'slope'],
+    # 'group_7': ['building_permit'],
+    # 'group_8': ['collisions', 'seattle911calls'],
+    # }
+
+    # updated on April 15, based on denoising_AE alltoall
+    # simplified grouping
     grouping_dict = {
     'group_1': ['precipitation', 'temperature', 'pressure'],
-    'group_2': ['airquality'],
-    'group_3': ['house_price', 'POI_government', 'POI_hospitals'],
-    'group_4':['POI_business', 'POI_food', 'POI_publicservices', 'POI_recreation'],
-    'group_5': ['POI_school', 'seattle_street', 'total_flow_count', 'transit_routes',
-            'transit_signals', 'transit_stop', 'bikelane'],
+    'group_2': ['airquality', 'collisions', 'seattle911calls'],
+    'group_3':  ['house_price', 'POI_government', 'POI_hospitals'],
+    'group_4': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_recreation', 'total_flow_count', 'transit_stop', 'building_permit'],
+    'group_5':  ['POI_school', 'seattle_street', 'transit_routes', 'transit_signals', 'bikelane'],
     'group_6': ['POI_transportation', 'slope'],
-    'group_7': ['building_permit'],
-    'group_8': ['collisions', 'seattle911calls'],
     }
 
     ###############  random grouping #############################
