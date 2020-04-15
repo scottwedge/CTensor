@@ -625,7 +625,8 @@ def main():
     # }
 
     # updated on April 15, based on denoising_AE alltoall
-    # simplified grouping
+    # simplified auto grouping
+    '''
     grouping_dict = {
     'group_1': ['precipitation', 'temperature', 'pressure'],
     'group_2': ['airquality', 'collisions', 'seattle911calls'],
@@ -634,9 +635,10 @@ def main():
     'group_5':  ['POI_school', 'seattle_street', 'transit_routes', 'transit_signals', 'bikelane'],
     'group_6': ['POI_transportation', 'slope'],
     }
+    '''
 
     ###############  random grouping #############################
-    '''
+
     grouping_dict = {
     'group_1': ['temperature', 'building_permit', 'POI_recreation', 'bikelane', 'seattle911calls',
            'POI_hospitals'],
@@ -647,7 +649,7 @@ def main():
     'group_4': [ 'POI_government',
         'POI_publicservices', 'pressure', 'POI_school', 'transit_routes', 'seattle_street']
     }
-    '''
+    
 
 
 
