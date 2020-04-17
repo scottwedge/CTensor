@@ -521,13 +521,13 @@ def main():
                 }
 
     '''
-    # grouping_dict = {'one_dim_grp': ['precipitation','temperature', 'pressure', 'airquality'],
-    #                 'two_dim_grp': ['house_price', 'POI_business','POI_food',  'POI_government',
-    #                     'POI_hospitals', 'POI_publicservices', 'POI_recreation', 'POI_school',
-    #                     'POI_transportation', 'seattle_street', 'total_flow_count', 'transit_routes',
-    #                         'transit_signals', 'transit_stop', 'slope', 'bikelane'],
-    #                  'third_dim_grp': ['building_permit', 'collisions', 'seattle911calls']
-    #                 }
+    grouping_dict = {'one_dim_grp': ['precipitation','temperature', 'pressure', 'airquality'],
+                    'two_dim_grp': ['house_price', 'POI_business','POI_food',  'POI_government',
+                        'POI_hospitals', 'POI_publicservices', 'POI_recreation', 'POI_school',
+                        'POI_transportation', 'seattle_street', 'total_flow_count', 'transit_routes',
+                            'transit_signals', 'transit_stop', 'slope', 'bikelane'],
+                     'third_dim_grp': ['building_permit', 'collisions', 'seattle911calls']
+                    }
 
 
     # ------ Raw data grouping V1 ------------- #
@@ -544,6 +544,7 @@ def main():
    '''
 
     # ------ Raw data grouping V2 ------------- #
+    '''
     grouping_dict = {
         'group_1':  ['precipitation'],
         'group_2':  ['temperature', 'pressure', 'airquality'],
@@ -555,6 +556,7 @@ def main():
         'group_8':  ['building_permit'],
         'group_9': ['collisions', 'seattle911calls'],
     }
+    '''
 
 
     ########### grouping by feature maps using cosine distance  ########
