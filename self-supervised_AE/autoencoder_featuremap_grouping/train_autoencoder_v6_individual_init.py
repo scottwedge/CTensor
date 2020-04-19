@@ -331,7 +331,7 @@ def parse_args():
     parser.add_argument('-e',   '--epoch',  type=int,
                      action="store", help = 'epochs to train', default = 50)
     parser.add_argument('-l',   '--learning_rate',  type=float,
-                     action="store", help = 'epochs to train', default = 0.001)
+                     action="store", help = 'epochs to train', default = 0.01)
     # when do resume training, use_pretrained should be set to False
     parser.add_argument("-up","--use_pretrained", type=bool, default=True,
     				help="A boolean value whether or not to start from pretrained model")
@@ -507,13 +507,13 @@ def main():
                 }
     '''
 
-    # grouping_dict = {'one_dim_grp': ['precipitation','temperature', 'pressure', 'airquality'],
-    #                 'two_dim_grp': ['house_price', 'POI_business','POI_food',  'POI_government',
-    #                     'POI_hospitals', 'POI_publicservices', 'POI_recreation', 'POI_school',
-    #                     'POI_transportation', 'seattle_street', 'total_flow_count', 'transit_routes',
-    #                         'transit_signals', 'transit_stop', 'slope', 'bikelane'],
-    #                  'third_dim_grp': ['building_permit', 'collisions', 'seattle911calls']
-    #                 }
+    grouping_dict = {'one_dim_grp': ['precipitation','temperature', 'pressure', 'airquality'],
+                    'two_dim_grp': ['house_price', 'POI_business','POI_food',  'POI_government',
+                        'POI_hospitals', 'POI_publicservices', 'POI_recreation', 'POI_school',
+                        'POI_transportation', 'seattle_street', 'total_flow_count', 'transit_routes',
+                            'transit_signals', 'transit_stop', 'slope', 'bikelane'],
+                     'third_dim_grp': ['building_permit', 'collisions', 'seattle911calls']
+                    }
 
 
     # ------ Raw data grouping V1 ------------- #
@@ -597,6 +597,7 @@ def main():
     # }
 
     # updated on April, 1d2d = 0, within dim, from nextstep alltoall
+    '''
     grouping_dict = {
     'group_1': ['precipitation', 'temperature'],
     'group_2': ['pressure'],
@@ -609,6 +610,7 @@ def main():
     'group_9': ['building_permit'],
     'group_10': ['collisions', 'seattle911calls'],
     }
+    '''
 
 
     ###############  random grouping #############################
