@@ -329,7 +329,7 @@ def parse_args():
     parser.add_argument('-e',   '--epoch',  type=int,
                      action="store", help = 'epochs to train', default = 50)
     parser.add_argument('-l',   '--learning_rate',  type=float,
-                     action="store", help = 'epochs to train', default = 0.001)
+                     action="store", help = 'epochs to train', default = 0.01)
     # when do resume training, use_pretrained should be set to False
     parser.add_argument("-up","--use_pretrained", type=bool, default=True,
     				help="A boolean value whether or not to start from pretrained model")
