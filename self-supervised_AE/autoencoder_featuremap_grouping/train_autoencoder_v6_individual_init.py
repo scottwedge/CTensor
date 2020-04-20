@@ -507,6 +507,7 @@ def main():
                 }
     '''
 
+    '''
     grouping_dict = {'one_dim_grp': ['precipitation','temperature', 'pressure', 'airquality'],
                     'two_dim_grp': ['house_price', 'POI_business','POI_food',  'POI_government',
                         'POI_hospitals', 'POI_publicservices', 'POI_recreation', 'POI_school',
@@ -514,7 +515,7 @@ def main():
                             'transit_signals', 'transit_stop', 'slope', 'bikelane'],
                      'third_dim_grp': ['building_permit', 'collisions', 'seattle911calls']
                     }
-
+    '''
 
     # ------ Raw data grouping V1 ------------- #
     '''
@@ -596,21 +597,20 @@ def main():
     # 'group_9':['seattle911calls'],
     # }
 
-    # updated on April, 1d2d = 0, within dim, from nextstep alltoall
-    '''
+    # updated on April 19, 1d2d = 0, within dim, from nextstep alltoall
+
     grouping_dict = {
-    'group_1': ['precipitation', 'temperature'],
+    'group_1': ['precipitation', 'temperature', 'airquality'],
     'group_2': ['pressure'],
-    'group_3': ['airquality'],
-    'group_4': ['house_price', 'seattle_street', 'transit_stop', 'slope', 'bikelane'],
-    'group_5': ['POI_business', 'POI_food', 'POI_publicservices', 'POI_recreation', 'POI_school', 'transit_routes'],
-    'group_6': ['POI_government', 'POI_hospitals', 'POI_transportation'],
-    'group_7': ['total_flow_count'],
-    'group_8': ['transit_signals'],
-    'group_9': ['building_permit'],
-    'group_10': ['collisions', 'seattle911calls'],
+    'group_3': ['house_price', 'POI_transportation', 'total_flow_count'],
+    'group_4': ['POI_business'],
+    'group_5':  ['POI_food'],
+    'group_6': ['POI_government', 'POI_hospitals', 'POI_publicservices', 'POI_school', 'seattle_street', 'transit_routes', 'transit_stop', 'bikelane'],
+    'group_7': ['POI_recreation', 'transit_signals', 'slope'],
+    'group_8': ['building_permit', 'seattle911calls'],
+    'group_9': ['collisions'],
     }
-    '''
+
 
 
     ###############  random grouping #############################
