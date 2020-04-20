@@ -232,7 +232,7 @@ def get_scopes_to_restore(rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
 class Autoencoder:
     # input_dim = 1, seq_size = 168,
     def __init__(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
-    rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
+       rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
                    intersect_pos_set,
                     demo_mask_arr, dim,
                     first_level_grouping_dict, second_level_grouping_dict,

@@ -22,7 +22,7 @@ from os.path import basename   # get file name
 import collections
 import matplotlib.pyplot as plt
 import argparse
-
+import pickle
 
 import time
 import datetime
@@ -320,12 +320,13 @@ def parse_args():
     parser.add_argument('-e',   '--epoch',  type=int,
                      action="store", help = 'epochs to train', default = 50)
     parser.add_argument('-l',   '--learning_rate',  type=float,
-                     action="store", help = 'epochs to train', default = 0.001)
+                     action="store", help = 'epochs to train', default = 0.01)
     # when do resume training, use_pretrained should be set to False
-    parser.add_argument("-up","--use_pretrained", type=bool, default=False,
+    parser.add_argument("-up","--use_pretrained", type=bool, default=True,
     				help="A boolean value whether or not to start from pretrained model")
     parser.add_argument('-pc',   '--pretrained_checkpoint',
-                     action="store", help = 'checkpoint path to pretrained model', default = None)
+                     action="store", help = 'checkpoint path to pretrained model',
+                     default = '../../denoising_AE/autoencoder_featuremap_grouping/denoise_autoencoder_v6_individual_init_dim5_denoise_autogroup/autoencoder_v6_49.ckpt-71578')
     parser.add_argument("-i","--inference", type=bool, default=False,
         				help="inference")
 
@@ -378,19 +379,19 @@ def main():
     print('TRAINING_STEPS: ', TRAINING_STEPS)
 
 
-    intersect_pos = pd.read_csv('../auxillary_data/intersect_pos_32_20.csv')
+    intersect_pos = pd.read_csv('../../auxillary_data/intersect_pos_32_20.csv')
     intersect_pos_set = set(intersect_pos['0'].tolist())
     # demographic data
     # should use 2018 data
-    demo_raw = pd.read_csv('../auxillary_data/whole_grid_32_20_demo_1000_intersect_geodf_2018_corrected.csv', index_col = 0)
+    demo_raw = pd.read_csv('../../auxillary_data/whole_grid_32_20_demo_1000_intersect_geodf_2018_corrected.csv', index_col = 0)
     train_obj = train(demo_raw)
     train_obj.generate_binary_demo_attr(intersect_pos_set)
 
     # ---- reading data ---------------------#
     print('Reading 1d, 2d, and 3d data')
-    path_1d = '../data_processing/1d_source_data/'
-    path_2d = '../data_processing/2d_source_data/'
-    path_3d = '../data_processing/3d_source_data/'
+    path_1d = '../../data_processing/1d_source_data/'
+    path_2d = '../../data_processing/2d_source_data/'
+    path_3d = '../../data_processing/3d_source_data/'
     # 1d
     weather_arr = np.load(path_1d + 'weather_arr_20140201_20190501.npy')
     airquality_arr = np.load(path_1d + 'air_quality_arr_20140201_20190501.npy')
@@ -475,6 +476,25 @@ def main():
         'seattle911calls': seattle911calls_arr # (45984, 32, 20)
         }
 
+################  read corrputed data ########################
+
+    with open(path_1d + 'rawdata_1d_corrupted_dict', 'rb') as handle:
+        rawdata_1d_corrupted_dict = pickle.load(handle)
+
+    with open(path_2d + 'rawdata_2d_corrupted_dict', 'rb') as handle:
+        rawdata_2d_corrupted_dict = pickle.load(handle)
+
+    with open(path_3d + 'rawdata_3d_corrupted_dict', 'rb') as handle:
+        rawdata_3d_corrupted_dict = pickle.load(handle)
+
+    # check
+    print('read corrupted data')
+    for k, v in rawdata_2d_corrupted_dict.items():
+        print(k, v.shape)
+
+
+
+
     # -------------- grouping -----------------------
     # grouping_dict = {'weather_grp': ['weather', 'airquality'],
     #             'transportation_grp': ['POI_transportation', 'seattle_street', 'total_flow_count',
@@ -493,22 +513,19 @@ def main():
     first_level_grouping_dict = {
     'group_1': ['precipitation', 'temperature', 'pressure'],
     'group_2': ['airquality'],
-    'group_3': ['house_price', 'seattle_street', 'transit_signals'],
-    'group_4':['POI_business', 'POI_hospitals', 'POI_publicservices', 'POI_recreation', 'POI_school'],
-    'group_5': ['POI_food', 'POI_government', 'POI_transportation', 'transit_routes'],
-    'group_6': ['total_flow_count', 'slope', 'bikelane'],
-    'group_7': ['transit_stop'],
-    'group_8':['building_permit', 'collisions'],
-    'group_9':['seattle911calls'],
-
+    'group_3': ['house_price'],
+    'group_4': ['POI_business', 'POI_school', 'total_flow_count', 'transit_stop'],
+    'group_5': ['POI_food', 'POI_government', 'POI_hospitals', 'POI_recreation', 'transit_routes', 'slope', 'bikelane'],
+    'group_6': ['POI_publicservices', 'POI_transportation', 'seattle_street', 'transit_signals'],
+    'group_7': ['building_permit', 'collisions'],
+    'group_8': ['seattle911calls'],
     }
 
 
     second_level_grouping_dict = {
-    'group_2_1': ['group_1'],
-    'group_2_2': ['group_2'],
-    'group_2_3': ['group_3', 'group_6', 'group_8', 'group_9'],
-    'group_2_4': ['group_4', 'group_5', 'group_7'],
+    'group_2_1': ['group_1', 'group_2', 'group_8'],
+    'group_2_2': ['group_3', 'group_4', 'group_6'],
+    'group_2_3':  ['group_5', 'group_7'],
 
     }
 
@@ -538,9 +555,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './autoencoder_v7_'+ 'dim'+ str(dim)  +'/'
+        save_path =  './denoise_autoencoder_v7_multigpu_'+ 'dim'+ str(dim)  +'/'
     else:
-        save_path = './autoencoder_v7_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
+        save_path = './denoise_autoencoder_v7_multigpu_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir
@@ -566,7 +583,9 @@ def main():
         if inference == False:
             print('Train Model')
             latent_representation = autoencoder_v7.Autoencoder_entry(train_obj,
-                                    rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+                                    rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
+                                    rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
+                                    intersect_pos_set,
                                      demo_mask_arr,  save_path, dim,
                                      first_level_grouping_dict, second_level_grouping_dict,
                                 HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
@@ -574,7 +593,9 @@ def main():
                         ).train_lat_rep
         else:
             latent_representation = autoencoder_v7.Autoencoder_entry(train_obj,
-                                    rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+                                    rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
+                                    rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
+                                    intersect_pos_set,
                                      demo_mask_arr,  save_path, dim,
                                       first_level_grouping_dict, second_level_grouping_dict,
                                 HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
@@ -585,7 +606,9 @@ def main():
          # resume training
         print('resume trainging from : ', train_dir)
         latent_representation = autoencoder_v7.Autoencoder_entry(train_obj,
-                            rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+                            rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
+                            rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
+                            intersect_pos_set,
                                          demo_mask_arr,
                             train_dir, dim,
                             first_level_grouping_dict, second_level_grouping_dict,

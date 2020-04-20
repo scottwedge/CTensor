@@ -282,6 +282,7 @@ def _compute_gradients(tensor, var_list):
 class Autoencoder:
     # input_dim = 1, seq_size = 168,
     def __init__(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
+       rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
                    intersect_pos_set,
                     demo_mask_arr, dim,
                     first_level_grouping_dict, second_level_grouping_dict,
@@ -734,7 +735,9 @@ class Autoencoder:
         weights
 
     '''
-    def train_autoencoder(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, train_hours,
+    def train_autoencoder(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
+                rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
+                    train_hours,
                      demo_mask_arr, save_folder_path, dim,
                       first_level_grouping_dict, second_level_grouping_dict,
                      resume_training = False, checkpoint_path = None,
@@ -1048,23 +1051,39 @@ class Autoencoder:
                         # create batches for 1d
                         for k, v in rawdata_1d_dict.items():
                             temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
-                            feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
                             feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
+
+                        for k, v in rawdata_1d_corrupted_dict.items():
+                            temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
+                            feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
 
                         # create batches for 2d
                         for k, v in rawdata_2d_dict.items():
                             temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
-                            feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+                            # feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
                             feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
+
+                        for k, v in rawdata_2d_corrupted_dict.items():
+                            temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
+                            feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
 
                          # create batches for 3d
                         for k, v in rawdata_3d_dict.items():
+                            # if k == 'seattle911calls':
                             timestep = TIMESTEPS
                             # else:
                             #     timestep = DAILY_TIMESTEPS
                             temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
-                            feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+                            # feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
                             feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+
+                        for k, v in rawdata_3d_corrupted_dict.items():
+                            # if k == 'seattle911calls':
+                            timestep = TIMESTEPS
+                            temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
+        #                     print('3d temp_batch.shape: ',temp_batch.shape)
+                            feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+
 
                         # is_training: True
                         feed_dict_all[self.is_training] = True
@@ -1158,21 +1177,37 @@ class Autoencoder:
                         # create batches for 1d
                         for k, v in rawdata_1d_dict.items():
                             temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
-                            test_feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
+                            # test_feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
                             test_feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
+                        for k, v in rawdata_1d_corrupted_dict.items():
+                            temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
+                            test_feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
 
                         # create batches for 2d
                         for k, v in rawdata_2d_dict.items():
                             temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
-                            test_feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+                            # test_feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
                             test_feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
 
+                        for k, v in rawdata_2d_corrupted_dict.items():
+                            temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
+                            test_feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
                          # create batches for 3d
                         for k, v in rawdata_3d_dict.items():
+                            # if k == 'seattle911calls':
+                            timestep = TIMESTEPS
+                            # else:
+                            #     timestep = DAILY_TIMESTEPS
+                            temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
+                            # test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+                            test_feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+
+                        for k, v in rawdata_3d_corrupted_dict.items():
+                            #if k == 'seattle911calls':
                             timestep = TIMESTEPS
                             temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
                             test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
-                            test_feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+
 
                         # is_training: True
                         test_feed_dict_all[self.is_training] = True
@@ -1336,7 +1371,9 @@ class Autoencoder:
     # do inference using existing checkpoint
     # get latent representation for train and test data altogether
     # the input sequence (24 hours or 168 hours) should have no overlapps
-    def get_latent_rep(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, train_hours,
+    def get_latent_rep(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
+        rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
+                    train_hours,
                      demo_mask_arr, save_folder_path, dim,
                      first_level_grouping_dict, second_level_grouping_dict,
                     checkpoint_path = None,
@@ -1554,14 +1591,22 @@ class Autoencoder:
                     # create batches for 1d
                 for k, v in rawdata_1d_dict.items():
                     temp_batch = create_mini_batch_1d_nonoverlapping(start_idx, end_idx, v)
-                    feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
+                    # feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
                     feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
+
+                for k, v in rawdata_1d_corrupted_dict.items():
+                    temp_batch = create_mini_batch_1d_nonoverlapping(start_idx, end_idx, v)
+                    feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
 
                     # create batches for 2d
                 for k, v in rawdata_2d_dict.items():
                     temp_batch = create_mini_batch_2d_nonoverlapping(start_idx, end_idx, v)
-                    feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
+                    # feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
                     feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
+
+                for k, v in rawdata_2d_corrupted_dict.items():
+                    temp_batch = create_mini_batch_2d_nonoverlapping(start_idx, end_idx, v)
+                    feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
 
                      # create batches for 3d
                 for k, v in rawdata_3d_dict.items():
@@ -1571,8 +1616,17 @@ class Autoencoder:
                         #     timestep = DAILY_TIMESTEPS
                     temp_batch = create_mini_batch_3d_nonoverlapping(start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
-                    feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
+                    # feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
                     feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
+
+                for k, v in rawdata_3d_corrupted_dict.items():
+                    # if k == 'seattle911calls':
+                    timestep = TIMESTEPS
+                    # else:
+                    #     timestep = DAILY_TIMESTEPS
+                    temp_batch = create_mini_batch_3d_nonoverlapping(start_idx, end_idx, v, timestep)
+    #                     print('3d temp_batch.shape: ',temp_batch.shape)
+                    feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
 
                 feed_dict_all[self.is_training] = True
                 batch_cost, batch_loss_dict, batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict=feed_dict_all)
@@ -1688,7 +1742,9 @@ fixed lenght time window: 168 hours
 '''
 class Autoencoder_entry:
     def __init__(self, train_obj,
-              rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
+              rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
+               rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
+              intersect_pos_set,
                     demo_mask_arr, save_path, dim,
                      first_level_grouping_dict, second_level_grouping_dict,
                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
@@ -1711,6 +1767,9 @@ class Autoencoder_entry:
         self.first_level_grouping_dict = first_level_grouping_dict
         self.second_level_grouping_dict = second_level_grouping_dict
 
+        self.rawdata_1d_corrupted_dict = rawdata_1d_corrupted_dict
+        self.rawdata_2d_corrupted_dict = rawdata_2d_corrupted_dict
+        self.rawdata_3d_corrupted_dict = rawdata_3d_corrupted_dict
 
         globals()['HEIGHT']  = HEIGHT
         globals()['WIDTH']  = WIDTH
@@ -1775,6 +1834,7 @@ class Autoencoder_entry:
         tf.reset_default_graph()
         # self, channel, time_steps, height, width
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
+            self.rawdata_1d_corrupted_dict, self.rawdata_2d_corrupted_dict, self.rawdata_3d_corrupted_dict,
                         self.intersect_pos_set,
                      self.demo_mask_arr, self.dim,
                      self.first_level_grouping_dict, self.second_level_grouping_dict,
@@ -1782,7 +1842,9 @@ class Autoencoder_entry:
 
         # (9337, 1, 32, 20, 1)
         train_lat_rep, test_lat_rep, encoded_list, keys_list = predictor.train_autoencoder(
-                        self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
+                        self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
+                        self.rawdata_1d_corrupted_dict, self.rawdata_2d_corrupted_dict, self.rawdata_3d_corrupted_dict,
+                         self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim,
                          self.first_level_grouping_dict, self.second_level_grouping_dict,
                 use_pretrained =  self.use_pretrained, pretrained_ckpt_path = self.pretrained_ckpt_path,
@@ -1798,13 +1860,16 @@ class Autoencoder_entry:
         tf.reset_default_graph()
         # self, channel, time_steps, height, width
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
+                self.rawdata_1d_corrupted_dict, self.rawdata_2d_corrupted_dict, self.rawdata_3d_corrupted_dict,
                         self.intersect_pos_set,
                      self.demo_mask_arr, self.dim,
                     self.first_level_grouping_dict, self.second_level_grouping_dict,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
         train_lat_rep, test_lat_rep, encoded_list, keys_list = predictor.train_autoencoder(
-                        self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
+                        self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
+                        self.rawdata_1d_corrupted_dict, self.rawdata_2d_corrupted_dict, self.rawdata_3d_corrupted_dict,
+                        self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim,
                          self.first_level_grouping_dict, self.second_level_grouping_dict,
                          True, self.checkpoint_path,
@@ -1824,13 +1889,16 @@ class Autoencoder_entry:
     def run_inference_lat_rep(self):
         tf.reset_default_graph()
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
+                self.rawdata_1d_corrupted_dict, self.rawdata_2d_corrupted_dict, self.rawdata_3d_corrupted_dict,
                         self.intersect_pos_set,
                      self.demo_mask_arr, self.dim,
         self.first_level_grouping_dict, self.second_level_grouping_dict,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
         train_lat_rep = predictor.get_latent_rep(
-                        self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict, self.train_hours,
+                        self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
+                        self.rawdata_1d_corrupted_dict, self.rawdata_2d_corrupted_dict, self.rawdata_3d_corrupted_dict,
+                         self.train_hours,
                          self.demo_mask_arr, self.save_path, self.dim,
                          self.first_level_grouping_dict, self.second_level_grouping_dict,
                         self.checkpoint_path,
