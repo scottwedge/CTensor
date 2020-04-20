@@ -325,7 +325,8 @@ def parse_args():
     parser.add_argument("-up","--use_pretrained", type=bool, default=True,
     				help="A boolean value whether or not to start from pretrained model")
     parser.add_argument('-pc',   '--pretrained_checkpoint',
-                     action="store", help = 'checkpoint path to pretrained model', default = None)
+                     action="store", help = 'checkpoint path to pretrained model',
+                     default = '../../denoising_AE/autoencoder_featuremap_grouping/denoise_autoencoder_v6_individual_init_dim5_denoise_autogroup/autoencoder_v6_49.ckpt-71578')
     parser.add_argument("-i","--inference", type=bool, default=False,
         				help="inference")
 
