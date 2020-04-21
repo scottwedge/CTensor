@@ -854,7 +854,7 @@ class Autoencoder:
 
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
-                    reconstruction_dict[k] = reconstruction_1d
+                    reconstruction_dict[ds] = reconstruction_1d
 
                     # grads = tf.gradients(temp_loss, prediction_1d_expand, name=k+'_gradients')
                     # gradnorm = tf.norm(grads, name='norm')
@@ -869,7 +869,7 @@ class Autoencoder:
                     loss_dict[ds] = temp_loss
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
-                    reconstruction_dict[k] = reconstruction_2d
+                    reconstruction_dict[ds] = reconstruction_2d
                     cost += temp_loss
 
 
@@ -889,7 +889,7 @@ class Autoencoder:
                     loss_dict[ds] = temp_loss
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
-                    reconstruction_dict[k] = reconstruction_3d
+                    reconstruction_dict[ds] = reconstruction_3d
                     cost += temp_loss
 
                     # grads = tf.gradients(temp_loss, prediction_3d, name= k+'_gradients')
