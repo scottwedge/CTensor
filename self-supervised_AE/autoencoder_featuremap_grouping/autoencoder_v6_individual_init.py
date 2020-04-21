@@ -756,7 +756,7 @@ class Autoencoder:
 
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
-                    reconstruction_dict[k] = reconstruction_1d
+                    reconstruction_dict[ds] = reconstruction_1d
 
 
 
@@ -768,7 +768,7 @@ class Autoencoder:
                     loss_dict[ds] = temp_loss
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
-                    reconstruction_dict[k] = reconstruction_2d
+                    reconstruction_dict[ds] = reconstruction_2d
                     cost += temp_loss
 
 
@@ -784,7 +784,7 @@ class Autoencoder:
                     loss_dict[ds] = temp_loss
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
-                    reconstruction_dict[k] = reconstruction_3d
+                    reconstruction_dict[ds] = reconstruction_3d
                     cost += temp_loss
 
 
@@ -1320,7 +1320,7 @@ class Autoencoder:
 
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, self.rawdata_1d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
-                    reconstruction_dict[k] = reconstruction_1d
+                    reconstruction_dict[ds] = reconstruction_1d
 
                 if ds in keys_2d:
                     dim_2d = rawdata_2d_dict[ds].shape[-1]
@@ -1330,7 +1330,7 @@ class Autoencoder:
                     loss_dict[ds] = temp_loss
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, self.rawdata_2d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
-                    reconstruction_dict[k] = reconstruction_2d
+                    reconstruction_dict[ds] = reconstruction_2d
 
                 if ds in keys_3d:
                     timestep_3d = self.rawdata_3d_tf_y_dict[ds].shape[1]
@@ -1344,7 +1344,7 @@ class Autoencoder:
                     loss_dict[ds] = temp_loss
                     temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, self.rawdata_3d_tf_y_dict[ds]))
                     rmse_dict[ds] = temp_rmse
-                    reconstruction_dict[k] = reconstruction_3d
+                    reconstruction_dict[ds] = reconstruction_3d
 
 
         print('total_loss: ', total_loss)
