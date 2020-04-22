@@ -616,6 +616,7 @@ def main():
 
     # updated on April 17, based on denoising_AE alltoall
     # within dim, 1d2d = 0
+    '''
     grouping_dict = {
     'group_1': ['precipitation', 'temperature', 'pressure'],
     'group_2': ['airquality'],
@@ -626,6 +627,7 @@ def main():
     'group_7': ['building_permit', 'collisions'],
     'group_8': ['seattle911calls'],
     }
+    '''
 
     # updated on April 15, based on denoising_AE alltoall
     # simplified auto grouping
@@ -641,7 +643,7 @@ def main():
     '''
 
     ###############  random grouping #############################
-    '''
+
     grouping_dict = {
     'group_1': ['temperature', 'building_permit', 'POI_recreation', 'bikelane', 'seattle911calls',
            'POI_hospitals'],
@@ -653,7 +655,7 @@ def main():
         'POI_publicservices', 'pressure', 'POI_school', 'transit_routes', 'seattle_street']
     }
 
-    '''
+    
 
 
 
