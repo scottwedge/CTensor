@@ -322,10 +322,11 @@ def parse_args():
     parser.add_argument('-l',   '--learning_rate',  type=float,
                      action="store", help = 'epochs to train', default = 0.001)
     # when do resume training, use_pretrained should be set to False
-    parser.add_argument("-up","--use_pretrained", type=bool, default=False,
+    parser.add_argument("-up","--use_pretrained", type=bool, default=True,
     				help="A boolean value whether or not to start from pretrained model")
     parser.add_argument('-pc',   '--pretrained_checkpoint',
-                     action="store", help = 'checkpoint path to pretrained model', default = None)
+                     action="store", help = 'checkpoint path to pretrained model',
+                     default = '../../denoising_AE/autoencoder_featuremap_grouping_multilevel/denoise_autoencoder_v7_dim5_denoise_secondlevel_lr0.02/autoencoder_v7_59.ckpt-86084')
     parser.add_argument("-i","--inference", type=bool, default=False,
         				help="inference")
 
