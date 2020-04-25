@@ -98,7 +98,7 @@ def parse_args():
     parser.add_argument('-p',   '--place',
                      action="store", help = 'city to train on: Seattle or Austin', default = 'Seattle')
     parser.add_argument('-e',   '--epoch',  type=int,
-                     action="store", help = 'epochs to train', default = 3000)
+                     action="store", help = 'epochs to train', default = 80000)
     parser.add_argument('-l',   '--learning_rate',  type=float,
                      action="store", help = 'epochs to train', default = 0.001)
     parser.add_argument('-d',   '--encoding_dir',
