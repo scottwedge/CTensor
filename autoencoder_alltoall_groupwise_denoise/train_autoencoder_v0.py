@@ -544,25 +544,26 @@ def main():
 
 
     selected_keys = grouping_dict[key]
-    for key in selected_keys:
-        if key != '' and key in keys_1d:
-            temp_var = rawdata_1d_dict_all[key]
-            rawdata_1d_dict[key] = temp_var
-            temp_var_corrected = rawdata_1d_corrupted_dict_all[key]
-            rawdata_1d_corrupted_dict[key] = temp_var_corrected
+    for k in selected_keys:
+        print(k)
+        if k != '' and k in keys_1d:
+            temp_var = rawdata_1d_dict_all[k]
+            rawdata_1d_dict[k] = temp_var
+            temp_var_corrected = rawdata_1d_corrupted_dict_all[k]
+            rawdata_1d_corrupted_dict[k] = temp_var_corrected
 
 
-        if key != '' and key in keys_2d:
-            temp_var = rawdata_2d_dict[key]
-            rawdata_2d_dict[key] = temp_var
-            temp_var_corrected = rawdata_2d_corrupted_dict_all[key]
-            rawdata_2d_corrupted_dict[key] = temp_var_corrected
+        if k != '' and k in keys_2d:
+            temp_var = rawdata_2d_dict[k]
+            rawdata_2d_dict[k] = temp_var
+            temp_var_corrected = rawdata_2d_corrupted_dict_all[k]
+            rawdata_2d_corrupted_dict[k] = temp_var_corrected
 
-        if key != '' and key in keys_3d:
-            temp_var = rawdata_3d_dict[key]
-            rawdata_3d_dict[key] = temp_var
-            temp_var_corrected = rawdata_3d_corrupted_dict_all[key]
-            rawdata_3d_corrupted_dict[key] = temp_var_corrected
+        if k != '' and k in keys_3d:
+            temp_var = rawdata_3d_dict[k]
+            rawdata_3d_dict[k] = temp_var
+            temp_var_corrected = rawdata_3d_corrupted_dict_all[k]
+            rawdata_3d_corrupted_dict[k] = temp_var_corrected
     # train_obj.train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
     print('train_hours: ', train_obj.train_hours)
 
