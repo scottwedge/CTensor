@@ -544,7 +544,7 @@ def main():
 
 
     selected_keys = grouping_dict[key]
-    for key in range(selected_keys):
+    for key in selected_keys:
         if key != '' and key in keys_1d:
             temp_var = rawdata_1d_dict_all[key]
             rawdata_1d_dict[key] = temp_var
