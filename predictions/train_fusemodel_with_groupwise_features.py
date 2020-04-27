@@ -559,7 +559,6 @@ def main():
         latent_series = latent_rep[start_train_hour:end_train_hour + test_len + TIMESTEPS,  :,:,:]
 
 
-
         #################  add groupwise latent representations ##############
         groupwise_latent_rep_path = '/home/ubuntu/CTensor/autoencoder_alltoall_groupwise_denoise/groupwise_tensors/'
         weather_latent_rep = np.load(groupwise_latent_rep_path + 'weather_grp.npy')
@@ -575,6 +574,9 @@ def main():
 
         #######  add groupwise with ALL2ALL latent representation ###############
         latent_series= np.concatenate([group_latent_series,latent_series], axis=-1)
+        # if only groupwise features are used
+        latent_series= group_latent_series
+        
         dim  = latent_series.shape[-1]
         print('latent_series.shape: ',latent_series.shape)
 
