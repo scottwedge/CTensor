@@ -328,7 +328,7 @@ def parse_args():
     parser.add_argument('-k',   '--key',
                      action="store", help = 'train only one dataset', default = '')
     parser.add_argument('-d',   '--dim',  type=int,
-                     action="store", help = 'dims of latent rep', default = 1)
+                     action="store", help = 'dims of latent rep', default = 3)
     parser.add_argument("-r","--resume_training", type=bool, default=False,
     				help="A boolean value whether or not to resume training from checkpoint")
     parser.add_argument('-t',   '--train_dir',
@@ -509,6 +509,19 @@ def main():
     keys_2d = list(rawdata_2d_dict_all.keys())
     keys_3d = list(rawdata_3d_dict_all.keys())
 
+
+################  read corrputed data ########################
+
+    with open(path_1d + 'rawdata_1d_corrupted_dict', 'rb') as handle:
+        rawdata_1d_corrupted_dict_all = pickle.load(handle)
+
+    with open(path_2d + 'rawdata_2d_corrupted_dict', 'rb') as handle:
+        rawdata_2d_corrupted_dict_all = pickle.load(handle)
+
+    with open(path_3d + 'rawdata_3d_corrupted_dict', 'rb') as handle:
+        rawdata_3d_corrupted_dict_all = pickle.load(handle)
+
+
 ##################  grouping ################################
 
     grouping_dict = {
@@ -525,20 +538,31 @@ def main():
     rawdata_1d_dict = {}
     rawdata_2d_dict = {}
     rawdata_3d_dict = {}
+    rawdata_1d_corrupted_dict = {}
+    rawdata_2d_corrupted_dict = {}
+    rawdata_3d_corrupted_dict = {}
+
+
     selected_keys = grouping_dict[key]
     for key in range(selected_keys):
         if key != '' and key in keys_1d:
             temp_var = rawdata_1d_dict_all[key]
             rawdata_1d_dict[key] = temp_var
+            temp_var_corrected = rawdata_1d_corrupted_dict_all[key]
+            rawdata_1d_corrupted_dict[key] = temp_var_corrected
+
 
         if key != '' and key in keys_2d:
             temp_var = rawdata_2d_dict[key]
             rawdata_2d_dict[key] = temp_var
+            temp_var_corrected = rawdata_2d_corrupted_dict_all[key]
+            rawdata_2d_corrupted_dict[key] = temp_var_corrected
 
         if key != '' and key in keys_3d:
             temp_var = rawdata_3d_dict[key]
             rawdata_3d_dict[key] = temp_var
-
+            temp_var_corrected = rawdata_3d_corrupted_dict_all[key]
+            rawdata_3d_corrupted_dict[key] = temp_var_corrected
     # train_obj.train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
     print('train_hours: ', train_obj.train_hours)
 
@@ -551,12 +575,12 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './groupwise_autoencoder_v0_'+ 'dim'+ str(dim)  +'/'
+        save_path =  './denoise_groupwise_autoencoder_v0_'+ 'dim'+ str(dim)  +'/'
     else:
         if key == '':
-            save_path = './groupwise_autoencoder_v0_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
+            save_path = './denoise_groupwise_autoencoder_v0_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
         else:
-            save_path = './groupwise_autoencoder_v0_'+ 'dim' + str(dim) + '_'+ suffix+ '_' + key  +'/'
+            save_path = './denoise_groupwise_autoencoder_v0_'+ 'dim' + str(dim) + '_'+ suffix+ '_' + key  +'/'
 
     if train_dir:
         save_path = train_dir
@@ -581,14 +605,14 @@ def main():
         if inference == False:
         # Model fusion without fairness
             print('Train Model')
-            latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
+            latent_representation = autoencoder_v0.Autoencoder_entry(train_obj,
                                     rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                      demo_mask_arr,  save_path, dim,
                                 HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                                 use_pretrained = use_pretrained, pretrained_ckpt_path = pretrained_checkpoint,
                         ).train_lat_rep
         else:
-            latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
+            latent_representation = autoencoder_v0.Autoencoder_entry(train_obj,
                                         rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                          demo_mask_arr,  save_path, dim,
                                     HEIGHT, WIDTH, TIMESTEPS, CHANNEL, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
@@ -599,7 +623,7 @@ def main():
     else:
          # resume training
         print('resume trainging from : ', train_dir)
-        latent_representation = autoencoder_v2.Autoencoder_entry(train_obj,
+        latent_representation = autoencoder_v0.Autoencoder_entry(train_obj,
                             rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict, intersect_pos_set,
                                          demo_mask_arr,
                             train_dir, dim,
