@@ -554,13 +554,13 @@ def main():
 
 
         if k != '' and k in keys_2d:
-            temp_var = rawdata_2d_dict[k]
+            temp_var = rawdata_2d_dict_all[k]
             rawdata_2d_dict[k] = temp_var
             temp_var_corrected = rawdata_2d_corrupted_dict_all[k]
             rawdata_2d_corrupted_dict[k] = temp_var_corrected
 
         if k != '' and k in keys_3d:
-            temp_var = rawdata_3d_dict[k]
+            temp_var = rawdata_3d_dict_all[k]
             rawdata_3d_dict[k] = temp_var
             temp_var_corrected = rawdata_3d_corrupted_dict_all[k]
             rawdata_3d_corrupted_dict[k] = temp_var_corrected
