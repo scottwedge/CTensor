@@ -647,6 +647,10 @@ def main():
         the_file.write(str(LEARNING_RATE) + '\n')
         the_file.write('key\n')
         the_file.write(str(key) + '\n')
+        the_file.write('selected_keys\n')
+        for item in selected_keys:
+            the_file.write("%s\n" % item)
+        the_file.close()
 
         the_file.close()
 
