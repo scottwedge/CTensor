@@ -645,6 +645,8 @@ def main():
         the_file.write(str(dim) + '\n')
         the_file.write('learning rate\n')
         the_file.write(str(LEARNING_RATE) + '\n')
+        the_file.write('key\n')
+        the_file.write(str(key) + '\n')
 
         the_file.close()
 
