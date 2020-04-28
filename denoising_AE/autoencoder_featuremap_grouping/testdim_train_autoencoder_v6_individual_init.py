@@ -669,9 +669,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './denoise_autoencoder_v6_individual_init_'+ 'dim'+ str(dim)  +'/'
+        save_path =  './testdim_denoise_autoencoder_v6_individual_init_'+ 'dim'+ str(dim)  +'/'
     else:
-        save_path = './denoise_autoencoder_v6_individual_init_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
+        save_path = './testdim_denoise_autoencoder_v6_individual_init_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir
