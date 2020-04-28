@@ -648,7 +648,7 @@ def main():
 
     # updated on April 17, based on denoising_AE alltoall
     # within dim, 1d2d = 0
-
+    '''
     grouping_dict = {
     'group_1': ['precipitation', 'temperature', 'pressure'],
     'group_2': ['airquality'],
@@ -659,6 +659,7 @@ def main():
     'group_7': ['building_permit', 'collisions'],
     'group_8': ['seattle911calls'],
     }
+    '''
 
 
     # updated on April 15, based on denoising_AE alltoall
