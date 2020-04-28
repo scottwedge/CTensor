@@ -24,7 +24,7 @@ import datetime
 from datetime import timedelta
 import datetime_utils
 
-import testdim_autoencoder_v6_individual_init as autoencoder_v6_individual_init
+import autoencoder_v6_individual_init
 from matplotlib import pyplot as plt
 import random
 import pickle

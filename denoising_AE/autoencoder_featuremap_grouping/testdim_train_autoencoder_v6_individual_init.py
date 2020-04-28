@@ -36,8 +36,8 @@ import time
 import datetime
 from datetime import timedelta
 import datetime_utils
+import testdim_autoencoder_v6_individual_init as autoencoder_v6_individual_init
 
-import autoencoder_v6_individual_init
 from matplotlib import pyplot as plt
 import random
 import pickle
@@ -627,7 +627,7 @@ def main():
     'group_7': ['building_permit', 'collisions'],
     'group_8': ['seattle911calls'],
     }
-    
+
 
     # updated on April 15, based on denoising_AE alltoall
     # simplified auto grouping
