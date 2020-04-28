@@ -648,6 +648,8 @@ class Autoencoder:
     # use 3d conv instead of 2d
     def fuse_and_train(self, feature_map_list, is_training, suffix = '', dim=3):
         var_scope = 'fusion_layer_'+ suffix
+        print('var_scope')
+        print('dim: ', dim)
         with tf.variable_scope(var_scope):
             fuse_feature =tf.concat(axis=-1,values=feature_map_list)
             print('fuse_feature.shape: ', fuse_feature.shape)
@@ -788,7 +790,8 @@ class Autoencoder:
                 temp_list.append(first_level_output[ds])
 
             scope_name = '1_'+ grp
-            group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, scope_name, dim=get_dim(len(data_list))) # fuse and train
+
+            group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, scope_name, get_dim(len(data_list))) # fuse and train
             second_level_output[grp] = group_fusion_featuremap
 
             second_order_encoder_list.append(group_fusion_featuremap)
@@ -905,8 +908,8 @@ class Autoencoder:
         # get scopes_to_reserve
         scopes_to_reserve = get_scopes_to_restore(rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict)
         variable_to_restore = get_variables_to_restore(variables, scopes_to_reserve)
-        print('variable_to_restore: ')
-        print(variable_to_restore)
+        # print('variable_to_restore: ')
+        # print(variable_to_restore)
         variables_to_update = [v for v in tf.global_variables() if v not in variable_to_restore]
 
         with tf.name_scope("training"):
@@ -934,8 +937,8 @@ class Autoencoder:
                 # get scopes_to_reserve
                 scopes_to_reserve = get_scopes_to_restore_for_eachdataset(k, keys_1d, keys_2d, keys_3d)
                 variable_to_restore = get_variables_to_restore(variables, scopes_to_reserve)
-                print('variable_to_restore in : ', k)
-                print(variable_to_restore)
+                # print('variable_to_restore in : ', k)
+                # print(variable_to_restore)
                 # make the dictionary, note that everything here will have “:0”, avoid it.
                 for v in variable_to_restore:
                     vars_to_restore_dict[v.name[:-2]] = v
@@ -1881,7 +1884,7 @@ class Autoencoder:
                 temp_list.append(first_level_output[ds])
 
             scope_name = '1_'+ grp
-            group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, scope_name, dim=get_dim(len(data_list))) # fuse and train
+            group_fusion_featuremap = self.fuse_and_train(temp_list, self.is_training, scope_name, get_dim(len(data_list))) # fuse and train
             second_level_output[grp] = group_fusion_featuremap
 
             second_order_encoder_list.append(group_fusion_featuremap)
