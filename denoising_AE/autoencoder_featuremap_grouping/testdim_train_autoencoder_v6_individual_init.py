@@ -509,7 +509,7 @@ def main():
 
 
     # -------------- grouping -----------------------
-    '''
+
     grouping_dict = {'weather_grp': ['precipitation','temperature', 'pressure', 'airquality'],
                 'transportation_grp': ['POI_transportation', 'seattle_street', 'total_flow_count',
                                       'transit_routes', 'transit_signals', 'transit_stop', 'bikelane',
@@ -520,7 +520,7 @@ def main():
                                    'POI_recreation', 'POI_school']
                 }
 
-    '''
+
 
     '''
     grouping_dict = {'one_dim_grp': ['precipitation','temperature', 'pressure', 'airquality'],
@@ -546,7 +546,7 @@ def main():
    '''
 
     # ------ Raw data grouping V2 ------------- #
-
+    '''
     grouping_dict = {
         'group_1':  ['precipitation'],
         'group_2':  ['temperature', 'pressure', 'airquality'],
@@ -558,7 +558,7 @@ def main():
         'group_8':  ['building_permit'],
         'group_9': ['collisions', 'seattle911calls'],
     }
-
+    '''
 
 
     ########### grouping by feature maps using cosine distance  ########
