@@ -509,7 +509,7 @@ def main():
 
 
     # -------------- grouping -----------------------
-
+    '''
     grouping_dict = {'weather_grp': ['precipitation','temperature', 'pressure', 'airquality'],
                 'transportation_grp': ['POI_transportation', 'seattle_street', 'total_flow_count',
                                       'transit_routes', 'transit_signals', 'transit_stop', 'bikelane',
@@ -520,7 +520,7 @@ def main():
                                    'POI_recreation', 'POI_school']
                 }
 
-
+    '''
 
     '''
     grouping_dict = {'one_dim_grp': ['precipitation','temperature', 'pressure', 'airquality'],
@@ -616,7 +616,7 @@ def main():
 
     # updated on April 17, based on denoising_AE alltoall
     # within dim, 1d2d = 0
-    '''
+
     grouping_dict = {
     'group_1': ['precipitation', 'temperature', 'pressure'],
     'group_2': ['airquality'],
@@ -627,7 +627,7 @@ def main():
     'group_7': ['building_permit', 'collisions'],
     'group_8': ['seattle911calls'],
     }
-    '''
+    
 
     # updated on April 15, based on denoising_AE alltoall
     # simplified auto grouping
