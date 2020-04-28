@@ -509,6 +509,38 @@ def main():
 
 
     # -------------- grouping -----------------------
+
+    # extreme grouping
+    grouping_dict = {
+    'group_1': ['precipitation'],
+    'group_2': ['temperature'],
+    'group_3': ['pressure'],
+    'group_4': ['airquality'],
+
+    'group_5': ['house_price'],
+    'group_6': ['POI_business'],
+    'group_7': [ 'POI_school'],
+    'group_8': ['total_flow_count'],
+    'group_9': ['transit_stop'],
+
+    'group_10': ['POI_food'],
+    'group_11': ['POI_government'],
+    'group_12': ['POI_hospitals'],
+    'group_13': ['POI_recreation'],
+    'group_14': ['transit_routes'],
+    'group_15': ['slope'],
+    'group_16': ['bikelane'],
+
+    'group_17': ['POI_publicservices'],
+    'group_18': ['POI_transportation'],
+    'group_19': ['seattle_street'],
+    'group_20': ['transit_signals'],
+
+    'group_21': ['building_permit'],
+    'group_22': [ 'collisions'],
+    'group_23': ['seattle911calls'],
+    }
+
     '''
     grouping_dict = {'weather_grp': ['precipitation','temperature', 'pressure', 'airquality'],
                 'transportation_grp': ['POI_transportation', 'seattle_street', 'total_flow_count',
