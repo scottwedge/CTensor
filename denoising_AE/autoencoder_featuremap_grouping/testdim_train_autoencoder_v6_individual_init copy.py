@@ -1,6 +1,19 @@
-# updated April 27, 2020
-# designate the dimension of latent rep after grouping
-# dim should = number of datasets in a group / 2
+# Updated: April 10, 2020
+# denoising AE, with missing data filled with -1
+
+# v3: datasets were grouped during encoding and decoding
+# according to a predefined grouping strategy
+# [raw datasets grouping by Pearson correlation and affinity propogation ]
+# train autoencoder for urban features
+# for each week's data, learn a
+# laten representation as [H, W, dim]
+# from the latent representation, each datasets will
+# be reconstructed with equal weight in MAE loss
+
+# when used for new task prediction. The latent representation can be
+# directly concatenate with 168 hours of historical biekshare data.
+
+# last updated: Nov, 2019
 
 
 import pandas as pd
@@ -24,7 +37,7 @@ import datetime
 from datetime import timedelta
 import datetime_utils
 
-import testdim_autoencoder_v6_individual_init as autoencoder_v6_individual_init
+import autoencoder_v6_individual_init
 from matplotlib import pyplot as plt
 import random
 import pickle
