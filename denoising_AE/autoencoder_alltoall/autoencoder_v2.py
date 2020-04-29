@@ -843,7 +843,7 @@ class Autoencoder:
                 final_encoded_list = list()
 
                 # create random index
-                start_index_list = range(0, 45984-24)
+                start_index_list = list(range(0, 45984-24))
                 shuffle(start_index_list)
 
                 # mini batch iterations
