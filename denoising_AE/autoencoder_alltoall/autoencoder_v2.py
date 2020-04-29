@@ -113,7 +113,7 @@ def create_mini_batch_3d(start_index_list, start_idx, end_idx, data_3d, timestep
     arr_shape = data_3d.shape
     for start in start_index_list[start_idx: end_idx]:
         end = start + timestep
-        print('3d:start: end',  start, end)
+        # print('3d:start: end',  start, end)
         temp_seq = data_3d[start: end]
         raw_seq_list.append(temp_seq)
     raw_seq_arr = np.array(raw_seq_list)
@@ -127,7 +127,7 @@ def create_mini_batch_1d(start_index_list, start_idx, end_idx, data_1d):
     arr_shape = data_1d.shape
     for start in start_index_list[start_idx: end_idx]:
         end = start + TIMESTEPS
-        print('1d: start: end',  start, end)
+        # print('1d: start: end',  start, end)
         temp_seq = data_1d[start: end]
         raw_seq_list.append(temp_seq)
     raw_seq_arr = np.array(raw_seq_list)
