@@ -878,7 +878,6 @@ class Autoencoder:
                         feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
 
 
-
                      # create batches for 3d
                     for k, v in rawdata_3d_dict.items():
                         # if k == 'seattle911calls':
