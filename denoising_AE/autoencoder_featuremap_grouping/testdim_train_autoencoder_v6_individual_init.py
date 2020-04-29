@@ -693,6 +693,7 @@ def main():
 
 
 
+
     # train_obj.train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
     print('train_hours: ', train_obj.train_hours)
 
