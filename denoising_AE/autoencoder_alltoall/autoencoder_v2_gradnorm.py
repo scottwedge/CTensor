@@ -998,7 +998,7 @@ class Autoencoder:
                     # C is the desiredgrad
                     C_const_list = {}
                     for k, v in C1_value_list.items():
-                        C_const_list[k]= sess.run(G_avg*(inv_rate_list[k])**alph, feed_dict= feed_dict_all)
+                        C_const_list[k]= batch_G_avg*(inv_rate_list[k])**alph
 
                     for k, v in C_const_list.items():
                         feed_dict_all[self.desiredgrad_dict['desiredgrad_' + k]] = v
