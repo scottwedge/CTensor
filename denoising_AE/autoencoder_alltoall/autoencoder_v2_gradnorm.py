@@ -998,7 +998,8 @@ class Autoencoder:
                     # C is the desiredgrad
                     C_const_list = {}
                     for k, v in C1_value_list.items():
-                        C_const_list[k]= batch_G_avg*(inv_rate_list[k])**alph
+                        C_const = batch_G_avg*(inv_rate_list[k])**alph
+                        C_const_list[k]= C_const.eval()
 
                     for k, v in C_const_list.items():
                         feed_dict_all[self.desiredgrad_dict['desiredgrad_' + k]] = v
@@ -1011,7 +1012,7 @@ class Autoencoder:
                     for k, v in self.weights_dict.items():
                         self.weights_dict[k] = coef*v
                         ds_name = k.split('_')[1]
-                        all_weights[ds_name].append(self.weights_dict[k])
+                        all_weights[ds_name].append(self.weights_dict[k].eval())
 
 
                     # ############### original normal operations #################
