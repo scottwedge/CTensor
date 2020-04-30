@@ -272,7 +272,7 @@ def get_parameters_from_sharedlayers(model_parameters):
         if v.name.split(':')[0].split('/')[1] == scopes_to_reserve:
             print("last layer parameters: %s" % v.name)
             variables_to_restore.append(v)
-    return variables_to_restores
+    return variables_to_restore
 
 
 class Autoencoder:
