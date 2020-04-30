@@ -259,7 +259,7 @@ def get_parameters_from_model():
         if v.name.split(':')[0].split('/')[0].startswith(scopes_to_discard):
             print("Variables discard: %s" % v.name)
         if not v.name.split(':')[0].split('/')[0].startswith(scopes_to_discard):
-            # print("Variables discard: %s" % v.name)
+            print("Variables in models: %s" % v.name)
             variables_to_restore.append(v)
     return variables_to_restore
 
