@@ -857,7 +857,7 @@ class Autoencoder:
         config.gpu_options.per_process_gpu_memory_fraction = 0.90
         config.gpu_options.allow_growth=True
 
-        # alph = 0.16
+
         with tf.Session(config=config) as sess:
             sess.run(tf.global_variables_initializer())
             # ----- if initialized with pretrained weights ----
@@ -986,13 +986,15 @@ class Autoencoder:
                         lhat_list[k] = tf.div(v, L0_dict[k])
 
                     lhat_avg = tf.div(tf.add_n(list(lhat_list.values())), self.number_of_tasks)
+                    print('lhat_avg : ', lhat_avg.eval())
 
                     # Calculating relative inverse training rates for tasks
                     inv_rate_list = {}
                     for k, v in lhat_list.items():
                         print('lhat_list: k,v', k, v)
-                        inv_rate_list[k] = tf.div(v,lhat_avg)
-                        all_inv_rate[k].append(inv_rate_list[k])
+                        inv_rate_temp = tf.div(v,lhat_avg)
+                        inv_rate_list[k] = inv_rate_temp
+                        all_inv_rate[k].append(inv_rate_temp)
 
                     # Calculating the constant target for Eq. 2 in the GradNorm paper
                     # C is the desiredgrad
