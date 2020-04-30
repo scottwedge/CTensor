@@ -210,7 +210,7 @@ def get_variables_to_restore(variables, scopes_to_reserve):
     variables_to_restore = []
     for v in variables:
         if v.name.split(':')[0].split('/')[0] in scopes_to_reserve:
-            # print("Variables restored: %s" % v.name)
+            print("Variables restored: %s" % v.name)
             variables_to_restore.append(v)
     return variables_to_restore
 
@@ -839,8 +839,8 @@ class Autoencoder:
                 # get scopes_to_reserve
                 scopes_to_reserve = get_scopes_to_restore_for_eachdataset(k, keys_1d, keys_2d, keys_3d)
                 variable_to_restore = get_variables_to_restore(variables, scopes_to_reserve)
-                print('variable_to_restore in : ', k)
-                print(variable_to_restore)
+                # print('variable_to_restore in : ', k)
+                # print(variable_to_restore)
                 # make the dictionary, note that everything here will have “:0”, avoid it.
                 for v in variable_to_restore:
                     vars_to_restore_dict[v.name[:-2]] = v
