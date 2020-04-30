@@ -466,8 +466,8 @@ def main():
 
     rawdata_2d_dict = {
         'house_price': house_price_arr,
-        'POI_business': POI_business_arr,
-        'POI_food': POI_food_arr,
+        # 'POI_business': POI_business_arr,
+        # 'POI_food': POI_food_arr,
         # 'POI_government': POI_government_arr,
         # 'POI_hospitals': POI_hospitals_arr,
         # 'POI_publicservices': POI_publicservices_arr,
