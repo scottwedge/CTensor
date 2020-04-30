@@ -1020,7 +1020,7 @@ class Autoencoder:
                     coef = self.number_of_tasks/tf.add_n(list(self.weights_dict.values()))
                     for k, v in self.weights_dict.items():
                         self.weights_dict[k] = coef*v
-                        ds_name = k.split('_')[1]
+                        ds_name = '_'.join(k.split('_')[1:])
                         all_weights[ds_name].append(self.weights_dict[k].eval())
 
 
