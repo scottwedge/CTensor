@@ -774,7 +774,7 @@ class Autoencoder:
             # optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost, global_step = self.global_step)
             optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
             all_model_params = get_parameters_from_model()
-            stardard_grad_lists = optimizer.compute_gradients(loss_op, var_list=all_model_params)
+            stardard_grad_lists = optimizer.compute_gradients(cost, var_list=all_model_params)
 
         # Getting gradients of the last shared layer
         gradnorm_dict = {}  # grad_norm for each dataset
