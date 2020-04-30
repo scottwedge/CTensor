@@ -343,31 +343,31 @@ class Autoencoder:
         if len(rawdata_1d_dict) != 0:
             for k, v in rawdata_1d_dict.items():
                 var_name = 'lossweight_' + k
-                self.weights_dict[k] = tf.Variable(1, trainable = True, dtype = tf.float32, name = var_name)
+                self.weights_dict[var_name] = tf.Variable(1, trainable = True, dtype = tf.float32, name = var_name)
         if len(rawdata_2d_dict) != 0:
             for k, v in rawdata_2d_dict.items():
                 var_name = 'lossweight_' + k
-                self.weights_dict[k] = tf.Variable(1, trainable = True, dtype = tf.float32, name = var_name)
+                self.weights_dict[var_name] = tf.Variable(1, trainable = True, dtype = tf.float32, name = var_name)
         if len(rawdata_3d_dict) != 0:
             for k, v in rawdata_3d_dict.items():
                 var_name = 'lossweight_' + k
-                self.weights_dict[k] = tf.Variable(1, trainable = True, dtype = tf.float32, name = var_name)
+                self.weights_dict[var_name] = tf.Variable(1, trainable = True, dtype = tf.float32, name = var_name)
 
         # desired gradient norm for each task, which should be constant at each step
         self.desiredgrad_dict = {}
         if len(rawdata_1d_dict) != 0:
             for k, v in rawdata_1d_dict.items():
                 var_name = 'desiredgrad_' + k
-                self.desiredgrad_dict[k] =  tf.placeholder(tf.float32, shape=[], name = var_name)
+                self.desiredgrad_dict[var_name] =  tf.placeholder(tf.float32, shape=[], name = var_name)
 
         if len(rawdata_2d_dict) != 0:
             for k, v in rawdata_2d_dict.items():
                 var_name = 'desiredgrad_' + k
-                self.desiredgrad_dict[k] =  tf.placeholder(tf.float32, shape=[], name = var_name)
+                self.desiredgrad_dict[var_name] =  tf.placeholder(tf.float32, shape=[], name = var_name)
         if len(rawdata_3d_dict) != 0:
             for k, v in rawdata_3d_dict.items():
                 var_name = 'desiredgrad_' + k
-                self.desiredgrad_dict[k] =  tf.placeholder(tf.float32, shape=[], name = var_name)
+                self.desiredgrad_dict[var_name] =  tf.placeholder(tf.float32, shape=[], name = var_name)
 
 
     # update on Jan, 2020: change variable_scopes
