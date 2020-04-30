@@ -617,9 +617,9 @@ class Conv3DPredictor:
         #prediction = self.cnn_model(self.x, keep_rate, seed=1)
         # fusion model
         prediction_3d = self.cnn_model(self.x, self.is_training, 1, keep_rate, seed=1)
-
+        # the dimension of latent fea output is set to 168, 32, 20, 2
         latent_fea_output = self.cnn_model(self.latent_fea, self.is_training,
-                        latent_train_series.shape[-1], keep_rate, seed=1)
+                        2, keep_rate, seed=1)
 
         # fusion
         #prediction = self.model_fusion(prediction_3d, prediction_2d, prediction_1d, self.is_training)
