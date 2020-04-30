@@ -1274,7 +1274,7 @@ class Autoencoder:
                                 columns= list(all_inv_rate.keys()))
                 all_inv_rate_csv_path = save_folder_path + 'L0_df' +'.csv'
                 with open(all_inv_rate_csv_path, 'a') as f:
-                    all_inv_rate_csv_path.to_csv(f, header=f.tell()==0)
+                    all_inv_rate_df.to_csv(f, header=f.tell()==0)
 
                 # save results to txt
                 txt_name = save_folder_path + 'denoising_AE_v2_df_' +  '.txt'
