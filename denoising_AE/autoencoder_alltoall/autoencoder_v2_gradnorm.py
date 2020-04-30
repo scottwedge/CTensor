@@ -784,7 +784,7 @@ class Autoencoder:
             G1R = tf.gradients(weighedloss_dict[k], shared_parameters)
             print(len(G1R))
             print(G1R)
-            G1 = tf.norm(G1R, name='norm')
+            G1 = tf.norm(G1R[0], name='norm')  # with respect to kernel
             ds_name = k.split('_')[1]
             gradnorm_dict[gradnorm_dict] = G1
             G_list.append(G1)
