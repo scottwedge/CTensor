@@ -785,8 +785,8 @@ class Autoencoder:
             print(len(G1R))
             print(G1R)
             G1 = tf.norm(G1R[0], name='norm')  # with respect to kernel
-            ds_name = k.split('_')[1]
-            gradnorm_dict[gradnorm_dict] = G1
+
+            gradnorm_dict[k] = G1
             G_list.append(G1)
         G_avg = tf.div(tf.add_n(G_list), self.number_of_tasks)
 
