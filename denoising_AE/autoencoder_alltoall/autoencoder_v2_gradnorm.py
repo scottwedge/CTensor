@@ -778,6 +778,7 @@ class Autoencoder:
             stardard_grad_lists = optimizer.compute_gradients(cost, var_list=all_model_params)
 
         # Getting gradients of the last shared layer
+        print('Getting gradients of the last shared layer')
         gradnorm_dict = {}  # grad_norm for each dataset
         G_list = []
         shared_parameters = get_parameters_from_sharedlayers(all_model_params)
@@ -791,6 +792,7 @@ class Autoencoder:
 
 
         # Calculating the gradient loss according to Eq. 2 in the GradNorm paper
+        print('Calculating the gradient loss ')
         Lgrad_list = []
         for k, v in gradnorm_dict.items():
             temp_Lgrad = tf.losses.absolute_difference(v, self.desiredgrad_dict['desiredgrad_' + k])
@@ -981,6 +983,7 @@ class Autoencoder:
                     # # Getting gradients of the first layers of each tower and calculate their l2-norm
                     batch_G_avg = sess.run(G_avg, feed_dict= feed_dict_all)
                     # Calculating relative losses
+                    print('# Calculating relative losses')
                     lhat_list = {}
                     for k, v in batch_weighedloss_dict.items():
                         lhat_list[k] = tf.div(v, L0_dict[k])
@@ -989,6 +992,7 @@ class Autoencoder:
                     print('lhat_avg : ', lhat_avg.eval())
 
                     # Calculating relative inverse training rates for tasks
+                    print('Calculating relative inverse training rates for tasks')
                     inv_rate_list = {}
                     for k, v in lhat_list.items():
                         print('lhat_list: k,v', k, v.eval())
@@ -998,6 +1002,7 @@ class Autoencoder:
 
                     # Calculating the constant target for Eq. 2 in the GradNorm paper
                     # C is the desiredgrad
+                    print('Calculating the constant target, desiredgrad_dict')
                     C_const_list = {}
                     for k, v in inv_rate_list.items():
                         C_const = batch_G_avg*(inv_rate_list[k])**alph
@@ -1006,10 +1011,12 @@ class Autoencoder:
                     for k, v in C_const_list.items():
                         feed_dict_all[self.desiredgrad_dict['desiredgrad_' + k]] = v
 
+                    print('update Lgrad, and training op')
                     sess.run(Lgrad_op, feed_dict= feed_dict_all)
                     sess.run(train_op, feed_dict= feed_dict_all)
 
                     # Renormalizing the losses weights
+                    print('Renormalizing the losses weights')
                     coef = self.number_of_tasks/tf.add_n(list(self.weights_dict.values()))
                     for k, v in self.weights_dict.items():
                         self.weights_dict[k] = coef*v
