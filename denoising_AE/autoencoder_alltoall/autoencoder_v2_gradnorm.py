@@ -353,21 +353,41 @@ class Autoencoder:
                 var_name = 'lossweight_' + k
                 self.weights_dict[var_name] = tf.Variable(1, trainable = True, dtype = tf.float32, name = var_name)
 
-        # desired gradient norm for each task, which should be constant at each step
-        self.desiredgrad_dict = {}
+
+        # batchloss for each dataset in each step, for computing inverse training rate
+        # self.batchloss_dict = {}
+        self.L0_dict = {}
         if len(rawdata_1d_dict) != 0:
             for k, v in rawdata_1d_dict.items():
-                var_name = 'desiredgrad_' + k
-                self.desiredgrad_dict[var_name] =  tf.placeholder(tf.float32, shape=[], name = var_name)
+                #self.batchloss_dict[k] =  tf.placeholder(tf.float32, shape=[])
+                self.L0_dict[k] = tf.placeholder(tf.float32, shape=[])
 
         if len(rawdata_2d_dict) != 0:
             for k, v in rawdata_2d_dict.items():
-                var_name = 'desiredgrad_' + k
-                self.desiredgrad_dict[var_name] =  tf.placeholder(tf.float32, shape=[], name = var_name)
+                #self.batchloss_dict[k] =  tf.placeholder(tf.float32, shape=[])
+                self.L0_dict[k] = tf.placeholder(tf.float32, shape=[])
         if len(rawdata_3d_dict) != 0:
             for k, v in rawdata_3d_dict.items():
-                var_name = 'desiredgrad_' + k
-                self.desiredgrad_dict[var_name] =  tf.placeholder(tf.float32, shape=[], name = var_name)
+                #self.batchloss_dict[k] =  tf.placeholder(tf.float32, shape=[])
+                self.L0_dict[k] = tf.placeholder(tf.float32, shape=[])
+
+
+        # # desired gradient norm for each task, which should be constant at each step
+        # self.desiredgrad_dict = {}
+        # if len(rawdata_1d_dict) != 0:
+        #     for k, v in rawdata_1d_dict.items():
+        #         var_name = 'desiredgrad_' + k
+        #         self.desiredgrad_dict[var_name] =  tf.placeholder(tf.float32, shape=[], name = var_name)
+        #
+        # if len(rawdata_2d_dict) != 0:
+        #     for k, v in rawdata_2d_dict.items():
+        #         var_name = 'desiredgrad_' + k
+        #         self.desiredgrad_dict[var_name] =  tf.placeholder(tf.float32, shape=[], name = var_name)
+        # if len(rawdata_3d_dict) != 0:
+        #     for k, v in rawdata_3d_dict.items():
+        #         var_name = 'desiredgrad_' + k
+        #         self.desiredgrad_dict[var_name] =  tf.placeholder(tf.float32, shape=[], name = var_name)
+
 
 
     # update on Jan, 2020: change variable_scopes
@@ -486,12 +506,6 @@ class Autoencoder:
                       activation=my_leaky_relu
                       #reuse = tf.AUTO_REUSE
                 )
-
-            # squeeze  None, 1, 1  -> None, 1
-            # conv3_squeeze = tf.squeeze(conv3, axis = 1)
-            # out = conv3_squeeze
-            # print('model 1d cnn output :',out.shape )
-            # output size should be [None, 1],
 
             # (batchsize, 168, dim)
             out = conv3
@@ -790,12 +804,28 @@ class Autoencoder:
             G_list.append(G1)
         G_avg = tf.div(tf.add_n(G_list), self.number_of_tasks)
 
+        # Calculating relative losses: batch loss (not weighted) / L0
+        lhat_dict = {}
+        for k, v in loss_dict.items():
+            lhat_dict[k] = tf.div(v, self.L0_dict[k])
+        lhat_avg = tf.div(tf.add_n(list(lhat_dict.values())), self.number_of_tasks)
+
+        # Calculating relative inverse training rates for tasks
+        inv_rate = {}
+        for k, v in lhat_dict.items():
+            inv_rate[k] = tf.div(v,lhat_avg)
+
+        # Calculating the constant target for Eq. 2 in the GradNorm paper
+        # detach the constant target from computation graph
+        desiredgrad_dict = {}
+        for k, v in inv_rate.items():
+            desiredgrad_dict[k] = tf.stop_gradient(G_avg* v**alph)
 
         # Calculating the gradient loss according to Eq. 2 in the GradNorm paper
         print('Calculating the gradient loss ')
         Lgrad_list = []
         for k, v in gradnorm_dict.items():
-            temp_Lgrad = tf.losses.absolute_difference(v, self.desiredgrad_dict['desiredgrad_' + k])
+            temp_Lgrad = tf.losses.absolute_difference(v, desiredgrad_dict[k])
             Lgrad_list.append(temp_Lgrad)
         Lgrad = tf.add_n(Lgrad_list)
 
@@ -919,7 +949,6 @@ class Autoencoder:
                 # epoch_weights = {}  # weight for each dataset
                 # epoch_weights = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
-
                 final_output = list()
                 final_encoded_list = list()
 
@@ -985,34 +1014,18 @@ class Autoencoder:
                         sess.run(stardard_grad_lists, feed_dict= feed_dict_all)
                         # # Getting gradients of the first layers of each tower and calculate their l2-norm
                         batch_G_avg = sess.run(G_avg, feed_dict= feed_dict_all)
-                        # Calculating relative losses
-                        print('# Calculating relative losses')
-                        lhat_list = {}
-                        for k, v in batch_weighedloss_dict.items():
-                            lhat_list[k] = tf.div(v, L0_dict[k])
-
-                        lhat_avg = tf.div(tf.add_n(list(lhat_list.values())), self.number_of_tasks)
-                        print('lhat_avg : ', lhat_avg.eval())
 
                         # Calculating relative inverse training rates for tasks
                         print('Calculating relative inverse training rates for tasks')
-                        inv_rate_list = {}
-                        for k, v in lhat_list.items():
-                            print('lhat_list: k,v', k, v.eval())
-                            inv_rate_temp = tf.div(v,lhat_avg)
-                            inv_rate_list[k] = inv_rate_temp
-                            all_inv_rate[k].append(inv_rate_temp)
+                        for k, v in L0_dict.items():
+                            feed_dict_all[self.L0_dict[k]] = v
 
-                        # Calculating the constant target for Eq. 2 in the GradNorm paper
-                        # C is the desiredgrad
-                        print('Calculating the constant target, desiredgrad_dict')
-                        C_const_list = {}
-                        for k, v in inv_rate_list.items():
-                            C_const = batch_G_avg*(inv_rate_list[k])**alph
-                            C_const_list[k]= C_const.eval()
+                        batch_inv_rate = sess.run(inv_rate, feed_dict= feed_dict_all)
 
-                        for k, v in C_const_list.items():
-                            feed_dict_all[self.desiredgrad_dict['desiredgrad_' + k]] = v
+                        for k, v in batch_inv_rate.items():
+                            print('lhat_list: k,v', k, v)
+                            all_inv_rate[k].append(v)
+
 
                         print('update Lgrad, and training op')
                         sess.run(Lgrad_op, feed_dict= feed_dict_all)
