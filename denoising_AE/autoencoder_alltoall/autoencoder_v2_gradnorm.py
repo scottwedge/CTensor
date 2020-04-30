@@ -999,7 +999,7 @@ class Autoencoder:
                     # Calculating the constant target for Eq. 2 in the GradNorm paper
                     # C is the desiredgrad
                     C_const_list = {}
-                    for k, v in C1_value_list.items():
+                    for k, v in inv_rate_list.items():
                         C_const = batch_G_avg*(inv_rate_list[k])**alph
                         C_const_list[k]= C_const.eval()
 
