@@ -265,6 +265,16 @@ def get_parameters_from_model():
 
 
 
+def get_parameters_from_sharedlayers(model_parameters):
+    scopes_to_reserve = 'last_shared_layer'
+    variables_to_restore = []
+    for v in model_parameters:
+        if v.name.split(':')[0].split('/')[1] == scopes_to_reserve:
+            print("last layer parameters: %s" % v.name)
+            variables_to_restore.append(v)
+    return variables_to_restores
+
+
 class Autoencoder:
     # input_dim = 1, seq_size = 168,
     def __init__(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
@@ -604,7 +614,8 @@ class Autoencoder:
             # pool => 8*8*8
 
             # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, dim]
-            conv3 = tf.layers.conv3d(inputs=conv2, filters= dim, kernel_size=[3,3,3], padding='same', activation=None)
+            conv3 = tf.layers.conv3d(inputs=conv2, filters= dim, kernel_size=[3,3,3],
+                        padding='same', activation=None, name = 'last_shared_layer')
             conv3 = tf.layers.batch_normalization(conv3, training=is_training)
             conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
 
@@ -765,16 +776,18 @@ class Autoencoder:
             all_model_params = get_parameters_from_model()
             stardard_grad_lists = optimizer.compute_gradients(loss_op, var_list=all_model_params)
 
-        # Getting gradients of the first layers of each tower and calculate their l2-norm
+        # Getting gradients of the last shared layer
         gradnorm_dict = {}  # grad_norm for each dataset
         G_list = []
+        shared_parameters = get_parameters_from_sharedlayers(all_model_params)
         for k, v in weighedloss_dict.items():
-            G1R = tf.gradients(weighedloss_dict[k], latent_fea)
+            G1R = tf.gradients(weighedloss_dict[k], shared_parameters)
+            print(len(G1R))
+            print(G1R)
             G1 = tf.norm(G1R, name='norm')
             ds_name = k.split('_')[1]
             gradnorm_dict[gradnorm_dict] = G1
             G_list.append(G1)
-
         G_avg = tf.div(tf.add_n(G_list), self.number_of_tasks)
 
 
@@ -1519,8 +1532,6 @@ class Autoencoder:
                 for k, v in rawdata_3d_corrupted_dict.items():
                     # if k == 'seattle911calls':
                     timestep = TIMESTEPS
-                    # else:
-                    #     timestep = DAILY_TIMESTEPS
                     temp_batch = create_mini_batch_3d_nonoverlapping(start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
                     feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
