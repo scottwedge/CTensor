@@ -782,8 +782,6 @@ class Autoencoder:
         shared_parameters = get_parameters_from_sharedlayers(all_model_params)
         for k, v in weighedloss_dict.items():
             G1R = tf.gradients(weighedloss_dict[k], shared_parameters)
-            print(len(G1R))
-            print(G1R)
             G1 = tf.norm(G1R[0], name='norm')  # with respect to kernel
 
             gradnorm_dict[k] = G1
@@ -897,6 +895,9 @@ class Autoencoder:
             all_weights = {}  # weight for each dataset
             all_weights = dict(zip(self.dataset_keys, []*len(self.dataset_keys)))
 
+            all_inv_rate = {}  # the relative inverse training rate of task i.
+            all_inv_rate = dict(zip(self.dataset_keys, []*len(self.dataset_keys)))
+
             L0_dict = {}  # base cost for each dataset
 
             for epoch in range(start_epoch, epochs):
@@ -989,6 +990,7 @@ class Autoencoder:
                     inv_rate_list = {}
                     for k, v in lhat_list.items():
                         inv_rate_list[k] = tf.div(v,lhat_avg)
+                        all_inv_rate[k].append(inv_rate_list[k])
 
                     # Calculating the constant target for Eq. 2 in the GradNorm paper
                     # C is the desiredgrad
@@ -1148,7 +1150,8 @@ class Autoencoder:
                     # is_training: True
                     test_feed_dict_all[self.is_training] = True
 
-                    test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict= test_feed_dict_all)
+                    test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict, test_batch_weighedloss_dict = sess.run([cost,loss_dict, rmse_dict, weighedloss_dict],
+                                                        feed_dict= test_feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     test_batch_output = sess.run([latent_fea], feed_dict= test_feed_dict_all)
@@ -1241,6 +1244,19 @@ class Autoencoder:
                 with open(weights_csv_path, 'a') as f:
                     weights_df.to_csv(f, header=f.tell()==0)
 
+                # save L0_dict as the base loss for all datasets
+                L0_df = pd.DataFrame([list(L0_dict.values())],
+                                columns= list(L0_dict.keys()))
+                L0_csv_path = save_folder_path + 'L0_df' +'.csv'
+                with open(L0_csv_path, 'a') as f:
+                    L0_df.to_csv(f, header=f.tell()==0)
+
+                # all_inv_rate: all inverse training rate
+                all_inv_rate_df = pd.DataFrame([list(all_inv_rate.values())],
+                                columns= list(all_inv_rate.keys()))
+                all_inv_rate_csv_path = save_folder_path + 'L0_df' +'.csv'
+                with open(all_inv_rate_csv_path, 'a') as f:
+                    all_inv_rate_csv_path.to_csv(f, header=f.tell()==0)
 
                 # save results to txt
                 txt_name = save_folder_path + 'denoising_AE_v2_df_' +  '.txt'
