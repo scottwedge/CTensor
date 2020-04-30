@@ -40,6 +40,8 @@ HOURLY_TIMESTEPS = 24
 DAILY_TIMESTEPS = 1
 THREE_HOUR_TIMESTEP = 56
 
+ALPH = 2
+
 
 def my_leaky_relu(x):
     return tf.nn.leaky_relu(x, alpha=0.2)
@@ -675,7 +677,7 @@ class Autoencoder:
                      demo_mask_arr, save_folder_path, dim,
                      resume_training = False, checkpoint_path = None,
                       use_pretrained = False, pretrained_ckpt_path_dict = None,
-                      alph = 1,
+                      alph = ALPH,
                        epochs=1, batch_size=16):
         starter_learning_rate = LEARNING_RATE
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
