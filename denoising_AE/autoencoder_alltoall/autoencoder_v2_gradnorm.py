@@ -765,7 +765,7 @@ class Autoencoder:
             reconstruction_dict[k] = reconstruction_3d
 
             weighedloss_dict[k] = temp_loss * self.weights_dict['lossweight_' + k]
-            cost += weighedloss_dict
+            cost += weighedloss_dict[k]
 
         print('total_loss: ', total_loss)
 
