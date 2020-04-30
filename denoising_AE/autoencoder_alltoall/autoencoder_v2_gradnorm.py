@@ -1269,8 +1269,7 @@ class Autoencoder:
                     test_sub_rmse_df.to_csv(f, header=f.tell()==0)
 
                 # save weights for loss for each dataset
-                weights_df = pd.DataFrame([list(all_weights.values())],
-                                columns= list(all_weights.keys()))
+                weights_df = pd.DataFrame({key: pd.Series(value) for key, value in all_weights.items()})
                 weights_csv_path = save_folder_path + 'weights_df' +'.csv'
                 with open(weights_csv_path, 'a') as f:
                     weights_df.to_csv(f, header=f.tell()==0)
@@ -1283,9 +1282,8 @@ class Autoencoder:
                     L0_df.to_csv(f, header=f.tell()==0)
 
                 # all_inv_rate: all inverse training rate
-                all_inv_rate_df = pd.DataFrame([list(all_inv_rate.values())],
-                                columns= list(all_inv_rate.keys()))
-                all_inv_rate_csv_path = save_folder_path + 'L0_df' +'.csv'
+                all_inv_rate_df = pd.DataFrame({key: pd.Series(value) for key, value in all_inv_rate.items()})
+                all_inv_rate_csv_path = save_folder_path + 'all_inv_rate_df' +'.csv'
                 with open(all_inv_rate_csv_path, 'a') as f:
                     all_inv_rate_df.to_csv(f, header=f.tell()==0)
 
