@@ -799,8 +799,9 @@ class Autoencoder:
         Lgrad = tf.add_n(Lgrad_list)
 
         optimizer_Lgrad = tf.train.AdamOptimizer(learning_rate=learning_rate)
-        weigtloss_list = list(weights_1d_dict.values()) + list(weights_2d_dict.values()) +list(weights_3d_dict.values())
-        Lgrad_lists = optimizer_Lgrad.compute_gradients(Lgrad, var_list=weigtloss_list)
+        # variable weight loss
+        weigts_list = list(self.weights_dict.values())
+        Lgrad_lists = optimizer_Lgrad.compute_gradients(Lgrad, var_list=weigts_list)
 
 
         # Updating loss weights
