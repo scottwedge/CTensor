@@ -26,7 +26,7 @@ from datetime import timedelta
 import datetime_utils
 #import lstm
 import evaluation
-import autoencoder_v2
+import autoencoder_v2_gradnorm as autoencoder_v2
 from matplotlib import pyplot as plt
 import random
 import pickle
@@ -460,8 +460,8 @@ def main():
     rawdata_1d_dict = {
      'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
     'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
-    'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
-    'airquality': airquality_arr,
+    # 'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+    # 'airquality': airquality_arr,
     }
 
     rawdata_2d_dict = {
@@ -469,25 +469,23 @@ def main():
         'POI_business': POI_business_arr,
         'POI_food': POI_food_arr,
         'POI_government': POI_government_arr,
-        'POI_hospitals': POI_hospitals_arr,
-        'POI_publicservices': POI_publicservices_arr,
-        'POI_recreation': POI_recreation_arr,
-        'POI_school': POI_school_arr,
-        'POI_transportation': POI_transportation_arr,
-        'seattle_street': seattle_street_arr,
-        'total_flow_count': total_flow_count_arr,
-        'transit_routes': transit_routes_arr,
-        'transit_signals': transit_signals_arr,
-        'transit_stop':transit_stop_arr,
-        'slope': slope_arr,
-        'bikelane': bikelane_arr,
+        # 'POI_hospitals': POI_hospitals_arr,
+        # 'POI_publicservices': POI_publicservices_arr,
+        # 'POI_recreation': POI_recreation_arr,
+        # 'POI_school': POI_school_arr,
+        # 'POI_transportation': POI_transportation_arr,
+        # 'seattle_street': seattle_street_arr,
+        # 'total_flow_count': total_flow_count_arr,
+        # 'transit_routes': transit_routes_arr,
+        # 'transit_signals': transit_signals_arr,
+        # 'transit_stop':transit_stop_arr,
+        # 'slope': slope_arr,
+        # 'bikelane': bikelane_arr,
         }
 
     rawdata_3d_dict = {
           'building_permit': building_permit_arr_seq_extend,
-        'collisions': collisions_arr_seq_extend,  # expect (1, 45984, 32, 20)
-        # 'building_permit': building_permit_arr,
-        # 'collisions':collisions_arr,
+        #'collisions': collisions_arr_seq_extend,  # expect (1, 45984, 32, 20)
         'seattle911calls': seattle911calls_arr # (45984, 32, 20)
         }
 
@@ -545,12 +543,12 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './denoise_autoencoder_v2_1to1_'+ 'dim'+ str(dim)  +'/'
+        save_path =  './denoise_autoencoder_v2_gradnorm_'+ 'dim'+ str(dim)  +'/'
     else:
         if key == '':
-            save_path = './denoise_autoencoder_v2_1to1_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
+            save_path = './denoise_autoencoder_v2_gradnorm_'+ 'dim' + str(dim) +'_'+ suffix  +'/'
         else:
-            save_path = './denoise_autoencoder_v2_1to1_'+ 'dim' + str(dim) + '_'+ suffix+ '_' + key  +'/'
+            save_path = './denoise_autoencoder_v2_gradnorm_'+ 'dim' + str(dim) + '_'+ suffix+ '_' + key  +'/'
 
     if train_dir:
         save_path = train_dir
