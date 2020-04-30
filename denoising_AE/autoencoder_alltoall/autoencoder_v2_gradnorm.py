@@ -985,7 +985,7 @@ class Autoencoder:
                     for k, v in batch_weighedloss_dict.items():
                         lhat_list[k] = tf.div(v, L0_dict[k])
 
-                    lhat_avg = tf.div(tf.add_n(list(lhat_list.values()), self.number_of_tasks))
+                    lhat_avg = tf.div(tf.add_n(list(lhat_list.values())), self.number_of_tasks)
 
                     # Calculating relative inverse training rates for tasks
                     inv_rate_list = {}
