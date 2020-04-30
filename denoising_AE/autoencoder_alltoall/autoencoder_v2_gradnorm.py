@@ -661,6 +661,7 @@ class Autoencoder:
                      demo_mask_arr, save_folder_path, dim,
                      resume_training = False, checkpoint_path = None,
                       use_pretrained = False, pretrained_ckpt_path_dict = None,
+                      alph = 1,
                        epochs=1, batch_size=16):
         starter_learning_rate = LEARNING_RATE
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
@@ -856,7 +857,7 @@ class Autoencoder:
         config.gpu_options.per_process_gpu_memory_fraction = 0.90
         config.gpu_options.allow_growth=True
 
-        alph = 0.16
+        # alph = 0.16
         with tf.Session(config=config) as sess:
             sess.run(tf.global_variables_initializer())
             # ----- if initialized with pretrained weights ----
