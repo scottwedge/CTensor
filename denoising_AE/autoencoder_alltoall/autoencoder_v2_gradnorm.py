@@ -1029,16 +1029,19 @@ class Autoencoder:
                             all_inv_rate[k].append(v)
 
 
-                        print('update Lgrad, and training op')
+                        print('update Lgrad')
                         sess.run(Lgrad_op, feed_dict= feed_dict_all)
+                        print('update training op')
                         sess.run(train_op, feed_dict= feed_dict_all)
 
                         # Renormalizing the losses weights
                         print('Renormalizing the losses weights')
-                        coef = self.number_of_tasks/tf.add_n(list(self.weights_dict.values()))
+                        coef = self.number_of_tasks/tf.add_n(self.weights_dict.values())
                         for k, v in self.weights_dict.items():
+                            print('weight for k, ',k)
                             self.weights_dict[k] = coef*v
                             ds_name = '_'.join(k.split('_')[1:])
+                            print('ds_name: ', ds_name)
                             all_weights[ds_name].append(self.weights_dict[k].eval())
                     ###################  GRADNORM END #####################################
                     else:  # if itr % 200 ! = 200, dont' use gradnorm
