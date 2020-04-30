@@ -991,7 +991,7 @@ class Autoencoder:
                     # Calculating relative inverse training rates for tasks
                     inv_rate_list = {}
                     for k, v in lhat_list.items():
-                        print('lhat_list: k,v', k, v)
+                        print('lhat_list: k,v', k, v.eval())
                         inv_rate_temp = tf.div(v,lhat_avg)
                         inv_rate_list[k] = inv_rate_temp
                         all_inv_rate[k].append(inv_rate_temp)

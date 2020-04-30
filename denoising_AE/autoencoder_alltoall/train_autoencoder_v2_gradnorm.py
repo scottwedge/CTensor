@@ -460,32 +460,32 @@ def main():
     rawdata_1d_dict = {
      'precipitation':  np.expand_dims(weather_arr[:,0], axis=1) ,
     'temperature':  np.expand_dims(weather_arr[:,1], axis=1) ,
-    'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
-     'airquality': airquality_arr,
+    # 'pressure':  np.expand_dims(weather_arr[:,2], axis=1),
+    #  'airquality': airquality_arr,
     }
 
     rawdata_2d_dict = {
         'house_price': house_price_arr,
         'POI_business': POI_business_arr,
         'POI_food': POI_food_arr,
-        'POI_government': POI_government_arr,
-        'POI_hospitals': POI_hospitals_arr,
-        'POI_publicservices': POI_publicservices_arr,
-        'POI_recreation': POI_recreation_arr,
-        'POI_school': POI_school_arr,
-        'POI_transportation': POI_transportation_arr,
-        'seattle_street': seattle_street_arr,
-        'total_flow_count': total_flow_count_arr,
-        'transit_routes': transit_routes_arr,
-        'transit_signals': transit_signals_arr,
-        'transit_stop':transit_stop_arr,
+        # 'POI_government': POI_government_arr,
+        # 'POI_hospitals': POI_hospitals_arr,
+        # 'POI_publicservices': POI_publicservices_arr,
+        # 'POI_recreation': POI_recreation_arr,
+        # 'POI_school': POI_school_arr,
+        # 'POI_transportation': POI_transportation_arr,
+        # 'seattle_street': seattle_street_arr,
+        # 'total_flow_count': total_flow_count_arr,
+        # 'transit_routes': transit_routes_arr,
+        # 'transit_signals': transit_signals_arr,
+        # 'transit_stop':transit_stop_arr,
         'slope': slope_arr,
         'bikelane': bikelane_arr,
         }
 
     rawdata_3d_dict = {
-          'building_permit': building_permit_arr_seq_extend,
-        'collisions': collisions_arr_seq_extend,  # expect (1, 45984, 32, 20)
+        #  'building_permit': building_permit_arr_seq_extend,
+        # 'collisions': collisions_arr_seq_extend,  # expect (1, 45984, 32, 20)
         'seattle911calls': seattle911calls_arr # (45984, 32, 20)
         }
 
@@ -523,16 +523,16 @@ def main():
 ################  read corrputed data ########################
 
     with open(path_1d + 'rawdata_1d_corrupted_dict', 'rb') as handle:
-        rawdata_1d_corrupted_dict = pickle.load(handle)
-        #rawdata_1d_corrupted_dict = {k: rawdata_1d_corrupted_dict_all[k] for k in keys_1d}
+        rawdata_1d_corrupted_dict_all = pickle.load(handle)
+        rawdata_1d_corrupted_dict = {k: rawdata_1d_corrupted_dict_all[k] for k in keys_1d}
 
     with open(path_2d + 'rawdata_2d_corrupted_dict', 'rb') as handle:
-        rawdata_2d_corrupted_dict = pickle.load(handle)
-        #rawdata_2d_corrupted_dict = {k: rawdata_2d_corrupted_dict_all[k] for k in keys_2d}
+        rawdata_2d_corrupted_dict_all = pickle.load(handle)
+        rawdata_2d_corrupted_dict = {k: rawdata_2d_corrupted_dict_all[k] for k in keys_2d}
 
     with open(path_3d + 'rawdata_3d_corrupted_dict', 'rb') as handle:
-        rawdata_3d_corrupted_dict = pickle.load(handle)
-        #rawdata_3d_corrupted_dict = {k: rawdata_3d_corrupted_dict_all[k] for k in keys_3d}
+        rawdata_2d_corrupted_dict_all = pickle.load(handle)
+        rawdata_3d_corrupted_dict = {k: rawdata_2d_corrupted_dict_all[k] for k in keys_3d}
 
 
 
