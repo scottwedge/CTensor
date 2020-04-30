@@ -974,54 +974,61 @@ class Autoencoder:
                                             feed_dict=feed_dict_all)
 
 
-                    # base loss at the first iteration. all weights are 1
-                    if itr == 0 and epoch == 0:
-                        for k,v in batch_weighedloss_dict.items():
-                            L0_dict[k] = v
+                    if itr % 200 == 0:
+                        print('GRADNORM at itr: ', itr)
+                        ##################  GRADNORM PART ###############################
+                        # base loss at the first iteration. all weights are 1
+                        if itr == 0 and epoch == 0:
+                            for k,v in batch_weighedloss_dict.items():
+                                L0_dict[k] = v
 
-                    sess.run(stardard_grad_lists, feed_dict= feed_dict_all)
-                    # # Getting gradients of the first layers of each tower and calculate their l2-norm
-                    batch_G_avg = sess.run(G_avg, feed_dict= feed_dict_all)
-                    # Calculating relative losses
-                    print('# Calculating relative losses')
-                    lhat_list = {}
-                    for k, v in batch_weighedloss_dict.items():
-                        lhat_list[k] = tf.div(v, L0_dict[k])
+                        sess.run(stardard_grad_lists, feed_dict= feed_dict_all)
+                        # # Getting gradients of the first layers of each tower and calculate their l2-norm
+                        batch_G_avg = sess.run(G_avg, feed_dict= feed_dict_all)
+                        # Calculating relative losses
+                        print('# Calculating relative losses')
+                        lhat_list = {}
+                        for k, v in batch_weighedloss_dict.items():
+                            lhat_list[k] = tf.div(v, L0_dict[k])
 
-                    lhat_avg = tf.div(tf.add_n(list(lhat_list.values())), self.number_of_tasks)
-                    print('lhat_avg : ', lhat_avg.eval())
+                        lhat_avg = tf.div(tf.add_n(list(lhat_list.values())), self.number_of_tasks)
+                        print('lhat_avg : ', lhat_avg.eval())
 
-                    # Calculating relative inverse training rates for tasks
-                    print('Calculating relative inverse training rates for tasks')
-                    inv_rate_list = {}
-                    for k, v in lhat_list.items():
-                        print('lhat_list: k,v', k, v.eval())
-                        inv_rate_temp = tf.div(v,lhat_avg)
-                        inv_rate_list[k] = inv_rate_temp
-                        all_inv_rate[k].append(inv_rate_temp)
+                        # Calculating relative inverse training rates for tasks
+                        print('Calculating relative inverse training rates for tasks')
+                        inv_rate_list = {}
+                        for k, v in lhat_list.items():
+                            # print('lhat_list: k,v', k, v.eval())
+                            inv_rate_temp = tf.div(v,lhat_avg)
+                            inv_rate_list[k] = inv_rate_temp
+                            all_inv_rate[k].append(inv_rate_temp)
 
-                    # Calculating the constant target for Eq. 2 in the GradNorm paper
-                    # C is the desiredgrad
-                    print('Calculating the constant target, desiredgrad_dict')
-                    C_const_list = {}
-                    for k, v in inv_rate_list.items():
-                        C_const = batch_G_avg*(inv_rate_list[k])**alph
-                        C_const_list[k]= C_const.eval()
+                        # Calculating the constant target for Eq. 2 in the GradNorm paper
+                        # C is the desiredgrad
+                        print('Calculating the constant target, desiredgrad_dict')
+                        C_const_list = {}
+                        for k, v in inv_rate_list.items():
+                            C_const = batch_G_avg*(inv_rate_list[k])**alph
+                            C_const_list[k]= C_const.eval()
 
-                    for k, v in C_const_list.items():
-                        feed_dict_all[self.desiredgrad_dict['desiredgrad_' + k]] = v
+                        for k, v in C_const_list.items():
+                            feed_dict_all[self.desiredgrad_dict['desiredgrad_' + k]] = v
 
-                    print('update Lgrad, and training op')
-                    sess.run(Lgrad_op, feed_dict= feed_dict_all)
-                    sess.run(train_op, feed_dict= feed_dict_all)
+                        print('update Lgrad, and training op')
+                        sess.run(Lgrad_op, feed_dict= feed_dict_all)
+                        sess.run(train_op, feed_dict= feed_dict_all)
 
-                    # Renormalizing the losses weights
-                    print('Renormalizing the losses weights')
-                    coef = self.number_of_tasks/tf.add_n(list(self.weights_dict.values()))
-                    for k, v in self.weights_dict.items():
-                        self.weights_dict[k] = coef*v
-                        ds_name = '_'.join(k.split('_')[1:])
-                        all_weights[ds_name].append(self.weights_dict[k].eval())
+                        # Renormalizing the losses weights
+                        print('Renormalizing the losses weights')
+                        coef = self.number_of_tasks/tf.add_n(list(self.weights_dict.values()))
+                        for k, v in self.weights_dict.items():
+                            self.weights_dict[k] = coef*v
+                            ds_name = '_'.join(k.split('_')[1:])
+                            all_weights[ds_name].append(self.weights_dict[k].eval())
+                    ###################  GRADNORM END #####################################
+                    else:  # if itr % 200 ! = 200, dont' use gradnorm
+                        sess.run(stardard_grad_lists, feed_dict= feed_dict_all)
+                        sess.run(train_op, feed_dict= feed_dict_all)
 
 
                     # ############### original normal operations #################
@@ -1240,7 +1247,6 @@ class Autoencoder:
                 train_sub_rmse_csv_path = save_folder_path + 'autoencoder_train_sub_rmse' +'.csv'
                 with open(train_sub_rmse_csv_path, 'a') as f:
                     train_sub_rmse_df.to_csv(f, header=f.tell()==0)
-
 
 
                 test_sub_rmse_df = pd.DataFrame([list(test_subrmse.values())],
