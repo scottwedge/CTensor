@@ -1018,11 +1018,13 @@ class Autoencoder:
                         for k, v in L0_dict.items():
                             feed_dict_all[self.L0_dict[k]] = v
 
-                        batch_inv_rate = sess.run(inv_rate, feed_dict= feed_dict_all)
+                        batch_inv_rate, temp_batch_weights = sess.run([inv_rate, self.weights_dict], feed_dict= feed_dict_all)
 
                         for k, v in batch_inv_rate.items():
                             print('lhat_list: k,v', k, v)
                             all_inv_rate[k].append(v)
+                            all_weights[k].append(temp_batch_weights['lossweight_' + k])
+                            print('weights: k,v', k, temp_batch_weights['lossweight_' + k])
 
 
                         print('update Lgrad')
@@ -1033,13 +1035,13 @@ class Autoencoder:
                         # Renormalizing the losses weights
                         print('Renormalizing the losses weights')
                         coef = self.number_of_tasks/tf.add_n(list(self.weights_dict.values()))
-                        temp_batch_weights = self.weights_dict.eval()
+                        # temp_batch_weights = self.weights_dict.eval()
                         for k, v in self.weights_dict.items():
                             print('weight for k, ',k)
                             self.weights_dict[k] = coef*v
-                            ds_name = '_'.join(k.split('_')[1:])
-                            print('ds_name: ', ds_name)
-                            all_weights[ds_name].append(temp_batch_weights[k])
+                            # ds_name = '_'.join(k.split('_')[1:])
+                            # print('ds_name: ', ds_name)
+
                     ###################  GRADNORM END #####################################
                     else:  # if itr % 200 ! = 200, dont' use gradnorm
                         sess.run(stardard_grad_lists, feed_dict= feed_dict_all)
