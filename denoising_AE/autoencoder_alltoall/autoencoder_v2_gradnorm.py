@@ -792,11 +792,13 @@ class Autoencoder:
         # Getting gradients of the last shared layer
         print('Getting gradients of the last shared layer')
         gradnorm_dict = {}  # grad_norm for each dataset
+        debug_gradients_dict = {}
         shared_parameters = get_parameters_from_sharedlayers(all_model_params)
         for k, v in weighedloss_dict.items():
             G1R = tf.gradients(weighedloss_dict[k], shared_parameters)
             G1 = tf.norm(G1R[0], name='norm')  # with respect to kernel
             gradnorm_dict[k] = G1
+            debug_gradients_dict[k] = G1R
 
         G_avg = tf.div(tf.add_n(list(gradnorm_dict.values())), self.number_of_tasks)
 
@@ -1044,8 +1046,9 @@ class Autoencoder:
                     ###################  GRADNORM END #####################################
                     else:  # if itr % 200 ! = 200, dont' use gradnorm
                         # sess.run(stardard_grad_lists, feed_dict= feed_dict_all)
-                        batch_gradnorm_dict, _ = sess.run([gradnorm_dict, train_op], feed_dict= feed_dict_all)
+                        batch_gradnorm_dict, batch_debug_gradients_dict,  _ = sess.run([gradnorm_dict, debug_gradients_dict, train_op], feed_dict= feed_dict_all)
                         for k, v in batch_gradnorm_dict.items():
+                            print("Iter/Epoch: {}/{}...".format(itr, epoch), 'gradient:{},{}:'.format(k, batch_debug_gradients_dict[k]))
                             print("Iter/Epoch: {}/{}...".format(itr, epoch), 'grad norm:{},{}:'.format(k, v))
 
 
