@@ -996,9 +996,12 @@ class Autoencoder:
                     feed_dict_all[self.is_training] = True
                     batch_cost, batch_loss_dict, batch_rmse_dict, batch_weighedloss_dict = sess.run([cost,loss_dict, rmse_dict, weighedloss_dict],
                                             feed_dict=feed_dict_all)
+                    # debug
+                    for k, v in batch_loss_dict.items():
+                        print('loss: iter: k, v: ',itr, k, v)
+                        print('weightedloss: iter: k, v: ',itr, k, batch_weighedloss_dict[k])
 
-
-                    if itr % 200 == 0:
+                    if itr % 5 == 0:
                         print('GRADNORM at itr: ', itr)
                         ##################  GRADNORM PART ###############################
                         # base loss at the first iteration. all weights are 1
