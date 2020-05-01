@@ -1018,15 +1018,15 @@ class Autoencoder:
                         for k, v in L0_dict.items():
                             feed_dict_all[self.L0_dict[k]] = v
 
+                        # record inverse learning rate and weights
                         batch_inv_rate, temp_batch_weights = sess.run([inv_rate, self.weights_dict], feed_dict= feed_dict_all)
-
                         for k, v in batch_inv_rate.items():
                             print('lhat_list: k,v', k, v)
                             all_inv_rate[k].append(v)
                             all_weights[k].append(temp_batch_weights['lossweight_' + k])
                             print('weights: k,v', k, temp_batch_weights['lossweight_' + k])
 
-
+                        # optimization
                         print('update Lgrad')
                         sess.run(Lgrad_op, feed_dict= feed_dict_all)
                         print('update training op')
@@ -1037,7 +1037,6 @@ class Autoencoder:
                         coef = self.number_of_tasks/tf.add_n(list(self.weights_dict.values()))
                         # temp_batch_weights = self.weights_dict.eval()
                         for k, v in self.weights_dict.items():
-                            print('weight for k, ',k)
                             self.weights_dict[k] = coef*v
                             # ds_name = '_'.join(k.split('_')[1:])
                             # print('ds_name: ', ds_name)
