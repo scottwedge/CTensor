@@ -1040,7 +1040,7 @@ class Autoencoder:
                     ###################  GRADNORM END #####################################
                     else:  # if itr % 200 ! = 200, dont' use gradnorm
                         # sess.run(stardard_grad_lists, feed_dict= feed_dict_all)
-                        batch_gradnorm_dict, _ = sess.run(gradnorm_dict, train_op, feed_dict= feed_dict_all)
+                        batch_gradnorm_dict, _ = sess.run([gradnorm_dict, train_op], feed_dict= feed_dict_all)
                         for k, v in batch_gradnorm_dict:
                             print("Iter/Epoch: {}/{}...".format(itr, epoch), 'grad norm:{},{}:'.format(k, v))
 
