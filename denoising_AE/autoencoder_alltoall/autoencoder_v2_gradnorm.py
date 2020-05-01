@@ -1007,7 +1007,7 @@ class Autoencoder:
                         print('loss: iter: k, v: ',itr, k, v)
                         print('weightedloss: iter: k, v: ',itr, k, batch_weighedloss_dict[k])
 
-                    if itr % 5 == 0:
+                    if itr % 200 == 0:
                         print('GRADNORM at itr: ', itr)
                         ##################  GRADNORM PART ###############################
                         # base loss at the first iteration. all weights are 1
