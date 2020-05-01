@@ -40,7 +40,7 @@ HOURLY_TIMESTEPS = 24
 DAILY_TIMESTEPS = 1
 THREE_HOUR_TIMESTEP = 56
 
-ALPH = 2
+ALPH = 3
 
 
 def my_leaky_relu(x):
