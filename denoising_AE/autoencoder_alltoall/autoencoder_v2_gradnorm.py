@@ -792,15 +792,13 @@ class Autoencoder:
         # Getting gradients of the last shared layer
         print('Getting gradients of the last shared layer')
         gradnorm_dict = {}  # grad_norm for each dataset
-        G_list = []
         shared_parameters = get_parameters_from_sharedlayers(all_model_params)
         for k, v in weighedloss_dict.items():
             G1R = tf.gradients(weighedloss_dict[k], shared_parameters)
             G1 = tf.norm(G1R[0], name='norm')  # with respect to kernel
-
             gradnorm_dict[k] = G1
-            G_list.append(G1)
-        G_avg = tf.div(tf.add_n(G_list), self.number_of_tasks)
+
+        G_avg = tf.div(tf.add_n(list(gradnorm_dict.values())), self.number_of_tasks)
 
         # Calculating relative losses: batch loss (not weighted) / L0
         lhat_dict = {}
@@ -829,12 +827,10 @@ class Autoencoder:
 
         optimizer_Lgrad = tf.train.AdamOptimizer(learning_rate=learning_rate)
         # variable weight loss
-        weigts_list = list(self.weights_dict.values())
-        Lgrad_lists = optimizer_Lgrad.compute_gradients(Lgrad, var_list=weigts_list)
-
+        Lgrad_lists = optimizer_Lgrad.compute_gradients(Lgrad, var_list=list(self.weights_dict.values()))
 
         # Updating loss weights
-        Lgrad_op = optimizer.apply_gradients(Lgrad_lists, global_step=self.global_step, name=None)
+        Lgrad_op = optimizer_Lgrad.apply_gradients(Lgrad_lists, global_step=self.global_step, name=None)
         # update model weights
         train_op = optimizer.apply_gradients(stardard_grad_lists, global_step=self.global_step, name=None)
 
@@ -1274,20 +1270,20 @@ class Autoencoder:
                 # save weights for loss for each dataset
                 weights_df = pd.DataFrame({key: pd.Series(value) for key, value in all_weights.items()})
                 weights_csv_path = save_folder_path + 'weights_df' +'.csv'
-                with open(weights_csv_path, 'a') as f:
+                with open(weights_csv_path, 'w') as f:
                     weights_df.to_csv(f, header=f.tell()==0)
 
                 # save L0_dict as the base loss for all datasets
                 L0_df = pd.DataFrame([list(L0_dict.values())],
                                 columns= list(L0_dict.keys()))
                 L0_csv_path = save_folder_path + 'L0_df' +'.csv'
-                with open(L0_csv_path, 'a') as f:
+                with open(L0_csv_path, 'w') as f:
                     L0_df.to_csv(f, header=f.tell()==0)
 
                 # all_inv_rate: all inverse training rate
                 all_inv_rate_df = pd.DataFrame({key: pd.Series(value) for key, value in all_inv_rate.items()})
                 all_inv_rate_csv_path = save_folder_path + 'all_inv_rate_df' +'.csv'
-                with open(all_inv_rate_csv_path, 'a') as f:
+                with open(all_inv_rate_csv_path, 'w') as f:
                     all_inv_rate_df.to_csv(f, header=f.tell()==0)
 
                 # save results to txt
