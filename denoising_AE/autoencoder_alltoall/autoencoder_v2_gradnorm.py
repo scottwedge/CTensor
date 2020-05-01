@@ -815,17 +815,18 @@ class Autoencoder:
         # detach the constant target from computation graph
         desiredgrad_dict = {}
         for k, v in inv_rate.items():
-            desiredgrad_dict[k] = tf.stop_gradient(G_avg* v**alph)
+            desiredgrad_dict[k] = tf.stop_gradient(G_avg* (v**alph))
 
         # Calculating the gradient loss according to Eq. 2 in the GradNorm paper
         print('Calculating the gradient loss ')
         Lgrad_list = []
         for k, v in gradnorm_dict.items():
-            temp_Lgrad = tf.losses.absolute_difference(v, desiredgrad_dict[k])
-            Lgrad_list.append(temp_Lgrad)
+            Lgrad_list.append(tf.losses.absolute_difference(v, desiredgrad_dict[k]))
+            # Lgrad_list.append(temp_Lgrad)
         Lgrad = tf.add_n(Lgrad_list)
 
-        optimizer_Lgrad = tf.train.AdamOptimizer(learning_rate=learning_rate)
+        # learning rate for optimizer_Lgrad may not be the same as standard.
+        optimizer_Lgrad = tf.train.AdamOptimizer(learning_rate=0.001)
         # variable weight loss
         Lgrad_lists = optimizer_Lgrad.compute_gradients(Lgrad, var_list=list(self.weights_dict.values()))
 
