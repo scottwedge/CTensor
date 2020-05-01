@@ -1039,8 +1039,10 @@ class Autoencoder:
 
                     ###################  GRADNORM END #####################################
                     else:  # if itr % 200 ! = 200, dont' use gradnorm
-                        sess.run(stardard_grad_lists, feed_dict= feed_dict_all)
-                        sess.run(train_op, feed_dict= feed_dict_all)
+                        # sess.run(stardard_grad_lists, feed_dict= feed_dict_all)
+                        batch_gradnorm_dict, _ = sess.run(gradnorm_dict, train_op, feed_dict= feed_dict_all)
+                        for k, v in batch_gradnorm_dict:
+                            print("Iter/Epoch: {}/{}...".format(itr, epoch), 'grad norm:{},{}:'.format(k, v))
 
 
                     # ############### original normal operations #################
@@ -1069,7 +1071,7 @@ class Autoencoder:
                     for k, v in epoch_subweightedloss.items():
                         epoch_subweightedloss[k] += batch_weighedloss_dict[k]
 
-                    if itr%30 == 0:
+                    if itr%1 == 0:
                         print("Iter/Epoch: {}/{}...".format(itr, epoch),
                             "Training loss: {:.4f}".format(batch_cost))
                         for k, v in batch_loss_dict.items():
