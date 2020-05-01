@@ -1004,9 +1004,9 @@ class Autoencoder:
                     batch_cost, batch_loss_dict, batch_rmse_dict, batch_weighedloss_dict = sess.run([cost,loss_dict, rmse_dict, weighedloss_dict],
                                             feed_dict=feed_dict_all)
                     # debug
-                    for k, v in batch_loss_dict.items():
-                        print('loss: iter: k, v: ',itr, k, v)
-                        print('weightedloss: iter: k, v: ',itr, k, batch_weighedloss_dict[k])
+                    # for k, v in batch_loss_dict.items():
+                    #     print('loss: iter: k, v: ',itr, k, v)
+                    #     print('weightedloss: iter: k, v: ',itr, k, batch_weighedloss_dict[k])
 
                     if itr % gradnorm_freq == 0:
                         print('GRADNORM at itr: ', itr)
@@ -1051,10 +1051,12 @@ class Autoencoder:
                     ###################  GRADNORM END #####################################
                     else:  # if itr % 200 ! = 200, dont' use gradnorm
                         # sess.run(stardard_grad_lists, feed_dict= feed_dict_all)
-                        batch_gradnorm_dict, batch_debug_gradients_dict,  _ = sess.run([gradnorm_dict, debug_gradients_dict, train_op], feed_dict= feed_dict_all)
-                        for k, v in batch_gradnorm_dict.items():
-                            print("Iter/Epoch: {}/{}...".format(itr, epoch), 'grad norm:{},{}:'.format(k, v))
-                        print("Iter/Epoch: {}/{}...".format(itr, epoch), 'gradient:{},{}:'.format('temperature', batch_debug_gradients_dict['temperature']))
+                        sess.run([train_op], feed_dict= feed_dict_all)
+                        # DEBUG
+                        # batch_gradnorm_dict, batch_debug_gradients_dict,  _ = sess.run([gradnorm_dict, debug_gradients_dict, train_op], feed_dict= feed_dict_all)
+                        # for k, v in batch_gradnorm_dict.items():
+                        #     print("Iter/Epoch: {}/{}...".format(itr, epoch), 'grad norm:{},{}:'.format(k, v))
+                        # print("Iter/Epoch: {}/{}...".format(itr, epoch), 'gradient:{},{}:'.format('temperature', batch_debug_gradients_dict['temperature']))
 
 
                     # ############### original normal operations #################
@@ -1083,13 +1085,13 @@ class Autoencoder:
                     for k, v in epoch_subweightedloss.items():
                         epoch_subweightedloss[k] += batch_weighedloss_dict[k]
 
-                    if itr%1 == 0:
+                    if itr%30 == 0:
                         print("Iter/Epoch: {}/{}...".format(itr, epoch),
                             "Training loss: {:.4f}".format(batch_cost))
                         for k, v in batch_loss_dict.items():
-                            print('ave loss and latest loss weight for k :', k, v, all_weights[k][-1])
-                        # for k, v in batch_grads.items():
-                        #     print('gradnorm for k :', k, v)
+                            print('ave loss and latest loss weight for k :', k, v)
+                            # all_weights[k][-1]
+
 
 
                 # report loss per epoch
