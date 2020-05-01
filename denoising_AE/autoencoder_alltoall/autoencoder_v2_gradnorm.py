@@ -833,7 +833,9 @@ class Autoencoder:
         Lgrad_lists = optimizer_Lgrad.compute_gradients(Lgrad, var_list=list(self.weights_dict.values()))
 
         # Updating loss weights
-        Lgrad_op = optimizer_Lgrad.apply_gradients(Lgrad_lists, global_step=self.global_step, name=None)
+        # may not use globel step as once applied optimization for Lgrad.
+        # the globel step may increase
+        Lgrad_op = optimizer_Lgrad.apply_gradients(Lgrad_lists, global_step= None, name=None)
         # update model weights
         train_op = optimizer.apply_gradients(stardard_grad_lists, global_step=self.global_step, name=None)
 
