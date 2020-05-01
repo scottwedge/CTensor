@@ -1036,7 +1036,7 @@ class Autoencoder:
 
                         # Renormalizing the losses weights
                         print('Renormalizing the losses weights')
-                        coef = self.number_of_tasks/tf.add_n(self.weights_dict.values())
+                        coef = self.number_of_tasks/tf.add_n(list(self.weights_dict.values()))
                         for k, v in self.weights_dict.items():
                             print('weight for k, ',k)
                             self.weights_dict[k] = coef*v
