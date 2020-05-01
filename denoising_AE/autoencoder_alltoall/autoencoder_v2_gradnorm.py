@@ -697,7 +697,6 @@ class Autoencoder:
             prediction_1d_expand = tf.tile(prediction_1d, [1, 1, HEIGHT,
                                                     WIDTH ,1])
             first_level_output[k] = prediction_1d_expand
-            keys_list.append(k)
             first_order_encoder_list.append(prediction_1d)
 
         for k, v in self.rawdata_2d_tf_x_dict.items():
@@ -706,7 +705,6 @@ class Autoencoder:
             prediction_2d = tf.expand_dims(prediction_2d, 1)
             prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
                                                     1 ,1])
-            keys_list.append(k)
             first_level_output[k] = prediction_2d_expand
             first_order_encoder_list.append(prediction_2d)
 
@@ -714,8 +712,6 @@ class Autoencoder:
             prediction_3d = self.cnn_model(v, self.is_training, k)
             first_level_output[k] = prediction_3d
             first_order_encoder_list.append(prediction_3d)
-            keys_list.append(k)
-
 
         # dim: latent fea dimension
         # latent_fea = self.model_fusion(med_res_3d, med_res_2d, med_res_1d, dim, self.is_training)
@@ -1037,12 +1033,13 @@ class Autoencoder:
                         # Renormalizing the losses weights
                         print('Renormalizing the losses weights')
                         coef = self.number_of_tasks/tf.add_n(list(self.weights_dict.values()))
+                        temp_batch_weights = self.weights_dict.eval()
                         for k, v in self.weights_dict.items():
                             print('weight for k, ',k)
                             self.weights_dict[k] = coef*v
                             ds_name = '_'.join(k.split('_')[1:])
                             print('ds_name: ', ds_name)
-                            all_weights[ds_name].append(self.weights_dict[k].eval())
+                            all_weights[ds_name].append(temp_batch_weights[k])
                     ###################  GRADNORM END #####################################
                     else:  # if itr % 200 ! = 200, dont' use gradnorm
                         sess.run(stardard_grad_lists, feed_dict= feed_dict_all)
