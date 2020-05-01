@@ -294,6 +294,8 @@ class Autoencoder:
         # https://towardsdatascience.com/pitfalls-of-batch-norm-in-tensorflow-and-sanity-checks-for-training-networks-e86c207548c8
         self.is_training = tf.placeholder(tf.bool)
         self.global_step = tf.Variable(0, trainable=False)
+        # globale step for Lgrad
+        self.Lgrad_global_step = tf.Variable(0, trainable=False)
         self.dataset_keys = list(rawdata_1d_dict.keys()) + list(rawdata_2d_dict.keys()) + list(rawdata_3d_dict.keys())
 
         self.rawdata_1d_tf_x_dict = {}
@@ -835,7 +837,7 @@ class Autoencoder:
         # Updating loss weights
         # may not use globel step as once applied optimization for Lgrad.
         # the globel step may increase
-        Lgrad_op = optimizer_Lgrad.apply_gradients(Lgrad_lists, global_step= None, name=None)
+        Lgrad_op = optimizer_Lgrad.apply_gradients(Lgrad_lists, global_step= self.Lgrad_global_step, name=None)
         # update model weights
         train_op = optimizer.apply_gradients(stardard_grad_lists, global_step=self.global_step, name=None)
 
