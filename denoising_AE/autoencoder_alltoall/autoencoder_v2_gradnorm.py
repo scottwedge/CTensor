@@ -890,6 +890,7 @@ class Autoencoder:
         config.gpu_options.per_process_gpu_memory_fraction = 0.90
         config.gpu_options.allow_growth=True
 
+        gradnorm_freq = 50
 
         with tf.Session(config=config) as sess:
             sess.run(tf.global_variables_initializer())
@@ -1007,7 +1008,7 @@ class Autoencoder:
                         print('loss: iter: k, v: ',itr, k, v)
                         print('weightedloss: iter: k, v: ',itr, k, batch_weighedloss_dict[k])
 
-                    if itr % 200 == 0:
+                    if itr % gradnorm_freq == 0:
                         print('GRADNORM at itr: ', itr)
                         ##################  GRADNORM PART ###############################
                         # base loss at the first iteration. all weights are 1
@@ -1320,9 +1321,14 @@ class Autoencoder:
                     the_file.write(str(test_time_per_epoch) + '\n')
                     the_file.write('time per sample for test\n')
                     the_file.write(str(test_time_per_sample) + '\n')
-                    the_file.write('keys_list\n')
-                    for item in keys_list:
-                        the_file.write("%s\n" % item)
+                    # gradnorm_freq
+                    the_file.write('gradnorm_freq\n')
+                    the_file.write(str(gradnorm_freq) + '\n')
+                    the_file.write('alpha\n')
+                    the_file.write(str(alph) + '\n')
+                    # the_file.write('keys_list\n')
+                    # for item in keys_list:
+                    #     the_file.write("%s\n" % item)
                     the_file.close()
 
                 # plot results
