@@ -1052,8 +1052,8 @@ class Autoencoder:
                         # sess.run(stardard_grad_lists, feed_dict= feed_dict_all)
                         batch_gradnorm_dict, batch_debug_gradients_dict,  _ = sess.run([gradnorm_dict, debug_gradients_dict, train_op], feed_dict= feed_dict_all)
                         for k, v in batch_gradnorm_dict.items():
-                            print("Iter/Epoch: {}/{}...".format(itr, epoch), 'gradient:{},{}:'.format(k, batch_debug_gradients_dict[k]))
                             print("Iter/Epoch: {}/{}...".format(itr, epoch), 'grad norm:{},{}:'.format(k, v))
+                        print("Iter/Epoch: {}/{}...".format(itr, epoch), 'gradient:{},{}:'.format('temperature', batch_debug_gradients_dict['temperature']))
 
 
                     # ############### original normal operations #################
