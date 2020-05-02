@@ -44,7 +44,7 @@ THREE_HOUR_TIMESTEP = 56
 
 ALPH = 3
 STARTER_ITERATION = 50
-T = 2
+T = 5
 
 
 def my_leaky_relu(x):
