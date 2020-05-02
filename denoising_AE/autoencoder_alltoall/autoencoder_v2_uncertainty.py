@@ -955,7 +955,7 @@ class Autoencoder:
                 lhat_dict = {}
                 # lhat_avg: average (ave loss / L0)
                 # lhat_dict / lhat_avg
-                inv_rate = {}
+                inv_rate = dict(zip(self.dataset_keys, [1]*len(self.dataset_keys)))
                 # lambda_weight[0, index] = 3 * np.exp(w_1 / T) / (np.exp(w_1 / T) + np.exp(w_2 / T) + np.exp(w_3 / T))
 
                 #########################################################
