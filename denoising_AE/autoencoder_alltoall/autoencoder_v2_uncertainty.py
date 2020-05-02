@@ -1040,7 +1040,7 @@ class Autoencoder:
                         # inverse training rate for this epoch
                         for k, v in lhat_dict.items():
                             inv_rate[k] = tf.div(v,lhat_avg)
-                            all_inv_rate.append(inv_rate[k])
+                            all_inv_rate[k].append(inv_rate[k])
                             print('iter, k, inv_rate :', itr, k, inv_rate[k])
                         # calculate weights
                         divisor = 0
