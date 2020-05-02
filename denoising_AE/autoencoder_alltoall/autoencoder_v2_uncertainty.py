@@ -1220,12 +1220,19 @@ class Autoencoder:
                         temp_batch = create_mini_batch_3d(start_index_list, start_idx, end_idx, v, timestep)
                         test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
 
-
+                    # double check this
+                    for k, v in weight_per_epoch.items():
+                        test_feed_dict_all[self.weights_dict[k]] = v
                     # is_training: True
                     test_feed_dict_all[self.is_training] = True
 
                     test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict, test_batch_weighedloss_dict = sess.run([cost,loss_dict, rmse_dict, weighedloss_dict],
                                                         feed_dict= test_feed_dict_all)
+
+                    # debug
+                    for k, v in test_batch_loss_dict.items():
+                        print('test loss, weighted loss: ', v, test_batch_weighedloss_dict[k])
+
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     test_batch_output = sess.run([latent_fea], feed_dict= test_feed_dict_all)
