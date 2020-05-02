@@ -928,7 +928,7 @@ class Autoencoder:
                 start_time = datetime.datetime.now()
                 # shuffle data for each epoch, create random index for all data: train + test
                 start_index_list = list(range(0, 45984-24))
-                shuffle(start_index_list
+                shuffle(start_index_list)
 
                 epoch_loss = 0
                 epoch_subloss = {}  # ave loss for each dataset
