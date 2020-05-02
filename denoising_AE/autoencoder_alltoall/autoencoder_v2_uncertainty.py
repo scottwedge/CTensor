@@ -918,6 +918,7 @@ class Autoencoder:
 
             # the relative inverse training rate of task i.
             all_inv_rate = {k: [1] for k in self.dataset_keys}
+            all_ave_loss_eachdata = {k: [] for k in self.dataset_keys}
 
             L0_dict = {}  # base cost for each dataset
             # change weights every epoch, using the first 'starter_interation' iterations
@@ -1023,7 +1024,7 @@ class Autoencoder:
                     # batch_G_avg = sess.run(G_avg, feed_dict= feed_dict_all)
 
                     # Calculating relative inverse training rates for tasks
-                    print('Calculating relative inverse training rates for tasks')
+                    # print('Calculating relative inverse training rates for tasks')
                     # for k, v in L0_dict.items():
                     #     feed_dict_all[self.L0_dict[k]] = v
 
@@ -1035,7 +1036,13 @@ class Autoencoder:
                         print('starter_interation: update weights ',  starter_interation)
                         for k, v in ave_loss_eachdata.items():
                             ave_loss_eachdata[k] = float(v / starter_interation)
-                            lhat_dict[k] = ave_loss_eachdata[k] / L0_dict[k]
+                            # ave_loss_eachdata of all epochs
+                            all_ave_loss_eachdata[k].append(ave_loss_eachdata[k])
+                            # compare to ave loss of previous epoch
+                            if epoch == 0:
+                                lhat_dict[k] = ave_loss_eachdata[k] / L0_dict[k]
+                            else:
+                                lhat_dict[k] = ave_loss_eachdata[k] / all_ave_loss_eachdata[k][-2]
                         #lhat_avg = tf.div(tf.add_n(list(lhat_dict.values())), self.number_of_tasks)
                         lhat_avg = sum(list(lhat_dict.values())) / self.number_of_tasks
                         # inverse training rate for this epoch
@@ -1116,7 +1123,7 @@ class Autoencoder:
                         print("Iter/Epoch: {}/{}...".format(itr, epoch),
                             "Training loss: {:.4f}".format(batch_cost))
                         for k, v in batch_loss_dict.items():
-                            print('ave loss and latest loss weight for k :', k, v, all_weights[k][-1], weight_per_epoch[k])
+                            print('ave loss, latest loss weight, inv rate for k :', k, v,  weight_per_epoch[k], inv_rate[k])
                             # all_weights[k][-1]
 
 
