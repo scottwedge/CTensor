@@ -1050,7 +1050,7 @@ class Autoencoder:
                         for k, v in lhat_dict.items():
                             inv_rate[k] = v / lhat_avg
                             all_inv_rate[k].append(inv_rate[k])
-                            print('iter, k, inv_rate :', itr, k, inv_rate[k])
+                            print('epoch, iter, k, inv_rate :', epoch, itr, k, inv_rate[k])
                         # calculate weights
                         divisor = 0
                         for k, v in inv_rate.items():
