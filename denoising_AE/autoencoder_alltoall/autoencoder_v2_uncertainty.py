@@ -1231,7 +1231,7 @@ class Autoencoder:
 
                     # debug
                     for k, v in test_batch_loss_dict.items():
-                        print('test loss, weighted loss: ', v, test_batch_weighedloss_dict[k])
+                        print('test loss, weighted loss: ', k, v, test_batch_weighedloss_dict[k])
 
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
