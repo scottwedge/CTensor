@@ -902,6 +902,12 @@ class Autoencoder:
                 #self.global_step/ (len(x_train_data) / batch_size +1) -1
                 print("start_epoch_num: ", start_epoch_num.eval())
                 start_epoch = start_epoch_num.eval()
+
+                # load weight_per_epoch
+                print('load last saved weight_per_epoch dict')
+                with open(save_folder_path + 'weight_per_epoch_dict', 'rb') as handle:
+                    weight_per_epoch = pickle.load(handle)
+
             else:
                 start_epoch = 0
 
@@ -924,7 +930,9 @@ class Autoencoder:
             # change weights every epoch, using the first 'starter_interation' iterations
             starter_interation =  STARTER_ITERATION
             # calculated weight this epoch
-            weight_per_epoch = dict(zip(self.dataset_keys, [1]*len(self.dataset_keys)))
+            if not resume_training:
+                print('re-intiate weight for all losses as 1')
+                weight_per_epoch = dict(zip(self.dataset_keys, [1]*len(self.dataset_keys)))
             inv_rate = dict(zip(self.dataset_keys, [1]*len(self.dataset_keys)))
             # to calculate average inverse training rate
             for epoch in range(start_epoch, epochs):
@@ -1343,6 +1351,14 @@ class Autoencoder:
                 all_inv_rate_csv_path = save_folder_path + 'all_inv_rate_df' +'.csv'
                 with open(all_inv_rate_csv_path, 'w') as f:
                     all_inv_rate_df.to_csv(f, header=f.tell()==0)
+
+                # save the latest weight_per_epoch
+                weight_per_epoch_file = open(save_folder_path + 'weight_per_epoch_dict', 'wb')
+                # dump information to that file
+                # number of batches, num_dataset, batchsize, h, w, dim
+                print('dumping weight_per_epoch_file to pickle')
+                pickle.dump(weight_per_epoch, weight_per_epoch_file)
+                recon_file.close()
 
                 # save results to txt
                 txt_name = save_folder_path + 'denoising_AE_v2_df_' +  '.txt'
