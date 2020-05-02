@@ -1034,20 +1034,21 @@ class Autoencoder:
                     if itr == starter_interation:
                         print('starter_interation: update weights ',  starter_interation)
                         for k, v in ave_loss_eachdata.items():
-                            ave_loss_eachdata[k] = tf.div(v, starter_interation)
-                            lhat_dict[k] = tf.div(ave_loss_eachdata[k], L0_dict[k])
-                        lhat_avg = tf.div(tf.add_n(list(lhat_dict.values())), self.number_of_tasks)
+                            ave_loss_eachdata[k] = float(v / starter_interation)
+                            lhat_dict[k] = ave_loss_eachdata[k] / L0_dict[k]s
+                        #lhat_avg = tf.div(tf.add_n(list(lhat_dict.values())), self.number_of_tasks)
+                        lhat_avg = sum(list(lhat_dict[k].values())) / self.number_of_tasks
                         # inverse training rate for this epoch
                         for k, v in lhat_dict.items():
-                            inv_rate[k] = tf.div(v,lhat_avg)
+                            inv_rate[k] = v / lhat_avg
                             all_inv_rate[k].append(inv_rate[k])
                             print('iter, k, inv_rate :', itr, k, inv_rate[k])
                         # calculate weights
                         divisor = 0
                         for k, v in inv_rate.items():
-                            divisor = divisor + tf.math.exp(tf.div(v, T))
+                            divisor = divisor + np.exp(v / T)
                         for k, v in inv_rate.items():
-                            weight_per_epoch[k] = self.number_of_tasks * tf.div(tf.math.exp(tf.div(v, T)),  divisor)
+                            weight_per_epoch[k] = self.number_of_tasks * (np.exp(v /T) / divisor)
                             all_weights[k].append(weight_per_epoch[k])
                             # self.weights_dict[k] = weight_per_epoch[k]
 
