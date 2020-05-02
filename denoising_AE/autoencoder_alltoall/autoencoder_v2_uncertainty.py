@@ -914,7 +914,7 @@ class Autoencoder:
                 iterations = int(train_hours/batch_size) + 1
 
             all_weights = {}  # weight for each dataset
-            all_weights = {k: [] for k in self.dataset_keys}
+            all_weights = {k: [1] for k in self.dataset_keys}
 
             # the relative inverse training rate of task i.
             all_inv_rate = {k: [] for k in self.dataset_keys}
