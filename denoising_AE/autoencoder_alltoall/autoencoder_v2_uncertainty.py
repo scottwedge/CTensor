@@ -1001,8 +1001,8 @@ class Autoencoder:
 
                     # is_training: True
                     feed_dict_all[self.is_training] = True
-                    for k, v in weight_per_epoch.items():
-                        feed_dict_all[self.weights_dict[k]] = v
+                    # for k, v in weight_per_epoch.items():
+                    #     feed_dict_all[self.weights_dict[k]] = v
 
                     batch_cost, batch_loss_dict, batch_rmse_dict, batch_weighedloss_dict, _= sess.run([cost,loss_dict, rmse_dict, weighedloss_dict, train_op],
                                             feed_dict=feed_dict_all)
@@ -1031,6 +1031,7 @@ class Autoencoder:
                         for k, v in batch_loss_dict.items():
                             ave_loss_eachdata[k] += v
                     if itr == starter_interation:
+                        print('starter_interation: update weights ',  starter_interation)
                         for k, v in ave_loss_eachdata.items():
                             ave_loss_eachdata[k] = tf.div(v, starter_interation)
                             lhat_dict[k] = tf.div(ave_loss_eachdata[k], L0_dict[k])
@@ -1047,6 +1048,7 @@ class Autoencoder:
                         for k, v in inv_rate.items():
                             weight_per_epoch[k] = self.number_of_tasks * tf.div(tf.math.exp(tf.div(v, T)),  divisor)
                             all_weights[k].append(weight_per_epoch[k])
+                            self.weights_dict[k] = weight_per_epoch[k]
 
                     # record inverse learning rate and weights
                     # batch_inv_rate, temp_batch_weights = sess.run([inv_rate, self.weights_dict], feed_dict= feed_dict_all)
