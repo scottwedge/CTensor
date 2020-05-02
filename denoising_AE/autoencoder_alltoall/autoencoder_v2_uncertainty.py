@@ -732,7 +732,7 @@ class Autoencoder:
             rmse_dict[k] = temp_rmse
             reconstruction_dict[k] = reconstruction_1d
             # for gradnorm
-            weighedloss_dict[k] = temp_loss * self.weights_dict['lossweight_' + k]
+            weighedloss_dict[k] = temp_loss * self.weights_dict[k]
             cost += weighedloss_dict[k]
 
         for k, v in self.rawdata_2d_tf_y_dict.items():
@@ -745,7 +745,7 @@ class Autoencoder:
             rmse_dict[k] = temp_rmse
             reconstruction_dict[k] = reconstruction_2d
 
-            weighedloss_dict[k] = temp_loss * self.weights_dict['lossweight_' + k]
+            weighedloss_dict[k] = temp_loss * self.weights_dict[k]
             cost += weighedloss_dict[k]
 
 
@@ -765,7 +765,7 @@ class Autoencoder:
             rmse_dict[k] = temp_rmse
             reconstruction_dict[k] = reconstruction_3d
 
-            weighedloss_dict[k] = temp_loss * self.weights_dict['lossweight_' + k]
+            weighedloss_dict[k] = temp_loss * self.weights_dict[k]
             cost += weighedloss_dict[k]
 
         print('total_loss: ', total_loss)
