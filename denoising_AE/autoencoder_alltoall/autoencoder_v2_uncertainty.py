@@ -1035,7 +1035,7 @@ class Autoencoder:
                         print('starter_interation: update weights ',  starter_interation)
                         for k, v in ave_loss_eachdata.items():
                             ave_loss_eachdata[k] = float(v / starter_interation)
-                            lhat_dict[k] = ave_loss_eachdata[k] / L0_dict[k]s
+                            lhat_dict[k] = ave_loss_eachdata[k] / L0_dict[k]
                         #lhat_avg = tf.div(tf.add_n(list(lhat_dict.values())), self.number_of_tasks)
                         lhat_avg = sum(list(lhat_dict[k].values())) / self.number_of_tasks
                         # inverse training rate for this epoch
