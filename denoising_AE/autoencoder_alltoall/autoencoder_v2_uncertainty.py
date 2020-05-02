@@ -922,6 +922,8 @@ class Autoencoder:
             L0_dict = {}  # base cost for each dataset
             # change weights every epoch, using the first 'starter_interation' iterations
             starter_interation =  STARTER_ITERATION
+            # calculated weight this epoch
+            weight_per_epoch = dict(zip(self.dataset_keys, [1]*len(self.dataset_keys)))
             # to calculate average inverse training rate
             for epoch in range(start_epoch, epochs):
                 print('Epoch', epoch, 'started', end='')
@@ -954,8 +956,7 @@ class Autoencoder:
                 # lhat_dict / lhat_avg
                 inv_rate = {}
                 # lambda_weight[0, index] = 3 * np.exp(w_1 / T) / (np.exp(w_1 / T) + np.exp(w_2 / T) + np.exp(w_3 / T))
-                # calculated weight this epoch
-                weight_per_epoch = dict(zip(self.dataset_keys, [1]*len(self.dataset_keys)))
+
                 #########################################################
 
                 # mini batch iterations
@@ -1001,8 +1002,8 @@ class Autoencoder:
 
                     # is_training: True
                     feed_dict_all[self.is_training] = True
-                    # for k, v in weight_per_epoch.items():
-                    #     feed_dict_all[self.weights_dict[k]] = v
+                    for k, v in weight_per_epoch.items():
+                        feed_dict_all[self.weights_dict[k]] = v
 
                     batch_cost, batch_loss_dict, batch_rmse_dict, batch_weighedloss_dict, _= sess.run([cost,loss_dict, rmse_dict, weighedloss_dict, train_op],
                                             feed_dict=feed_dict_all)
@@ -1048,7 +1049,7 @@ class Autoencoder:
                         for k, v in inv_rate.items():
                             weight_per_epoch[k] = self.number_of_tasks * tf.div(tf.math.exp(tf.div(v, T)),  divisor)
                             all_weights[k].append(weight_per_epoch[k])
-                            self.weights_dict[k] = weight_per_epoch[k]
+                            # self.weights_dict[k] = weight_per_epoch[k]
 
                     # record inverse learning rate and weights
                     # batch_inv_rate, temp_batch_weights = sess.run([inv_rate, self.weights_dict], feed_dict= feed_dict_all)
