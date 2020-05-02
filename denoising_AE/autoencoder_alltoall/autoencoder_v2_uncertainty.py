@@ -925,6 +925,7 @@ class Autoencoder:
             starter_interation =  STARTER_ITERATION
             # calculated weight this epoch
             weight_per_epoch = dict(zip(self.dataset_keys, [1]*len(self.dataset_keys)))
+            inv_rate = dict(zip(self.dataset_keys, [1]*len(self.dataset_keys)))
             # to calculate average inverse training rate
             for epoch in range(start_epoch, epochs):
                 print('Epoch', epoch, 'started', end='')
@@ -955,7 +956,7 @@ class Autoencoder:
                 lhat_dict = {}
                 # lhat_avg: average (ave loss / L0)
                 # lhat_dict / lhat_avg
-                inv_rate = dict(zip(self.dataset_keys, [1]*len(self.dataset_keys)))
+
                 # lambda_weight[0, index] = 3 * np.exp(w_1 / T) / (np.exp(w_1 / T) + np.exp(w_2 / T) + np.exp(w_3 / T))
 
                 #########################################################
@@ -1009,9 +1010,9 @@ class Autoencoder:
                     batch_cost, batch_loss_dict, batch_rmse_dict, batch_weighedloss_dict, _= sess.run([cost,loss_dict, rmse_dict, weighedloss_dict, train_op],
                                             feed_dict=feed_dict_all)
                     # debug
-                    for k, v in batch_loss_dict.items():
-                        print('loss: iter: k, v: ',itr, k, v)
-                        print('weightedloss: iter: k, v: ',itr, k, batch_weighedloss_dict[k])
+                    # for k, v in batch_loss_dict.items():
+                    #     print('loss: iter: k, v: ',itr, k, v)
+                    #     print('weightedloss: iter: k, v: ',itr, k, batch_weighedloss_dict[k])
 
                     ##################  GRADNORM PART ###############################
                     # base loss at the first iteration. all weights are 1
