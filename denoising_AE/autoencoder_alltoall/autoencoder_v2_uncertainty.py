@@ -1365,8 +1365,8 @@ class Autoencoder:
                     the_file.write('time per sample for test\n')
                     the_file.write(str(test_time_per_sample) + '\n')
                     # gradnorm_freq
-                    # the_file.write('gradnorm_freq\n')
-                    # the_file.write(str(gradnorm_freq) + '\n')
+                    the_file.write('T\n')
+                    the_file.write(str(T) + '\n')
                     # the_file.write('alpha\n')
                     # the_file.write(str(alph) + '\n')
                     # the_file.write('keys_list\n')
