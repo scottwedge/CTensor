@@ -917,7 +917,7 @@ class Autoencoder:
             all_weights = {k: [1] for k in self.dataset_keys}
 
             # the relative inverse training rate of task i.
-            all_inv_rate = {k: [] for k in self.dataset_keys}
+            all_inv_rate = {k: [1] for k in self.dataset_keys}
 
             L0_dict = {}  # base cost for each dataset
             # change weights every epoch, using the first 'starter_interation' iterations
