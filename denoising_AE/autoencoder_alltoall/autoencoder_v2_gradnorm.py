@@ -890,7 +890,7 @@ class Autoencoder:
         config.gpu_options.per_process_gpu_memory_fraction = 0.90
         config.gpu_options.allow_growth=True
 
-        gradnorm_freq = 50
+        gradnorm_freq = 1
 
         with tf.Session(config=config) as sess:
             sess.run(tf.global_variables_initializer())
