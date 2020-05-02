@@ -299,7 +299,7 @@ class Autoencoder:
         self.is_training = tf.placeholder(tf.bool)
         self.global_step = tf.Variable(0, trainable=False)
         # globale step for Lgrad
-        self.Lgrad_global_step = tf.Variable(0, trainable=False)
+        # self.Lgrad_global_step = tf.Variable(0, trainable=False)
         self.dataset_keys = list(rawdata_1d_dict.keys()) + list(rawdata_2d_dict.keys()) + list(rawdata_3d_dict.keys())
 
         self.rawdata_1d_tf_x_dict = {}
@@ -775,7 +775,8 @@ class Autoencoder:
             # optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost, global_step = self.global_step)
             optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
             all_model_params = get_parameters_from_model()
-            stardard_grad_lists = optimizer.compute_gradients(cost, var_list=all_model_params)
+            # stardard_grad_lists = optimizer.compute_gradients(cost, var_list=all_model_params)
+            stardard_grad_lists = optimizer.compute_gradients(cost)
 
         # Getting gradients of the last shared layer
         # print('Getting gradients of the last shared layer')
