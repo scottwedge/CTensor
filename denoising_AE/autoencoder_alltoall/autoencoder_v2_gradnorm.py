@@ -1008,8 +1008,8 @@ class Autoencoder:
                     #     print('loss: iter: k, v: ',itr, k, v)
                     #     print('weightedloss: iter: k, v: ',itr, k, batch_weighedloss_dict[k])
 
-                    # if itr % gradnorm_freq == 0:
-                    if 1 == -1:
+                    if itr % gradnorm_freq == 0:
+
                         print('GRADNORM at itr: ', itr)
                         ##################  GRADNORM PART ###############################
                         # base loss at the first iteration. all weights are 1
@@ -1090,7 +1090,7 @@ class Autoencoder:
                         print("Iter/Epoch: {}/{}...".format(itr, epoch),
                             "Training loss: {:.4f}".format(batch_cost))
                         for k, v in batch_loss_dict.items():
-                            print('ave loss and latest loss weight for k :', k, v)
+                            print('ave loss and latest loss weight for k :', k, v, all_weights[k][-1])
                             # all_weights[k][-1]
 
 
