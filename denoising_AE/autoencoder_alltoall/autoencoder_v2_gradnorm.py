@@ -809,6 +809,7 @@ class Autoencoder:
         for k, v in loss_dict.items():
             lhat_dict[k] = tf.div(v, self.L0_dict[k])
         lhat_avg = tf.div(tf.add_n(list(lhat_dict.values())), self.number_of_tasks)
+        lhat_avg = tf.add(lhat_avg, 1e-08)
 
         # Calculating relative inverse training rates for tasks
         inv_rate = {}
