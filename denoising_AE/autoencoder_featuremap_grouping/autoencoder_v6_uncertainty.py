@@ -697,8 +697,8 @@ class Autoencoder:
                     rmse_dict[ds] = temp_rmse
                     reconstruction_dict[ds] = reconstruction_1d
 
-                    weighedloss_dict[k] = temp_loss * self.weights_dict[k]
-                    cost += weighedloss_dict[k]
+                    weighedloss_dict[ds] = temp_loss * self.weights_dict[k]
+                    cost += weighedloss_dict[ds]
 
 
                 if ds in keys_2d:
@@ -711,8 +711,8 @@ class Autoencoder:
                     rmse_dict[ds] = temp_rmse
                     reconstruction_dict[ds] = reconstruction_2d
 
-                    weighedloss_dict[k] = temp_loss * self.weights_dict[k]
-                    cost += weighedloss_dict[k]
+                    weighedloss_dict[ds] = temp_loss * self.weights_dict[k]
+                    cost += weighedloss_dict[ds]
 
                 if ds in keys_3d:
                     timestep_3d = self.rawdata_3d_tf_y_dict[ds].shape[1]
@@ -728,8 +728,8 @@ class Autoencoder:
                     rmse_dict[ds] = temp_rmse
                     reconstruction_dict[ds] = reconstruction_3d
 
-                    weighedloss_dict[k] = temp_loss * self.weights_dict[k]
-                    cost += weighedloss_dict[k]
+                    weighedloss_dict[ds] = temp_loss * self.weights_dict[k]
+                    cost += weighedloss_dict[ds]
 
 
         print('total_loss: ', total_loss)
