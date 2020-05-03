@@ -1015,7 +1015,7 @@ class Autoencoder:
                     for k, v in weight_per_epoch.items():
                         feed_dict_all[self.weights_dict[k]] = v
 
-                    batch_cost, batch_loss_dict, batch_rmse_dict, batch_weighedloss_dict, _= sess.run([cost,loss_dict, rmse_dict, weighedloss_dict, train_op],
+                    batch_cost, batch_loss_dict, batch_rmse_dict, batch_weighedloss_dict, _= sess.run([total_loss,loss_dict, rmse_dict, weighedloss_dict, train_op],
                                             feed_dict=feed_dict_all)
                     # debug
                     # for k, v in batch_loss_dict.items():
@@ -1242,7 +1242,7 @@ class Autoencoder:
                     # is_training: True
                     test_feed_dict_all[self.is_training] = True
 
-                    test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict, test_batch_weighedloss_dict = sess.run([cost,loss_dict, rmse_dict, weighedloss_dict],
+                    test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict, test_batch_weighedloss_dict = sess.run([total_loss,loss_dict, rmse_dict, weighedloss_dict],
                                                         feed_dict= test_feed_dict_all)
 
                     # debug
