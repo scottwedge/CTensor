@@ -28,6 +28,7 @@ import copy
 from random import shuffle
 
 
+
 HEIGHT = 32
 WIDTH = 20
 TIMESTEPS = 24
@@ -908,8 +909,16 @@ class Autoencoder:
                 with open(save_folder_path + 'weight_per_epoch_dict', 'rb') as handle:
                     weight_per_epoch = pickle.load(handle)
                 print('load last L0 dict')
-                with open(save_folder_path + 'L0_dict', 'rb') as handle2:
-                    L0_dict = pickle.load(handle2)
+                if os.path.exists(save_folder_path + 'L0_dict'):
+                    with open(save_folder_path + 'L0_dict', 'rb') as handle2:
+                        L0_dict = pickle.load(handle2)
+                else: # use pandas
+                    L0_dict = dict()
+                    L0_df = pd.read_csv(save_folder_path + 'L0_df.csv', index_col=0)
+                    cols = list(L0_df)
+                    for c in cols:
+                        L0_dict[c] = L0_df[c][0]
+
 
             else:
                 start_epoch = 0
@@ -1055,13 +1064,13 @@ class Autoencoder:
 
                             ##########################################################
                             # compare to ave loss of previous epoch
-                            if epoch == 0:
-                                lhat_dict[k] = ave_loss_eachdata[k] / L0_dict[k]
-                            else:
-                                lhat_dict[k] = ave_loss_eachdata[k] / all_ave_loss_eachdata[k][-2]
+                            # if epoch == 0:
+                            #     lhat_dict[k] = ave_loss_eachdata[k] / L0_dict[k]
+                            # else:
+                            #     lhat_dict[k] = ave_loss_eachdata[k] / all_ave_loss_eachdata[k][-2]
                             ##########################################################
                             # compare to L0
-                            # lhat_dict[k] = ave_loss_eachdata[k] / L0_dict[k]
+                            lhat_dict[k] = ave_loss_eachdata[k] / L0_dict[k]
 
                         #lhat_avg = tf.div(tf.add_n(list(lhat_dict.values())), self.number_of_tasks)
                         lhat_avg = sum(list(lhat_dict.values())) / self.number_of_tasks
@@ -1486,13 +1495,6 @@ class Autoencoder:
             # if k == 'seattle911calls':
             first_level_output[k] = prediction_3d
             first_order_encoder_list.append(prediction_3d)
-            # else:
-            #     # [None, 1, height, width, 1] -> [None, 24, height, width, 1]
-            #     prediction_3d_expand = tf.tile(prediction_3d, [1, TIMESTEPS, 1,
-            #                                             1 ,1])
-            #     first_level_output[k] = prediction_3d_expand
-            #     first_order_encoder_list.append(prediction_3d_expand)
-
 
 
         # dim: latent fea dimension
@@ -1527,13 +1529,6 @@ class Autoencoder:
             # cost += temp_loss
             reconstruction_dict[k] = reconstruction_1d
 
-            # if k == 'weather':
-            #     temp_loss = 0.001 * temp_loss
-            #     cost += temp_loss
-            # else:
-            #     cost += temp_loss
-
-
 
         for k, v in self.rawdata_2d_tf_y_dict.items():
             dim_2d = rawdata_2d_dict[k].shape[-1]
@@ -1565,8 +1560,6 @@ class Autoencoder:
             reconstruction_dict[k] = reconstruction_3d
 
 
-        print('total_loss: ', total_loss)
-        cost = total_loss
 
         train_result = list()
         test_result = list()
@@ -1588,7 +1581,6 @@ class Autoencoder:
             else:
                 saver.restore(sess, tf.train.latest_checkpoint(save_folder_path))
                 # check global step
-
 
             test_start = train_hours
             test_end  = 45960
@@ -1656,23 +1648,16 @@ class Autoencoder:
                     temp_batch = create_mini_batch_2d_nonoverlapping(start_idx, end_idx, v)
                     feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
 
-
                     # create batches for 3d
                 for k, v in rawdata_3d_dict.items():
                     # if k == 'seattle911calls':
                     timestep = TIMESTEPS
-                    # else:
-                    #     timestep = DAILY_TIMESTEPS
                     temp_batch = create_mini_batch_3d_nonoverlapping(start_idx, end_idx, v, timestep)
-    #                     print('3d temp_batch.shape: ',temp_batch.shape)
-                    #feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
                     feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
 
                 for k, v in rawdata_3d_corrupted_dict.items():
-                    # if k == 'seattle911calls':
                     timestep = TIMESTEPS
                     temp_batch = create_mini_batch_3d_nonoverlapping(start_idx, end_idx, v, timestep)
-    #                     print('3d temp_batch.shape: ',temp_batch.shape)
                     feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
 
 
@@ -1682,9 +1667,7 @@ class Autoencoder:
                     # # [None, 1, 32, 20, 1]
                 batch_output, batch_encoded_list = sess.run([latent_fea, first_order_encoder_list], feed_dict= feed_dict_all)
 
-
                 final_output.extend(batch_output)
-
                 final_encoded_list.append(batch_encoded_list)
 
                 # temp, only ouput the first batch of reconstruction
@@ -1719,12 +1702,9 @@ class Autoencoder:
 
             for k, v in epoch_subloss.items():
                 epoch_subloss[k] = v/iterations
-                # print('epoch: ', epoch, 'k: ', k, 'mean train loss: ', epoch_subloss[k])
 
             for k, v in epoch_subrmse.items():
                 epoch_subrmse[k] = v/iterations
-                # print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
-
 
                 # save epoch statistics to csv
             ecoch_res_df = pd.DataFrame([[epoch_loss]],
@@ -1771,10 +1751,8 @@ class Autoencoder:
                     the_file.write("%s\n" % item)
                 the_file.close()
 
-
             final_output = np.array(final_output)
             train_result.extend(final_output)
-
 
             print('saving output_arr ....')
             train_encoded_res = train_result
