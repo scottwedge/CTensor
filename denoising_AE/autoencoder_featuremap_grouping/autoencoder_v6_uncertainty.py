@@ -736,7 +736,7 @@ class Autoencoder:
         # cost = total_loss
 
         #--------  fix weights, not update during optimization ------ #
-        # variables = tf.global_variables()
+        variables = tf.global_variables()
         # # get scopes_to_reserve
         # scopes_to_reserve = get_scopes_to_restore(rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict)
         # variable_to_restore = get_variables_to_restore(variables, scopes_to_reserve)
