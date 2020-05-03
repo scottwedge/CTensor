@@ -750,7 +750,6 @@ class Autoencoder:
                     global_step = self.global_step)
 
 
-
         train_result = list()
         test_result = list()
         encoded_list = list()  # output last layer of encoded for further grouping
@@ -978,9 +977,6 @@ class Autoencoder:
                             weight_per_epoch[k] = self.number_of_tasks * (np.exp(v /T) / divisor)
                             all_weights[k].append(weight_per_epoch[k])
                             # self.weights_dict[k] = weight_per_epoch[k]
-
-
-
 
 
                     #########################################################################
