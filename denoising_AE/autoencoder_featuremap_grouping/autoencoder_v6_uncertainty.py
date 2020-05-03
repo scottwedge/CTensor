@@ -871,6 +871,9 @@ class Autoencoder:
                 final_output = list()
                 final_encoded_list = list()
 
+                epoch_subweightedloss = {}  # ave loss for each dataset
+                epoch_subweightedloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+
                 #########     for changing weights #####################
                 # average loss in the first iterations of each epoch for each data
                 ave_loss_eachdata = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
