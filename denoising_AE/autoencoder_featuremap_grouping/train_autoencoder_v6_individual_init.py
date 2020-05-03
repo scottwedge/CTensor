@@ -533,7 +533,7 @@ def main():
    '''
 
     # ------ Raw data grouping V2 ------------- #
-
+    '''
     grouping_dict = {
         'group_1':  ['precipitation'],
         'group_2':  ['temperature', 'pressure', 'airquality'],
@@ -545,7 +545,7 @@ def main():
         'group_8':  ['building_permit'],
         'group_9': ['collisions', 'seattle911calls'],
     }
-
+    '''
 
 
     ########### grouping by feature maps using cosine distance  ########
@@ -628,6 +628,21 @@ def main():
     'group_6': ['POI_transportation', 'slope'],
     }
     '''
+
+    # updated on May 1, based on denoise alltoall shuffle
+    grouping_dict = {
+    'group_1':  ['precipitation', 'temperature'],
+    'group_2': ['pressure', 'airquality'],
+    'group_3':  ['house_price', 'transit_signals'],
+    'group_4':  ['POI_business'],
+    'group_5':  ['POI_food', 'POI_government', 'POI_hospitals', 'POI_recreation', 'POI_school', 'seattle_street', 'transit_stop'],
+    'group_6': ['POI_publicservices'],
+    'group_7': ['POI_transportation', 'total_flow_count', 'transit_routes', 'slope', 'bikelane'],
+    'group_8': ['building_permit', 'seattle911calls'],
+    'group_9': ['collisions']
+    }
+
+
 
     ###############  random grouping #############################
     '''
