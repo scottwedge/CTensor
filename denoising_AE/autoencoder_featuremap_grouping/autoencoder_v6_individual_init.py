@@ -56,17 +56,18 @@ def generate_fixlen_timeseries(rawdata_arr, timestep = TIMESTEPS):
 
 
 # create sequences in real time
-def create_mini_batch_1d(start_idx, end_idx,  data_1d):
-    # data_3d : (45984, 32, 20, ?)
-    # data_1d: (45984, ?)
-    # data_2d: (32, 20, ?)
-    test_size = end_idx - start_idx
-
-    test_data_1d = data_1d[start_idx:end_idx + TIMESTEPS - 1,:]
-    test_data_1d_seq = generate_fixlen_timeseries(test_data_1d)
-    test_data_1d_seq = np.swapaxes(test_data_1d_seq,0,1)
-    # (168, batchsize, dim)
-    return test_data_1d_seq
+# def create_mini_batch_1d(start_idx, end_idx,  data_1d):
+#     # data_3d : (45984, 32, 20, ?)
+#     # data_1d: (45984, ?)
+#     # data_2d: (32, 20, ?)
+#     test_size = end_idx - start_idx
+#
+#     # test_data_1d = data_1d[start_idx:end_idx + 168 - 1,:]
+#     test_data_1d = data_1d[start_idx:end_idx + TIMESTEPS - 1,:]
+#     test_data_1d_seq = generate_fixlen_timeseries(test_data_1d)
+#     test_data_1d_seq = np.swapaxes(test_data_1d_seq,0,1)
+#     # (168, batchsize, dim)
+#     return test_data_1d_seq
 
 # output: batchsize, h, w, dim
 def create_mini_batch_2d(start_idx, end_idx,  data_2d):
@@ -79,6 +80,7 @@ def create_mini_batch_2d(start_idx, end_idx,  data_2d):
     # (batchsize, 32, 20, 20)
     return test_data_2d
 
+
 # note: 3d data has different time steps
 # if hourly, output [batchsize, 168, w, h, dim]
 # iif 24-hour, output [batchsize, 7, w, h, dim]
@@ -87,27 +89,47 @@ def create_mini_batch_2d(start_idx, end_idx,  data_2d):
 (1916, 32, 20)
 (45984, 32, 20)
 '''
-def create_mini_batch_3d(start_idx, end_idx,data_3d, timestep):
-    # data_3d : (45984, 32, 20, ?)
-    # data_1d: (45984, ?)
-    # data_2d: (32, 20, ?)
+# def create_mini_batch_3d(start_idx, end_idx,data_3d, timestep):
+#     # data_3d : (45984, 32, 20, ?)
+#     # data_1d: (45984, ?)
+#     # data_2d: (32, 20, ?)
+#
+#     test_size = end_idx - start_idx
+#     # handle different time frame
+#     test_data_3d = data_3d[start_idx :end_idx + timestep - 1, :, :]
+#     test_data_3d_seq = generate_fixlen_timeseries(test_data_3d, timestep)
+#     test_data_3d_seq = np.expand_dims(test_data_3d_seq, axis=4)
+#     test_data_3d_seq = np.swapaxes(test_data_3d_seq,0,1)
+#     # (timestep (168/56/7), batchsize, 32, 20, 1)
+#     return test_data_3d_seq
 
-    test_size = end_idx - start_idx
-    # handle different time frame
-    # shape should be (batchsize, 7, 32, 20, 1), but for 24 hours in a day
-    # the sequence should be the same.
-    # if timestep == DAILY_TIMESTEPS:
-    #     # (7, 45840, 32, 20)
-    #     test_data_3d_seq = data_3d[:, start_idx :end_idx, :, :]
-    #     test_data_3d_seq = np.expand_dims(test_data_3d_seq, axis=4)
-    #     test_data_3d_seq = np.swapaxes(test_data_3d_seq,0,1)
-    # else:
-    test_data_3d = data_3d[start_idx :end_idx + timestep - 1, :, :]
-    test_data_3d_seq = generate_fixlen_timeseries(test_data_3d, timestep)
-    test_data_3d_seq = np.expand_dims(test_data_3d_seq, axis=4)
-    test_data_3d_seq = np.swapaxes(test_data_3d_seq,0,1)
-    # (timestep (168/56/7), batchsize, 32, 20, 1)
-    return test_data_3d_seq
+
+def create_mini_batch_3d(start_index_list, start_idx, end_idx, data_3d, timestep):
+    raw_seq_list = list()
+    # arr_shape: [# of timestamps, w, h]
+    arr_shape = data_3d.shape
+    for start in start_index_list[start_idx: end_idx]:
+        end = start + timestep
+        # print('3d:start: end',  start, end)
+        temp_seq = data_3d[start: end]
+        raw_seq_list.append(temp_seq)
+    raw_seq_arr = np.array(raw_seq_list)
+    raw_seq_arr = np.expand_dims(raw_seq_arr, axis=4)
+    return raw_seq_arr
+
+
+def create_mini_batch_1d(start_index_list, start_idx, end_idx, data_1d):
+    raw_seq_list = list()
+    # arr_shape: [# of timestamps, w, h]
+    arr_shape = data_1d.shape
+    for start in start_index_list[start_idx: end_idx]:
+        end = start + TIMESTEPS
+        # print('1d: start: end',  start, end)
+        temp_seq = data_1d[start: end]
+        raw_seq_list.append(temp_seq)
+    raw_seq_arr = np.array(raw_seq_list)
+
+    return raw_seq_arr
 
 
 
@@ -999,6 +1021,10 @@ class Autoencoder:
             for epoch in range(start_epoch, epochs):
                 print('Epoch', epoch, 'started', end='')
                 start_time = datetime.datetime.now()
+
+                start_index_list = list(range(0, 45984-24))
+                shuffle(start_index_list)
+
                 epoch_loss = 0
                 epoch_subloss = {}  # ave loss for each dataset
                 epoch_total_loss = 0  # sum of equal loss
@@ -1026,11 +1052,11 @@ class Autoencoder:
                     feed_dict_all = {}  # tf_var:  tensor
                     # create batches for 1d
                     for k, v in rawdata_1d_dict.items():
-                        temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
+                        temp_batch = create_mini_batch_1d(start_index_list, start_idx, end_idx, v)
                         feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
 
                     for k, v in rawdata_1d_corrupted_dict.items():
-                        temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
+                        temp_batch = create_mini_batch_1d(start_index_list, start_idx, end_idx, v)
                         feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
 
                     # create batches for 2d
@@ -1049,14 +1075,14 @@ class Autoencoder:
                         timestep = TIMESTEPS
                         # else:
                         #     timestep = DAILY_TIMESTEPS
-                        temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
+                        temp_batch = create_mini_batch_3d(start_index_list, start_idx, end_idx, v, timestep)
                         # feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
                         feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
 
                     for k, v in rawdata_3d_corrupted_dict.items():
                         # if k == 'seattle911calls':
                         timestep = TIMESTEPS
-                        temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
+                        temp_batch = create_mini_batch_3d(start_index_list, start_idx, end_idx, v, timestep)
     #                     print('3d temp_batch.shape: ',temp_batch.shape)
                         feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
 
@@ -1170,11 +1196,11 @@ class Autoencoder:
                     test_feed_dict_all = {}  # tf_var:  tensor
                     # create batches for 1d
                     for k, v in rawdata_1d_dict.items():
-                        temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
+                        temp_batch = create_mini_batch_1d(start_index_list, start_idx, end_idx, v)
                         # test_feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
                         test_feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
                     for k, v in rawdata_1d_corrupted_dict.items():
-                        temp_batch = create_mini_batch_1d(start_idx, end_idx, v)
+                        temp_batch = create_mini_batch_1d(start_index_list, start_idx, end_idx, v)
                         test_feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
 
                     # create batches for 2d
@@ -1192,14 +1218,14 @@ class Autoencoder:
                         timestep = TIMESTEPS
                         # else:
                         #     timestep = DAILY_TIMESTEPS
-                        temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
+                        temp_batch = create_mini_batch_3d(start_index_list, start_idx, end_idx, v, timestep)
                         # test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
                         test_feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
 
                     for k, v in rawdata_3d_corrupted_dict.items():
                         #if k == 'seattle911calls':
                         timestep = TIMESTEPS
-                        temp_batch = create_mini_batch_3d(start_idx, end_idx, v, timestep)
+                        temp_batch = create_mini_batch_3d(start_index_list, start_idx, end_idx, v, timestep)
                         test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
 
 
