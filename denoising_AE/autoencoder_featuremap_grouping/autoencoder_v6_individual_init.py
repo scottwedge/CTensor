@@ -20,6 +20,7 @@ from tensorflow.python.keras import backend as K
 
 import pickle
 import copy
+from random import shuffle
 
 
 HEIGHT = 32
