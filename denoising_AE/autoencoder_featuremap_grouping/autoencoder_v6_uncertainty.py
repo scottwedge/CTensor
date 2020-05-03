@@ -267,6 +267,7 @@ class Autoencoder:
         self.is_training = tf.placeholder(tf.bool)
         self.global_step = tf.Variable(0, trainable=False)
         self.dataset_keys = list(rawdata_1d_dict.keys()) + list(rawdata_2d_dict.keys()) + list(rawdata_3d_dict.keys())
+        self.number_of_tasks = len(rawdata_1d_dict)+ len(rawdata_2d_dict) + len(rawdata_3d_dict)
 
         self.rawdata_1d_tf_x_dict = {}
         self.rawdata_1d_tf_y_dict = {}
