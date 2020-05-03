@@ -907,6 +907,9 @@ class Autoencoder:
                 print('load last saved weight_per_epoch dict')
                 with open(save_folder_path + 'weight_per_epoch_dict', 'rb') as handle:
                     weight_per_epoch = pickle.load(handle)
+                print('load last L0 dict')
+                with open(save_folder_path + 'L0_dict', 'rb') as handle2:
+                    L0_dict = pickle.load(handle2)
 
             else:
                 start_epoch = 0
@@ -926,13 +929,15 @@ class Autoencoder:
             all_inv_rate = {k: [1] for k in self.dataset_keys}
             all_ave_loss_eachdata = {k: [] for k in self.dataset_keys}
 
-            L0_dict = {}  # base cost for each dataset
+
             # change weights every epoch, using the first 'starter_interation' iterations
             starter_interation =  STARTER_ITERATION
             # calculated weight this epoch
             if not resume_training:
                 print('re-intiate weight for all losses as 1')
                 weight_per_epoch = dict(zip(self.dataset_keys, [1]*len(self.dataset_keys)))
+                L0_dict = {}  # base cost for each dataset
+
             inv_rate = dict(zip(self.dataset_keys, [1]*len(self.dataset_keys)))
             # to calculate average inverse training rate
             for epoch in range(start_epoch, epochs):
@@ -1360,11 +1365,16 @@ class Autoencoder:
 
                 # save the latest weight_per_epoch
                 weight_per_epoch_file = open(save_folder_path + 'weight_per_epoch_dict', 'wb')
-                # dump information to that file
-                # number of batches, num_dataset, batchsize, h, w, dim
                 print('dumping weight_per_epoch_file to pickle')
                 pickle.dump(weight_per_epoch, weight_per_epoch_file)
                 weight_per_epoch_file.close()
+
+                # L0_dict
+                L0_dict_file = open(save_folder_path + 'L0_dict', 'wb')
+                print('dumping L0_dict_file to pickle')
+                pickle.dump(L0_dict, L0_dict_file)
+                L0_dict_file.close()
+
 
                 # save results to txt
                 txt_name = save_folder_path + 'denoising_AE_v2_df_' +  '.txt'
