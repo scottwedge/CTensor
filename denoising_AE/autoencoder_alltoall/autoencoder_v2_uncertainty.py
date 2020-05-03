@@ -1047,11 +1047,17 @@ class Autoencoder:
                             ave_loss_eachdata[k] = float(v / starter_interation)
                             # ave_loss_eachdata of all epochs
                             all_ave_loss_eachdata[k].append(ave_loss_eachdata[k])
+
+                            ##########################################################
                             # compare to ave loss of previous epoch
                             if epoch == 0:
                                 lhat_dict[k] = ave_loss_eachdata[k] / L0_dict[k]
                             else:
                                 lhat_dict[k] = ave_loss_eachdata[k] / all_ave_loss_eachdata[k][-2]
+                            ##########################################################
+                            # compare to L0
+                            # lhat_dict[k] = ave_loss_eachdata[k] / L0_dict[k]
+
                         #lhat_avg = tf.div(tf.add_n(list(lhat_dict.values())), self.number_of_tasks)
                         lhat_avg = sum(list(lhat_dict.values())) / self.number_of_tasks
                         # inverse training rate for this epoch
