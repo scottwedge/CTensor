@@ -1358,7 +1358,7 @@ class Autoencoder:
                 # number of batches, num_dataset, batchsize, h, w, dim
                 print('dumping weight_per_epoch_file to pickle')
                 pickle.dump(weight_per_epoch, weight_per_epoch_file)
-                recon_file.close()
+                weight_per_epoch_file.close()
 
                 # save results to txt
                 txt_name = save_folder_path + 'denoising_AE_v2_df_' +  '.txt'
