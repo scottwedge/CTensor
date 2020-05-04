@@ -233,7 +233,7 @@ class Conv3DPredictor:
         self.channel = channel
 
         # [batchsize, depth, height, width, channel]
-        self.x = tf.placeholder(tf.float32, shape=[None,time_steps, height, width, channel], name = 'x_input')
+        self.x = tf.placeholder(tf.float32, shape=[None,time_steps, height, width, channel + NUM_3D_FEA], name = 'x_input')
         #
         #y_input = tf.placeholder(tf.float32, shape=[None, n_classes])
         self.y = tf.placeholder(tf.float32, shape= [None, height, width, channel], name = 'y_input')
@@ -657,7 +657,6 @@ class Conv3DPredictor:
 
                         _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             self.input_1d_feature:mini_batch_data_1d,  self.input_2d_feature: mini_batch_data_2d,
-
                                                             self.is_training: True   })
                     elif data_1d_train is not None:  # 1d and 3d
                         _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
