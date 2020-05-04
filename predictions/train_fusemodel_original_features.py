@@ -662,8 +662,8 @@ def main():
         print('data_3d.shape: ', data_3d.shape)
         fea_seq_arr_3d = train_obj.generate_fixlen_timeseries(data_3d)
         fea_train_arr_3d, fea_test_arr_3d = train_obj.train_test_split(fea_seq_arr_3d)
-        print('fea_train_arr_3d.shape: ', fea_train_arr_3d.shape)
-        print('train_arr.shape: ', train_arr.shape)
+        print('fea_train_arr_3d.shape: ', fea_train_arr_3d.shape) # (169, 8040, 32, 20, 3)
+        print('train_arr.shape: ', train_arr.shape) # (169, 8040, 32, 20)
         # concatenate with bikeshare data
         train_arr = np.expand_dims(train_arr, axis=4)
         test_arr = np.expand_dims(test_arr, axis=4)
