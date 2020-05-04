@@ -25,16 +25,7 @@ from datetime import timedelta
 import datetime_utils
 #import lstm
 import evaluation
-import convLSTM
-import convLSTM_earlyfusion
-import convLSTM_latefusion
-import conv_3d
-import conv_3d_latefusion
-import conv_3d_baseline
-import conv_3d_mean_diff
-import conv_3d_metric2
-import conv_3d_pairwise
-import fused_model
+
 import fused_model_augment
 
 from matplotlib import pyplot as plt
@@ -942,8 +933,8 @@ def main():
     plt.savefig(save_path + 'total_loss_finish.png')
     acc_loss = train_test[['train_acc', 'test_acc']].plot()
     plt.savefig(save_path + 'acc_loss_finish.png')
-    fair_loss = train_test[['train_fair', 'test_fair']].plot()
-    plt.savefig(save_path + 'fair_loss_finish.png')
+    # fair_loss = train_test[['train_fair', 'test_fair']].plot()
+    # plt.savefig(save_path + 'fair_loss_finish.png')
     plt.close()
 
 
@@ -961,11 +952,7 @@ def main():
         the_file.write(str(use_1d_fea) + '\n')
         the_file.write('use_2d_fea\n')
         the_file.write(str(use_2d_fea) + '\n')
-        the_file.write('fairloss\n')
-        the_file.write(str(fairloss) + '\n')
-        the_file.write('multivar\n')
-        the_file.write(str(multivar) + '\n')
-        the_file.write('learning rate\n')
+
         the_file.write(str(LEARNING_RATE) + '\n')
 
         the_file.write('rmse for conv3d\n')
@@ -973,29 +960,6 @@ def main():
         the_file.write('mae for conv3d\n')
         the_file.write(str(eval_obj4.mae_val)+ '\n')
 
-        the_file.write('mean_diff_percap for bi_caucasian: \n')
-        the_file.write(str(diff_df['bi_caucasian']['mean_diff_percap'])+ '\n')
-
-        the_file.write('mean_diff_percap for bi_age: \n')
-        the_file.write(str(diff_df['bi_age']['mean_diff_percap'])+ '\n')
-
-        the_file.write('mean_diff_percap for bi_high_incm: \n')
-        the_file.write(str(diff_df['bi_high_incm']['mean_diff_percap'])+ '\n')
-
-        the_file.write('mean_diff_percap for bi_edu_univ: \n')
-        the_file.write(str(diff_df['bi_edu_univ']['mean_diff_percap'])+ '\n')
-
-        the_file.write('mean_diff_percap for bi_nocar_hh: \n')
-        the_file.write(str(diff_df['bi_nocar_hh']['mean_diff_percap'])+ '\n')
-
-        the_file.write('individual difference for caucasian_non_caucasian: \n')
-        the_file.write(str(finegrain_diff_df['caucasian_non_caucasian']['diff'])+ '\n')
-
-        the_file.write('individual difference for young_senior: \n')
-        the_file.write(str(finegrain_diff_df['young_senior']['diff'])+ '\n')
-
-        the_file.write('individual difference for high_edu_low_edu: \n')
-        the_file.write(str(finegrain_diff_df['high_edu_low_edu']['diff'])+ '\n')
 
 
         the_file.close()
