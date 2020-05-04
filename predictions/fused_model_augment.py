@@ -641,7 +641,7 @@ class Conv3DPredictor:
                 start_time_epoch = datetime.datetime.now()
                 print('Epoch', epoch, 'started', end='')
                 epoch_loss = 0
-                epoch_fairloss = 0
+        
                 epoch_accloss = 0
                 # mini batch
                 for itr in range(iterations):
@@ -810,8 +810,8 @@ class Conv3DPredictor:
 
                 # save epoch statistics to csv
                 ecoch_res_df = pd.DataFrame([[epoch_loss, test_cost/itrs, epoch_accloss, test_acc_loss/itrs,
-                              epoch_fairloss, test_fair_loss/itrs]],
-                    columns=[ 'train_loss','test_loss', 'train_acc', 'test_acc', 'train_fair', 'test_fair'])
+                              ]],
+                    columns=[ 'train_loss','test_loss', 'train_acc', 'test_acc'])
 
                 res_csv_path = save_folder_path + 'ecoch_res_df_' + str(lamda)+'.csv'
 
@@ -820,7 +820,7 @@ class Conv3DPredictor:
                     ecoch_res_df.to_csv(f, header=f.tell()==0)
 
                 # save results to txt
-                txt_name = save_folder_path + 'fusion_df_' +str(lamda)+ '_' + str(fairloss_func)+  '.txt'
+                txt_name = save_folder_path + 'fusion_df_' +str(lamda)+ '.txt'
                 with open(txt_name, 'w') as the_file:
                     #the_file.write('Only account for grids that intersect with city boundary \n')
                     the_file.write('epoch\n')
