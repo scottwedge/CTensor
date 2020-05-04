@@ -803,7 +803,7 @@ def main():
                                          demo_mask_arr,
                             save_path,
                             HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
-                     NUM_2D_FEA, NUM_1D_FEA, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE).conv3d_predicted
+                     NUM_3D_FEA, NUM_2D_FEA, NUM_1D_FEA, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE).conv3d_predicted
     else:
          # resume training
         print('resume trainging from : ', train_dir)
@@ -814,7 +814,7 @@ def main():
                                          demo_mask_arr,
                             train_dir,
                             HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
-                     NUM_2D_FEA, NUM_1D_FEA, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
+                     NUM_3D_FEA, NUM_2D_FEA, NUM_1D_FEA, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                             False, checkpoint, True, train_dir).conv3d_predicted
 
 

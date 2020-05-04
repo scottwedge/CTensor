@@ -848,7 +848,7 @@ class Conv3D:
                      demo_mask_arr,
                      save_path,
                      HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
-                     NUM_2D_FEA, NUM_1D_FEA, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
+                     NUM_3D_FEA, NUM_2D_FEA, NUM_1D_FEA, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                      is_inference = False, checkpoint_path = None,
                      resume_training = False, train_dir = None
                      ):
