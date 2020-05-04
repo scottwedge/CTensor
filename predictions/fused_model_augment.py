@@ -800,12 +800,12 @@ class Conv3DPredictor:
                 end_time_epoch = datetime.datetime.now()
                 #print(' Testing Set Accuracy:',test_cost/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
                 print(' Testing Set Cost:',test_cost/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
-                
+
                 print(' Testing Set Accuracy Cost:',test_acc_loss/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
 
                 #save_folder_path  = './fusion_model_'+ str(lamda)+'/'
                 # save globel step for resuming training later
-                save_path = saver.save(sess, save_folder_path +'fusion_model_' + str(lamda)+'_'+str(epoch)+'.ckpt', global_step=self.global_step)
+                save_path = saver.save(sess, save_folder_path +'fusion_model_' +str(epoch)+'.ckpt', global_step=self.global_step)
                 print('Model saved to {}'.format(save_path))
 
                 # save epoch statistics to csv
