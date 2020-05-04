@@ -523,17 +523,6 @@ class Conv3DPredictor:
         demo_mask_arr_expanded = tf.tile(demo_mask_arr_expanded, [tf.shape(prediction)[0],1,1,1])
         weight = tf.cast(tf.greater(demo_mask_arr_expanded, 0), tf.float32)
         acc_loss = tf.losses.absolute_difference(prediction, self.y, weight)
-
-        # if fairloss_func != None:
-        # if fairloss_func == "RFG":
-        #     fair_loss = multi_var_mean_diff(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-        # if fairloss_func == "IFG":
-        #     fair_loss = multi_var_fine_grained_diff(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-        # if fairloss_func == "equalmean":
-        #     fair_loss = equal_mean(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2,
-        #                 grid_g1, grid_g2, demo_mask_arr)
-        # if fairloss_func == "pairwise":
-        #     fair_loss = pairwise_fairloss(prediction, self.y, demo_sensitive, demo_pop, demo_mask_arr)
         cost = acc_loss
 
 
@@ -640,7 +629,7 @@ class Conv3DPredictor:
                     # epoch_fairloss += _fair_loss
                     epoch_accloss += _acc_loss
 
-                    if itr % 10 == 0:
+                    if itr % 1 == 0:
                         #print('epoch: {}, step: {}\t\ttrain err: {}'.format(epoch, itr, _cost))
                         print('epoch: {}, step: {}, train err: {}, mae:{}'.format(epoch, itr, _cost, _acc_loss))
 
