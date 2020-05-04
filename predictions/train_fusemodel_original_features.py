@@ -503,11 +503,11 @@ def main():
         rawdata = pd.read_csv('lime_whole_grid_32_20_hourly_1000_171001-181031.csv', index_col = 0)
         rawdata.index = pd.to_datetime(rawdata.index)
         # a set of region codes (e.g.: 10_10) that intersect with the city
-        intersect_pos = pd.read_csv('intersect_pos_32_20.csv')
+        intersect_pos = pd.read_csv('../auxillary_data/intersect_pos_32_20.csv')
         intersect_pos_set = set(intersect_pos['0'].tolist())
         # demographic data
         # should use 2018 data
-        demo_raw = pd.read_csv('../UW_lib/whole_grid_32_20_demo_1000_intersect_geodf_2018_corrected.csv', index_col = 0)
+        demo_raw = pd.read_csv('../auxillary_data/whole_grid_32_20_demo_1000_intersect_geodf_2018_corrected.csv', index_col = 0)
         train_obj = train(rawdata, demo_raw)
         #ignore non-intersection cells in test_df
         # this is for evaluation
