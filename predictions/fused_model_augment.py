@@ -171,9 +171,8 @@ class generateData_1d(object):
 
 class Conv3DPredictor:
     # input_dim = 1, seq_size = 168,
-    def __init__(self, intersect_pos_set, demo_sensitive, demo_pop, pop_g1, pop_g2,
-                                grid_g1, grid_g2, fairloss,
-                                     lamda, demo_mask_arr, channel, time_steps, height, width):
+    def __init__(self, intersect_pos_set,
+                     demo_mask_arr, channel, time_steps, height, width):
 
         self.time_steps = time_steps
         self.width = width
@@ -908,7 +907,7 @@ class Conv3D:
     def run_conv3d(self):
         tf.reset_default_graph()
         # self, channel, time_steps, height, width
-        predictor = Conv3DPredictor(self.intersect_pos_set, self.demo_sensitive, self.demo_pop,
+        predictor = Conv3DPredictor(self.intersect_pos_set,
                                     # self.pop_g1, self.pop_g2,self.grid_g1, self.grid_g2, self.fairloss,
                                     # self.data_2d, self.data_1d.X, self.data_2d, self.data_1d_test.X,
                                  self.demo_mask_arr, channel=BIKE_CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH,
@@ -956,7 +955,7 @@ class Conv3D:
     def run_resume_training(self):
         tf.reset_default_graph()
         # self, channel, time_steps, height, width
-        predictor = Conv3DPredictor(self.intersect_pos_set, self.demo_sensitive, self.demo_pop,
+        predictor = Conv3DPredictor(self.intersect_pos_set,
                                     self.pop_g1, self.pop_g2,self.grid_g1, self.grid_g2, self.fairloss,
                                     # self.data_2d, self.data_1d.X, self.data_2d, self.data_1d_test.X,
                                      self.lamda, self.demo_mask_arr, channel=BIKE_CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH,
