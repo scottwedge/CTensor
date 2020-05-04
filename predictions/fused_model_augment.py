@@ -535,7 +535,7 @@ class Conv3DPredictor:
                      # grid_g1, grid_g2, fairloss_func,
                       demo_mask_arr,
                       data_2d_train, data_1d_train, data_2d_test, data_1d_test,
-
+                      data_3d_train, data_3d_test,
                       save_folder_path,
                     resume_training = False, checkpoint_path = None,
                       keep_rate=0.7, epochs=10, batch_size=64):
@@ -638,9 +638,10 @@ class Conv3DPredictor:
                 for itr in range(iterations):
                     mini_batch_x = x_train_data[itr*batch_size: (itr+1)*batch_size]
                     mini_batch_y = y_train_data[itr*batch_size: (itr+1)*batch_size]
-
                     # model fusion
                     mini_batch_data_3d = data_3d_train[itr*batch_size: (itr+1)*batch_size]
+                    mini_batch_x = np.concatenate([mini_batch_x,mini_batch_data_3d], axis=4)
+
                     if data_1d_train is not None:
                         mini_batch_data_1d = data_1d_train[itr*batch_size: (itr+1)*batch_size]
                     else:
@@ -701,6 +702,10 @@ class Conv3DPredictor:
                     mini_batch_y_test = y_test_data[itr*batch_size: (itr+1)*batch_size]
                     # model fusion
                     mini_batch_data_3d_test = data_3d_test[itr*batch_size: (itr+1)*batch_size]
+                    mini_batch_x_test = np.concatenate([mini_batch_x_test,mini_batch_data_3d_test], axis=4)
+
+
+
                     if data_1d_test is not None:
                         mini_batch_data_1d_test = data_1d_test[itr*batch_size: (itr+1)*batch_size]
                     else:
@@ -847,6 +852,7 @@ class Conv3D:
                     # demo_sensitive, demo_pop, pop_g1, pop_g2,
                     # grid_g1, grid_g2, fairloss,
                     train_arr_1d, test_arr_1d, data_2d,
+                    fea_train_arr_3d, fea_test_arr_3d,
                      demo_mask_arr,
                      save_path,
                      HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
@@ -878,6 +884,8 @@ class Conv3D:
         self.train_arr_1d = train_arr_1d
         self.test_arr_1d = test_arr_1d
         self.data_2d = data_2d
+        self.fea_train_arr_3d = fea_train_arr_3d
+        self.fea_test_arr_3d = fea_test_arr_3d
         self.save_path = save_path
 
         globals()['HEIGHT']  = HEIGHT
@@ -948,14 +956,14 @@ class Conv3D:
                                     )
         #data = data_loader.load_series('international-airline-passengers.csv')
         # rawdata, timesteps, batchsize
-        self.train_data = generateData_3d_feature(self.train_arr, TIMESTEPS, BATCH_SIZE)
-        self.test_data = generateData_3d_feature(self.test_arr, TIMESTEPS, BATCH_SIZE)
+        self.train_data = generateData(self.train_arr, TIMESTEPS, BATCH_SIZE)
+        self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
         print('test_data.y.shape', self.test_data.y.shape)
         # create batch data for 3d data
-        # self.train_data_3d = generateData(self.fea_train_arr_3d, TIMESTEPS, BATCH_SIZE)
-        # self.test_data_3d = generateData(self.fea_test_arr_3d, TIMESTEPS, BATCH_SIZE)
-        # self.train_data_3d_X = np.squeeze(self.train_data_3d.X, axis = 4)
-        # self.test_data_3d_X= np.squeeze(self.test_data_3d.X, axis = 4)
+        self.train_data_3d = generateData(self.fea_train_arr_3d, TIMESTEPS, BATCH_SIZE)
+        self.test_data_3d = generateData(self.fea_test_arr_3d, TIMESTEPS, BATCH_SIZE)
+        self.train_data_3d_X = np.squeeze(self.train_data_3d.X, axis = 4)
+        self.test_data_3d_X= np.squeeze(self.test_data_3d.X, axis = 4)
 
         self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
         self.test_data_1d = generateData_1d(self.test_arr_1d, TIMESTEPS, BATCH_SIZE)
@@ -966,7 +974,7 @@ class Conv3D:
                     #  self.grid_g1, self.grid_g2, self.fairloss,
                      self.demo_mask_arr,
                     self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
-                    # self.train_data_3d_X, self.test_data_3d_X,
+                    self.train_data_3d_X, self.test_data_3d_X,
                       self.save_path,
 
                  epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
@@ -995,14 +1003,14 @@ class Conv3D:
                                     )
         #data = data_loader.load_series('international-airline-passengers.csv')
         # rawdata, timesteps, batchsize
-        self.train_data = generateData_3d_feature(self.train_arr, TIMESTEPS, BATCH_SIZE)
-        self.test_data = generateData_3d_feature(self.test_arr, TIMESTEPS, BATCH_SIZE)
+        self.train_data = generateData(self.train_arr, TIMESTEPS, BATCH_SIZE)
+        self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
         print('test_data.y.shape', self.test_data.y.shape)
 
-        # self.train_data_3d = generateData(self.fea_train_arr_3d, TIMESTEPS, BATCH_SIZE)
-        # self.test_data_3d = generateData(self.fea_test_arr_3d, TIMESTEPS, BATCH_SIZE)
-        # self.train_data_3d_X = np.squeeze(self.train_data_3d.X, axis = 4)
-        # self.test_data_3d_X= np.squeeze(self.test_data_3d.X, axis = 4)
+        self.train_data_3d = generateData(self.fea_train_arr_3d, TIMESTEPS, BATCH_SIZE)
+        self.test_data_3d = generateData(self.fea_test_arr_3d, TIMESTEPS, BATCH_SIZE)
+        self.train_data_3d_X = np.squeeze(self.train_data_3d.X, axis = 4)
+        self.test_data_3d_X= np.squeeze(self.test_data_3d.X, axis = 4)
 
 
         self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
@@ -1014,7 +1022,7 @@ class Conv3D:
                     # self.grid_g1, self.grid_g2, self.fairloss,
                  self.demo_mask_arr,
                     self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
-                    # self.train_data_3d_X, self.test_data_3d_X,
+                    self.train_data_3d_X, self.test_data_3d_X,
                       self.train_dir, self.checkpoint_path,
                  epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 

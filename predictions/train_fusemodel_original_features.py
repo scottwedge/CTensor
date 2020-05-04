@@ -665,12 +665,12 @@ def main():
         print('fea_train_arr_3d.shape: ', fea_train_arr_3d.shape) # (169, 8040, 32, 20, 3)
         print('train_arr.shape: ', train_arr.shape) # (169, 8040, 32, 20)
         # concatenate with bikeshare data
-        train_arr = np.expand_dims(train_arr, axis=4)
-        test_arr = np.expand_dims(test_arr, axis=4)
-
-        train_arr = np.concatenate([train_arr,fea_train_arr_3d], axis=4)
-        test_arr = np.concatenate([test_arr,fea_test_arr_3d], axis=4)
-        print('train_arr.shape: ', train_arr.shape)
+        # train_arr = np.expand_dims(train_arr, axis=4)
+        # test_arr = np.expand_dims(test_arr, axis=4)
+        #
+        # train_arr = np.concatenate([train_arr,fea_train_arr_3d], axis=4)
+        # test_arr = np.concatenate([test_arr,fea_test_arr_3d], axis=4)
+        # print('train_arr.shape: ', train_arr.shape)
 
 
         globals()['NUM_2D_FEA']  = data_2d.shape[-1]
@@ -799,7 +799,7 @@ def main():
         conv3d_predicted = fused_model_augment.Conv3D(train_obj, train_arr, test_arr, intersect_pos_set,
                                             # multi_demo_sensitive, demo_pop, multi_pop_g1, multi_pop_g2,
                                             # multi_grid_g1, multi_grid_g2, fairloss,
-                                            train_arr_1d, test_arr_1d, data_2d,
+                                            train_arr_1d, test_arr_1d, data_2d,fea_train_arr_3d, fea_test_arr_3d,
                                          demo_mask_arr,
                             save_path,
                             HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
@@ -810,7 +810,7 @@ def main():
         conv3d_predicted = fused_model_augment.Conv3D(train_obj, train_arr, test_arr, intersect_pos_set,
                                             # multi_demo_sensitive, demo_pop, multi_pop_g1, multi_pop_g2,
                                             # multi_grid_g1, multi_grid_g2,fairloss,
-                                            train_arr_1d, test_arr_1d, data_2d,
+                                            train_arr_1d, test_arr_1d, data_2d,fea_train_arr_3d, fea_test_arr_3d,
                                          demo_mask_arr,
                             train_dir,
                             HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
