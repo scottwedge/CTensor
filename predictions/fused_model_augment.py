@@ -488,13 +488,13 @@ class Conv3DPredictor:
     # data_2d_train, data_1d_train, data_2d_test, data_1d_test: these could be None
     # TODO: fix fairloss for Austin
     def train_neural_network(self, x_train_data, y_train_data, x_test_data, y_test_data,
-                     demo_sensitive, demo_pop,pop_g1, pop_g2,
-                     grid_g1, grid_g2, fairloss_func,
-                     lamda, demo_mask_arr,
+                     # demo_sensitive, demo_pop,pop_g1, pop_g2,
+                     # grid_g1, grid_g2, fairloss_func,
+                      demo_mask_arr,
                       data_2d_train, data_1d_train, data_2d_test, data_1d_test,
                       data_3d_train, data_3d_test,
                       save_folder_path,
-                      beta = math.e,
+
                       keep_rate=0.7, epochs=10, batch_size=64):
 
         #global_step = tf.Variable(0, trainable=False)
@@ -534,16 +534,16 @@ class Conv3DPredictor:
         acc_loss = tf.losses.absolute_difference(prediction, self.y, weight)
 
         # if fairloss_func != None:
-        if fairloss_func == "RFG":
-            fair_loss = multi_var_mean_diff(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-        if fairloss_func == "IFG":
-            fair_loss = multi_var_fine_grained_diff(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-        if fairloss_func == "equalmean":
-            fair_loss = equal_mean(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2,
-                        grid_g1, grid_g2, demo_mask_arr)
-        if fairloss_func == "pairwise":
-            fair_loss = pairwise_fairloss(prediction, self.y, demo_sensitive, demo_pop, demo_mask_arr)
-        cost = acc_loss + lamda * fair_loss
+        # if fairloss_func == "RFG":
+        #     fair_loss = multi_var_mean_diff(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
+        # if fairloss_func == "IFG":
+        #     fair_loss = multi_var_fine_grained_diff(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
+        # if fairloss_func == "equalmean":
+        #     fair_loss = equal_mean(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2,
+        #                 grid_g1, grid_g2, demo_mask_arr)
+        # if fairloss_func == "pairwise":
+        #     fair_loss = pairwise_fairloss(prediction, self.y, demo_sensitive, demo_pop, demo_mask_arr)
+        cost = acc_loss
 
 
         # for batch normalization is_training
@@ -594,7 +594,9 @@ class Conv3DPredictor:
                 for itr in range(iterations):
                     mini_batch_x = x_train_data[itr*batch_size: (itr+1)*batch_size]
                     mini_batch_y = y_train_data[itr*batch_size: (itr+1)*batch_size]
+
                     # model fusion
+                    mini_batch_data_3d = data_3d_train[itr*batch_size: (itr+1)*batch_size]
                     if data_1d_train is not None:
                         mini_batch_data_1d = data_1d_train[itr*batch_size: (itr+1)*batch_size]
                     else:
@@ -608,23 +610,24 @@ class Conv3DPredictor:
                     # 1d, 2d, and 3d
                     if data_1d_train is not None and data_2d_train is not None:
 
-                        _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
+                        _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             self.input_1d_feature:mini_batch_data_1d,  self.input_2d_feature: mini_batch_data_2d,
+                                                            self.input_3d_feature:mini_batch_data_3d,
                                                             self.is_training: True   })
                     elif data_1d_train is not None:  # 1d and 3d
-                        _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
+                        _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             self.input_1d_feature:mini_batch_data_1d,
                                                             self.is_training: True   })
                     elif data_2d_train is not None:
-                        _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
+                        _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             self.input_2d_feature: mini_batch_data_2d,
                                                             self.is_training: True   })
                     else: # only 3d
-                        _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
+                        _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             self.is_training: True   })
 
                     epoch_loss += _cost
-                    epoch_fairloss += _fair_loss
+                    # epoch_fairloss += _fair_loss
                     epoch_accloss += _acc_loss
 
                     if itr % 10 == 0:
@@ -633,18 +636,18 @@ class Conv3DPredictor:
 
                 # report loss per epoch
                 epoch_loss = epoch_loss/ iterations
-                epoch_fairloss = epoch_fairloss / iterations
+                # epoch_fairloss = epoch_fairloss / iterations
                 epoch_accloss = epoch_accloss / iterations
 
                 # train_acc_loss.append(epoch_accloss)
                 print('epoch: ', epoch, 'Trainig Set Epoch total Cost: ',epoch_loss)
-                print('epoch: ', epoch, 'Trainig Set Epoch fair Cost: ',epoch_fairloss)
+                # print('epoch: ', epoch, 'Trainig Set Epoch fair Cost: ',epoch_fairloss)
                 print('epoch: ', epoch, 'Trainig Set Epoch accuracy Cost: ',epoch_accloss)
 
                 #  using mini batch in case not enough memory
                 test_cost = 0
                 test_acc_loss = 0
-                test_fair_loss = 0
+                # test_fair_loss = 0
                 final_output = list()
 
                 print('testing')
@@ -653,6 +656,7 @@ class Conv3DPredictor:
                     mini_batch_x_test = x_test_data[itr*batch_size: (itr+1)*batch_size]
                     mini_batch_y_test = y_test_data[itr*batch_size: (itr+1)*batch_size]
                     # model fusion
+                    mini_batch_data_3d_test = data_3d_test[itr*batch_size: (itr+1)*batch_size]
                     if data_1d_test is not None:
                         mini_batch_data_1d_test = data_1d_test[itr*batch_size: (itr+1)*batch_size]
                     else:
@@ -668,10 +672,11 @@ class Conv3DPredictor:
                         #acc += sess.run(accuracy, feed_dict={x_input: mini_batch_x_test, y_input: mini_batch_y_test})
                         test_cost += sess.run(cost, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
                                             self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test ,
+                                            self.input_3d_feature:mini_batch_data_3d_test,
                                             self.is_training: True  })
-                        test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
-                                            self.is_training: True})
+                        # test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
+                        #                     self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
+                        #                     self.is_training: True})
                         test_acc_loss += sess.run(acc_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
                                             self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
                                             self.is_training: True})
@@ -684,9 +689,9 @@ class Conv3DPredictor:
                         test_cost += sess.run(cost, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
                                             self.input_1d_feature:mini_batch_data_1d_test,
                                             self.is_training: True  })
-                        test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_1d_feature:mini_batch_data_1d_test,
-                                            self.is_training: True})
+                        # test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
+                        #                     self.input_1d_feature:mini_batch_data_1d_test,
+                        #                     self.is_training: True})
                         test_acc_loss += sess.run(acc_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
                                             self.input_1d_feature:mini_batch_data_1d_test,
                                             self.is_training: True})
@@ -699,9 +704,9 @@ class Conv3DPredictor:
                         test_cost += sess.run(cost, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
                                             self.input_2d_feature: mini_batch_data_2d_test,
                                             self.is_training: True  })
-                        test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_2d_feature: mini_batch_data_2d_test,
-                                            self.is_training: True})
+                        # test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
+                        #                     self.input_2d_feature: mini_batch_data_2d_test,
+                        #                     self.is_training: True})
                         test_acc_loss += sess.run(acc_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
                                             self.input_2d_feature: mini_batch_data_2d_test,
                                             self.is_training: True})
@@ -712,8 +717,8 @@ class Conv3DPredictor:
                     else:
                         test_cost += sess.run(cost, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
                                           self.is_training: True  })
-                        test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.is_training: True})
+                        # test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
+                        #                     self.is_training: True})
                         test_acc_loss += sess.run(acc_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
                                             self.is_training: True})
                         batch_output = sess.run(prediction, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
@@ -727,7 +732,7 @@ class Conv3DPredictor:
                 end_time_epoch = datetime.datetime.now()
                 #print(' Testing Set Accuracy:',test_cost/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
                 print(' Testing Set Cost:',test_cost/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
-                print(' Testing Set Fair Cost:',test_fair_loss/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
+                #print(' Testing Set Fair Cost:',test_fair_loss/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
                 print(' Testing Set Accuracy Cost:',test_acc_loss/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
                 # test_acc_loss.append(test_acc_loss/itrs)
 
@@ -754,12 +759,12 @@ class Conv3DPredictor:
                     #the_file.write('Only account for grids that intersect with city boundary \n')
                     the_file.write('epoch\n')
                     the_file.write(str(epoch)+'\n')
-                    the_file.write('lamda\n')
-                    the_file.write(str(lamda) + '\n')
+                    # the_file.write('lamda\n')
+                    # the_file.write(str(lamda) + '\n')
                     the_file.write(' Testing Set Cost:\n')
                     the_file.write(str(test_cost/itrs) + '\n')
-                    the_file.write('Testing Set Fair Cost\n')
-                    the_file.write(str(test_fair_loss/itrs)+ '\n')
+                    # the_file.write('Testing Set Fair Cost\n')
+                    # the_file.write(str(test_fair_loss/itrs)+ '\n')
                     the_file.write('Testing Set Accuracy Cost\n')
                     the_file.write(str(test_acc_loss/itrs)+ '\n')
                     the_file.write('\n')
@@ -777,8 +782,8 @@ class Conv3DPredictor:
                 plt.savefig(save_folder_path + 'total_loss_inprogress.png')
                 train_test[['train_acc', 'test_acc']].plot()
                 plt.savefig(save_folder_path + 'acc_loss_inprogress.png')
-                train_test[['train_fair', 'test_fair']].plot()
-                plt.savefig(save_folder_path + 'fair_loss_inprogress.png')
+                # train_test[['train_fair', 'test_fair']].plot()
+                # plt.savefig(save_folder_path + 'fair_loss_inprogress.png')
                 plt.close()
 
             end_time = datetime.datetime.now()
@@ -1146,11 +1151,12 @@ class Conv3DPredictor:
     # given test data and checkpoint, do inference
     # TODO: add switch cities and 1d/2d use
     def inference(self, x_test_data, y_test_data, demo_mask_arr,
-                    lamda, checkpoint_path,
-                    data_2d_test, data_1d_test,demo_sensitive,demo_pop,
-                    pop_g1, pop_g2,
-                     grid_g1, grid_g2, fairloss_func,
-                      save_folder_path, beta,
+                     checkpoint_path,
+                    data_2d_test, data_1d_test,
+                    # demo_sensitive,demo_pop,
+                    # pop_g1, pop_g2,
+                    #  grid_g1, grid_g2, fairloss_func,
+                      save_folder_path,
                       keep_rate=0.7,
                     batch_size=64):
         # tf.reset_default_graph()
@@ -1382,11 +1388,11 @@ no exogenous features
 '''
 class Conv3D:
     def __init__(self, train_obj, train_arr, test_arr, intersect_pos_set,
-                    demo_sensitive, demo_pop, pop_g1, pop_g2,
-                    grid_g1, grid_g2, fairloss,
+                    # demo_sensitive, demo_pop, pop_g1, pop_g2,
+                    # grid_g1, grid_g2, fairloss,
                     train_arr_1d, test_arr_1d, data_2d, fea_train_arr_3d, fea_test_arr_3d,
-                    lamda, demo_mask_arr,
-                     save_path, beta,
+                     demo_mask_arr,
+                     save_path,
                      HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
                      NUM_2D_FEA, NUM_1D_FEA, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                      is_inference = False, checkpoint_path = None,
@@ -1395,21 +1401,22 @@ class Conv3D:
                      #  if s_inference = True, do inference only
         self.train_obj = train_obj
         self.train_df = train_obj.train_df
-        self.test_df = train_obj.test_df
+        self.test_df = train_obj.test_dfs
         self.train_arr = train_arr
         self.test_arr = test_arr
 
         self.intersect_pos_set = intersect_pos_set
         self.demo_mask_arr = demo_mask_arr
-        self.demo_sensitive =demo_sensitive
-        self.demo_pop =demo_pop
-        self.pop_g1 = pop_g1
-        self.pop_g2 = pop_g2
-        self.grid_g1 = grid_g1
-        self.grid_g2 = grid_g2
-        self.fairloss = fairloss # IFG/ RFG / equalmean / pairwise
-        self.lamda = lamda
-        self.beta = beta # weighted mae
+
+        # self.demo_sensitive =demo_sensitive
+        # self.demo_pop =demo_pop
+        # self.pop_g1 = pop_g1
+        # self.pop_g2 = pop_g2
+        # self.grid_g1 = grid_g1
+        # self.grid_g2 = grid_g2
+        # self.fairloss = fairloss # IFG/ RFG / equalmean / pairwise
+        # self.lamda = lamda
+        # self.beta = beta # weighted mae
 
 
         self.train_arr_1d = train_arr_1d
@@ -1479,9 +1486,9 @@ class Conv3D:
         tf.reset_default_graph()
         # self, channel, time_steps, height, width
         predictor = Conv3DPredictor(self.intersect_pos_set, self.demo_sensitive, self.demo_pop,
-                                    self.pop_g1, self.pop_g2,self.grid_g1, self.grid_g2, self.fairloss,
+                                    # self.pop_g1, self.pop_g2,self.grid_g1, self.grid_g2, self.fairloss,
                                     # self.data_2d, self.data_1d.X, self.data_2d, self.data_1d_test.X,
-                                     self.lamda, self.demo_mask_arr, channel=BIKE_CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH,
+                                 self.demo_mask_arr, channel=BIKE_CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH,
                                     )
         #data = data_loader.load_series('international-airline-passengers.csv')
         # rawdata, timesteps, batchsize
@@ -1502,13 +1509,13 @@ class Conv3D:
             print('test_data_1d.y.shape', self.test_data_1d.y.shape)
             predicted_vals = predictor.train_neural_network(self.train_data.X, self.train_data.y,
                         self.test_data.X, self.test_data.y,
-                        self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
-                         self.grid_g1, self.grid_g2, self.fairloss,
-                        self.lamda, self.demo_mask_arr,
+                        # self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
+                        #  self.grid_g1, self.grid_g2, self.fairloss,
+                         self.demo_mask_arr,
                         self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
                         self.fea_train_arr_3d.X, self.fea_test_arr_3d.X,
                           self.save_path,
-                          self.beta,
+
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
         else:
@@ -1517,13 +1524,13 @@ class Conv3D:
             self.test_data_1d = None
             predicted_vals = predictor.train_neural_network(self.train_data.X, self.train_data.y,
                         self.test_data.X, self.test_data.y,
-                        self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
-                        self.grid_g1, self.grid_g2, self.fairloss,
-                        self.lamda, self.demo_mask_arr,
+                        # self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
+                        # self.grid_g1, self.grid_g2, self.fairloss,
+             self.demo_mask_arr,
                         self.data_2d, None, self.data_2d, None,
                         self.fea_train_arr_3d.X, self.fea_test_arr_3d.X,
                           self.save_path,
-                          self.beta,
+
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
 
@@ -1563,12 +1570,12 @@ class Conv3D:
             print('test_data_1d.y.shape', self.test_data_1d.y.shape)
             predicted_vals = predictor.train_from_checkpoint(self.train_data.X, self.train_data.y,
                         self.test_data.X, self.test_data.y,
-                        self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
-                        self.grid_g1, self.grid_g2, self.fairloss,
-                        self.lamda, self.demo_mask_arr,
+                        # self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
+                        # self.grid_g1, self.grid_g2, self.fairloss,
+                     self.demo_mask_arr,
                         self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
                         self.fea_train_arr_3d.X, self.fea_test_arr_3d.X,
-                          self.train_dir,self.beta, self.checkpoint_path,
+                          self.train_dir, self.checkpoint_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
         else:
             print('No 1d feature')
@@ -1576,12 +1583,12 @@ class Conv3D:
             self.test_data_1d = None
             predicted_vals = predictor.train_from_checkpoint(self.train_data.X, self.train_data.y,
                         self.test_data.X, self.test_data.y,
-                        self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
-                        self.grid_g1, self.grid_g2, self.fairloss,
-                        self.lamda, self.demo_mask_arr,
+                        # self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
+                        # self.grid_g1, self.grid_g2, self.fairloss,
+                         self.demo_mask_arr,
                         self.data_2d, None, self.data_2d, None,
                         self.fea_train_arr_3d.X, self.fea_test_arr_3d.X,
-                          self.train_dir,self.beta,self.checkpoint_path,
+                          self.train_dir,self.checkpoint_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
         predicted = predicted_vals.flatten()
@@ -1624,11 +1631,11 @@ class Conv3D:
             self.test_data_1d = generateData_1d(self.test_arr_1d, TIMESTEPS, BATCH_SIZE)
             print('test_data_1d.y.shape', self.test_data_1d.y.shape)
             predicted_vals = predictor.inference(self.test_data.X, self.test_data.y,  self.demo_mask_arr,
-                    self.lamda, self.checkpoint_path,
-                    self.data_2d, self.test_data_1d.X, self.demo_sensitive,self.demo_pop,
+                    # self.lamda, self.checkpoint_path,
+                    # self.data_2d, self.test_data_1d.X, self.demo_sensitive,self.demo_pop,
                     self.pop_g1, self.pop_g2,
                         self.grid_g1, self.grid_g2, self.fairloss,
-                      self.save_path, self.beta,
+                      self.save_path,
                     batch_size=BATCH_SIZE)
         else:
             print('No 1d feature')

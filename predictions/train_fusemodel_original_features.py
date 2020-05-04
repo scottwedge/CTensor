@@ -778,134 +778,29 @@ def main():
     print('input train_arr shape: ',train_arr.shape )
 
 
-    '''
-    # add noise and permutation for bike data
-    noisy_data_arr = rawdata_arr.copy()
-    noisy_data_arr = train_obj.generate_noise_data(noisy_data_arr)
 
-    noisy_seq_arr = train_obj.generate_fixlen_timeseries(noisy_data_arr)
-    noisy_train_arr,_ = train_obj.train_test_split(noisy_seq_arr)
-
-    # stack original training data with noisy data
-    # shape: (169, 16080, 32, 20)
-    comb_train_series =  np.concatenate([train_arr,noisy_train_arr], axis=1)
-
-
-
-    # permutation
-    # perm = np.random.permutation(comb_train_series.shape[1])
-    # comb_train_series = comb_train_series[:, perm]
-
-    # permutation for 1d data
-    if use_1d_fea:
-        copy_train_series_1d = train_arr_1d.copy()
-        comb_train_series_1d = np.concatenate([train_arr_1d,copy_train_series_1d], axis=1)
-        # perturb as 3d data
-        # comb_train_series_1d = comb_train_series_1d[:, perm]
-    else:
-        comb_train_series_1d = None
-    '''
-
-    # calculate statistics for demo
-    pop_df, pop_ratio_df = train_obj.generate_pop_df()
-    pop_df.to_csv(save_path + 'pop_df.csv')
-    pop_ratio_df.to_csv(save_path + 'pop_ratio_df.csv')
-
-    # demo_pop: if IFG, RFG, equal mean, use normalized pop.
-    # if pairwise, use non-normalized pop
-    if fairloss == "pairwise":
-    #demo_pop = demo_arr[:,:,1]  # normalized pop
-        demo_pop = demo_arr[:,:,0]  #  pop # use pop for pairwise loss
-    else:
-        demo_pop = demo_arr[:,:,1]  # normalized pop
-    demo_pop = np.expand_dims(demo_pop, axis=2)
-    print('demo_pop.shape: ',  demo_pop.shape)
-
-    # demo sensitive
-    '''
-    ['pop','normalized_pop','bi_caucasian','bi_age','bi_high_incm',
-    'bi_edu_univ','bi_nocar_hh','white_pop','age65_under','edu_uni']
-    '''
-    demo_sensitive = demo_arr[:,:,2]  # caucasian
-    demo_sensitive = np.expand_dims(demo_sensitive, axis=2)
-
-    # normalized population of each group
-    '''
-    caucasian	non_caucasian	senior	young	high_incm	low_incm
-    high_edu	low_edu	  fewer_car	more_car
-    '''
-    pop_g1 = pop_df['caucasian'].values[1]
-    pop_g2 = pop_df['non_caucasian'].values[1]
-
-    if fairloss == 'RFG':  # metric1: region-based
-        if multivar:
-            print('MULTIVAR')
-            fea_dim = [2,3,5]  # caucasian, age, edu_univ
-            multi_pop_g1 = [pop_df['caucasian'].values[1], pop_df['young'].values[1], pop_df['high_edu'].values[1]]
-            multi_pop_g2 = [pop_df['non_caucasian'].values[1], pop_df['senior'].values[1], pop_df['low_edu'].values[1]]
-        else:  # single var
-            fea_dim = [2]  # binary caucasian
-            # multi_demo_sensitive = demo_arr[:,:,fea_dim]  # caucasian
-            multi_pop_g1 = [pop_df['caucasian'].values[1]]
-            multi_pop_g2 = [pop_df['non_caucasian'].values[1]]
-    elif fairloss == "IFG":
-        if multivar:
-            print('MULTIVAR')
-            fea_dim = [7, 8, 9]  # multivar
-        else:
-            fea_dim = [7]  # white percent
-        # multi_demo_sensitive = demo_arr[:,:,fea_dim]  # caucasian
-        multi_pop_g1 = [pop_df['caucasian'].values[1], pop_df['young'].values[1], pop_df['high_edu'].values[1]]
-        multi_pop_g2 = [pop_df['non_caucasian'].values[1], pop_df['senior'].values[1], pop_df['low_edu'].values[1]]
-    elif fairloss == "equalmean":
-        fea_dim = [2]  # binar caucasian
-        # multi_demo_sensitive = demo_arr[:,:,fea_dim]  # caucasian
-        # multi_pop_g1 = [pop_df['caucasian'].values[1], pop_df['young'].values[1], pop_df['high_edu'].values[1]]
-        # multi_pop_g2 = [pop_df['non_caucasian'].values[1], pop_df['senior'].values[1], pop_df['low_edu'].values[1]]
-        multi_pop_g1 = [pop_df['caucasian'].values[1]]
-        multi_pop_g2 = [pop_df['non_caucasian'].values[1]]
-
-        # multi_grid_g1 = [pop_df['caucasian'].values[0]]
-        # multi_grid_g2 = [pop_df['non_caucasian'].values[0]]
-    elif fairloss == "pairwise":
-        multi_pop_g1 = [pop_df['caucasian'].values[1]]
-        multi_pop_g2 = [pop_df['non_caucasian'].values[1]]
-        fea_dim = [2]  # binar caucasian
-
-    multi_demo_sensitive = demo_arr[:,:,fea_dim]  # caucasian
-    multi_grid_g1 = [pop_df['caucasian'].values[0]]  # only for equal mean
-    multi_grid_g2 = [pop_df['non_caucasian'].values[0]]
-
-
-    # multi-var fairness input
-    #fea_dim = [2,3,5]  # caucasian, age, edu_univ
-    # fea_dim = [7]  # white percent
-    # multi_demo_sensitive = demo_arr[:,:,fea_dim]  # caucasian
-
-    # multi_pop_g1 = [pop_df['caucasian'].values[1], pop_df['young'].values[1], pop_df['high_edu'].values[1]]
-    # multi_pop_g2 = [pop_df['non_caucasian'].values[1], pop_df['senior'].values[1], pop_df['low_edu'].values[1]]
 
     timer = str(time.time())
     if resume_training == False:
     # Model fusion without fairness
         print('Train Model fusion without fairness')
         conv3d_predicted = fused_model_augment.Conv3D(train_obj, train_arr, test_arr, intersect_pos_set,
-                                            multi_demo_sensitive, demo_pop, multi_pop_g1, multi_pop_g2,
-                                            multi_grid_g1, multi_grid_g2, fairloss,
+                                            # multi_demo_sensitive, demo_pop, multi_pop_g1, multi_pop_g2,
+                                            # multi_grid_g1, multi_grid_g2, fairloss,
                                             train_arr_1d, test_arr_1d, data_2d, fea_train_arr_3d, fea_test_arr_3d,
-                                        lamda, demo_mask_arr,
-                            save_path, beta,
+                                         demo_mask_arr,
+                            save_path,
                             HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
                      NUM_2D_FEA, NUM_1D_FEA, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE).conv3d_predicted
     else:
          # resume training
         print('resume trainging from : ', train_dir)
         conv3d_predicted = fused_model_augment.Conv3D(train_obj, train_arr, test_arr, intersect_pos_set,
-                                            multi_demo_sensitive, demo_pop, multi_pop_g1, multi_pop_g2,
-                                            multi_grid_g1, multi_grid_g2,fairloss,
+                                            # multi_demo_sensitive, demo_pop, multi_pop_g1, multi_pop_g2,
+                                            # multi_grid_g1, multi_grid_g2,fairloss,
                                             train_arr_1d, test_arr_1d, data_2d, fea_train_arr_3d, fea_test_arr_3d,
-                                        lamda, demo_mask_arr,
-                            train_dir, beta,
+                                         demo_mask_arr,
+                            train_dir,
                             HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
                      NUM_2D_FEA, NUM_1D_FEA, BATCH_SIZE, TRAINING_STEPS, LEARNING_RATE,
                             False, checkpoint, True, train_dir).conv3d_predicted
