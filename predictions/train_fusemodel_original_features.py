@@ -666,9 +666,7 @@ def main():
         print('train_arr.shape: ', train_arr.shape)
         # concatenate with bikeshare data
         train_arr = np.expand_dims(train_arr, axis=4)
-        fea_train_arr_3d = np.expand_dims(fea_train_arr_3d, axis=4)
         test_arr = np.expand_dims(test_arr, axis=4)
-        fea_test_arr_3d = np.expand_dims(fea_test_arr_3d, axis=4)
 
         train_arr = np.concatenate([train_arr,fea_train_arr_3d], axis=4)
         test_arr = np.concatenate([test_arr,fea_test_arr_3d], axis=4)
