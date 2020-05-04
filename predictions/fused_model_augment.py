@@ -687,7 +687,7 @@ class Conv3DPredictor:
                     # epoch_fairloss += _fair_loss
                     epoch_accloss += _acc_loss
 
-                    if itr % 1 == 0:
+                    if itr % 10 == 0:
                         #print('epoch: {}, step: {}\t\ttrain err: {}'.format(epoch, itr, _cost))
                         print('epoch: {}, step: {}, train err: {}, mae:{}'.format(epoch, itr, _cost, _acc_loss))
 
