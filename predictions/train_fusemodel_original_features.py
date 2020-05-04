@@ -575,6 +575,12 @@ def main():
         print('building_permit_arr_seq_extend.shape: ', building_permit_arr_seq_extend.shape)
 
         # train_hours: 8084
+
+        print('generating fixed window length training and testing sequences...')
+        raw_seq_arr = train_obj.generate_fixlen_timeseries(rawdata_arr)
+        train_arr, test_arr = train_obj.train_test_split(raw_seq_arr)
+        print('input train_arr shape: ',train_arr.shape )
+        
         train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
         total_length = raw_seq_arr.shape[1]  # 9336
         test_len = total_length - train_hours  # 1296
@@ -772,10 +778,6 @@ def main():
     if not os.path.isfile(save_path +  str(place) + '_demo_arr_' + str(HEIGHT) + '.npy'):
         np.save(save_path + str(place)+ '_demo_arr_'+ str(HEIGHT) + '.npy', demo_arr)
 
-    print('generating fixed window length training and testing sequences...')
-    raw_seq_arr = train_obj.generate_fixlen_timeseries(rawdata_arr)
-    train_arr, test_arr = train_obj.train_test_split(raw_seq_arr)
-    print('input train_arr shape: ',train_arr.shape )
 
 
 
