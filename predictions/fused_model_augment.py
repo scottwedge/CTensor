@@ -920,8 +920,8 @@ class Conv3D:
         # create batch data for 3d data
         self.train_data_3d = generateData(self.fea_train_arr_3d, TIMESTEPS, BATCH_SIZE)
         self.test_data_3d = generateData(self.fea_test_arr_3d, TIMESTEPS, BATCH_SIZE)
-        self.train_data_3d = np.squeeze(self.train_data_3d.X, axis = 4)
-        self.test_data_3d= np.squeeze(self.test_data_3d.X, axis = 4)
+        self.train_data_3d_X = np.squeeze(self.train_data_3d.X, axis = 4)
+        self.test_data_3d_X= np.squeeze(self.test_data_3d.X, axis = 4)
 
 
         self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
@@ -933,7 +933,7 @@ class Conv3D:
                     #  self.grid_g1, self.grid_g2, self.fairloss,
                      self.demo_mask_arr,
                     self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
-                    self.train_data_3d.X, self.test_data_3d.X,
+                    self.train_data_3d_X, self.test_data_3d_X,
                       self.save_path,
 
                  epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
@@ -968,8 +968,8 @@ class Conv3D:
 
         self.train_data_3d = generateData(self.fea_train_arr_3d, TIMESTEPS, BATCH_SIZE)
         self.test_data_3d = generateData(self.fea_test_arr_3d, TIMESTEPS, BATCH_SIZE)
-        self.train_data_3d = np.squeeze(self.train_data_3d.X, axis = 4)
-        self.test_data_3d= np.squeeze(self.test_data_3d.X, axis = 4)
+        self.train_data_3d_X = np.squeeze(self.train_data_3d.X, axis = 4)
+        self.test_data_3d_X= np.squeeze(self.test_data_3d.X, axis = 4)
 
 
         self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
@@ -981,7 +981,7 @@ class Conv3D:
                     # self.grid_g1, self.grid_g2, self.fairloss,
                  self.demo_mask_arr,
                     self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
-                    self.train_data_3d.X, self.test_data_3d.X,
+                    self.train_data_3d_X, self.test_data_3d_X,
                       self.train_dir, self.checkpoint_path,
                  epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
