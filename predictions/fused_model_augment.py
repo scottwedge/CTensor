@@ -666,8 +666,8 @@ class Conv3DPredictor:
 
                         _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             self.input_1d_feature:mini_batch_data_1d,  self.input_2d_feature: mini_batch_data_2d,
-                                                            self.input_3d_feature1: mini_batch_data_3d[:,:,:,:0], self.input_3d_feature2: mini_batch_data_3d[:,:,:,:1],
-                                                            self.input_3d_feature3: mini_batch_data_3d[:,:,:,:2],
+                                                            self.input_3d_feature1: mini_batch_data_3d[:,:,:,:,0], self.input_3d_feature2: mini_batch_data_3d[:,:,:,:,1],
+                                                            self.input_3d_feature3: mini_batch_data_3d[:,:,:,:,2],
                                                             self.is_training: True   })
                     elif data_1d_train is not None:  # 1d and 3d
                         _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
