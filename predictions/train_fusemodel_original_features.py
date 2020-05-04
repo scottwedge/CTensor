@@ -525,9 +525,9 @@ def main():
         ################# LOAD DATA ######################
         # ---- reading data ---------------------#
         print('Reading 1d, 2d, and 3d data')
-        path_1d = '../../data_processing/1d_source_data/'
-        path_2d = '../../data_processing/2d_source_data/'
-        path_3d = '../../data_processing/3d_source_data/'
+        path_1d = '../data_processing/1d_source_data/'
+        path_2d = '../data_processing/2d_source_data/'
+        path_3d = '../data_processing/3d_source_data/'
         # 1d
         weather_arr = np.load(path_1d + 'weather_arr_20140201_20190501.npy')
         airquality_arr = np.load(path_1d + 'air_quality_arr_20140201_20190501.npy')
