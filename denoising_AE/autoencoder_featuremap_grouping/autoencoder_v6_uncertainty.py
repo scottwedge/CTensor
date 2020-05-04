@@ -936,9 +936,9 @@ class Autoencoder:
                                             feed_dict=feed_dict_all)
 
                     # debug
-                    for k, v in batch_loss_dict.items():
-                        print('loss: iter: k, v: ',itr, k, v)
-                        print('weightedloss: iter: k, v: ',itr, k, batch_weighedloss_dict[k])
+                    # for k, v in batch_loss_dict.items():
+                    #     print('loss: iter: k, v: ',itr, k, v)
+                    #     print('weightedloss: iter: k, v: ',itr, k, batch_weighedloss_dict[k])
 
                     ##################  GRADNORM PART ###############################
                     # base loss at the first iteration. all weights are 1
