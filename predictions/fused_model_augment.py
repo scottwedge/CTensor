@@ -494,7 +494,7 @@ class Conv3DPredictor:
                       data_2d_train, data_1d_train, data_2d_test, data_1d_test,
                       data_3d_train, data_3d_test,
                       save_folder_path,
-
+                    resume_training = False, checkpoint_path = None,
                       keep_rate=0.7, epochs=10, batch_size=64):
 
         #global_step = tf.Variable(0, trainable=False)
@@ -575,6 +575,25 @@ class Conv3DPredictor:
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
 
+            # ---- if resume training -----
+            if resume_training:
+                if checkpoint_path is not None:
+                    saver.restore(sess, checkpoint_path)
+                else:
+                    saver.restore(sess, tf.train.latest_checkpoint(save_folder_path))
+                # check global step
+                print("global step: ", sess.run([self.global_step]))
+                print("Model restore finished, current globle step: %d" % self.global_step.eval())
+
+                # get new epoch num
+                print("int(len(x_train_data) / batch_size +1): ", int(len(x_train_data) / batch_size +1))
+                start_epoch_num = tf.div(self.global_step, int(len(x_train_data) / batch_size +1))
+                #self.global_step/ (len(x_train_data) / batch_size +1) -1
+                print("start_epoch_num: ", start_epoch_num.eval())
+                start_epoch = start_epoch_num.eval()
+            else:
+                start_epoch = 0
+
 
             start_time = datetime.datetime.now()
             # iterations = int(len(x_train_data)/batch_size) + 1
@@ -584,7 +603,7 @@ class Conv3DPredictor:
                 iterations = int(len(x_train_data)/batch_size) + 1
             # run epochs
             # global step = epoch * len(x_train_data) + itr
-            for epoch in range(epochs):
+            for epoch in range(start_epoch, epochs):
                 start_time_epoch = datetime.datetime.now()
                 print('Epoch', epoch, 'started', end='')
                 epoch_loss = 0
@@ -792,594 +811,6 @@ class Conv3DPredictor:
             return output
 
 
-    # data_2d_train, data_1d_train, data_2d_test, data_1d_test: these could be None
-    # resume training from checkpoint.
-    # TODO: add switching cities and 1d/2d feature use
-    def train_from_checkpoint(self, x_train_data, y_train_data, x_test_data, y_test_data,
-                     demo_sensitive, demo_pop,pop_g1, pop_g2,
-                     grid_g1, grid_g2, fairloss_func,
-                     lamda, demo_mask_arr,
-                      data_2d_train, data_1d_train, data_2d_test, data_1d_test,
-                      save_folder_path, beta, checkpoint_path,
-                      keep_rate=0.7, epochs=10, batch_size=64):
-
-        #global_step = tf.Variable(0, trainable=False)
-        starter_learning_rate = LEARNING_RATE
-        learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
-                                       5000, 0.96, staircase=True)
-
-        #prediction = self.cnn_model(self.x, keep_rate, seed=1)
-        # fusion model
-        prediction_3d = self.cnn_model(self.x, self.is_training, keep_rate, seed=1)
-
-        if data_2d_train is None:
-            prediction_2d = None
-            # 32,20,1
-            #prediction_2d = self.cnn_2d_model(self.input_2d_feature)
-        else:
-            prediction_2d = self.cnn_2d_model(self.input_2d_feature, self.is_training, )
-
-
-        if data_1d_train is None:
-            # batchsize, 1,1,1
-            prediction_1d = None
-            #prediction_1d = self.cnn_1d_model(self.input_1d_feature)
-        else:
-            prediction_1d = self.cnn_1d_model(self.input_1d_feature, self.is_training, )
-            #prediction_1d = None
-
-        # fusion
-        prediction = self.model_fusion(prediction_3d, prediction_2d, prediction_1d, self.is_training, )
-
-        demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr, 0)  # [1, 2]
-        # [1, 32, 20, 1] -> [batchsize, 32, 20, 1]
-        # batchsize = tf.shape(prediction)[0]
-        demo_mask_arr_expanded = tf.tile(demo_mask_arr_expanded, [tf.shape(prediction)[0],1,1,1])
-        weight = tf.cast(tf.greater(demo_mask_arr_expanded, 0), tf.float32)
-        #fair_loss = group_fairloss(prediction, y_input, demo_sensitive, demo_pop)
-        #fair_loss = mean_diff(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-        # multi_var fairness loss: input multi_demo_sensitive shape : [32, 20, 3]
-        #fair_loss = multi_var_mean_diff(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-        #fair_loss = multi_var_fine_grained_diff(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-
-        # fair_loss = pairwise_fairloss(prediction, self.y, demo_sensitive, demo_pop, demo_mask_arr)
-        acc_loss = tf.losses.absolute_difference(prediction, self.y, weight)
-        acc_loss = tf.losses.absolute_difference(prediction, self.y, weight)
-
-        # if fairloss_func != None:
-        if fairloss_func == "RFG":
-            fair_loss = multi_var_mean_diff(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-        if fairloss_func == "IFG":
-            fair_loss = multi_var_fine_grained_diff(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-        if fairloss_func == "equalmean":
-            fair_loss = equal_mean(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2,
-                        grid_g1, grid_g2, demo_mask_arr)
-        if fairloss_func == "pairwise":
-            fair_loss = pairwise_fairloss(prediction, self.y, demo_sensitive, demo_pop, demo_mask_arr)
-        cost = acc_loss + lamda * fair_loss
-        print('fair_loss: ',fair_loss)
-
-        # weighed MAE loss
-        '''
-        weighted_mae = weighted_MAE_loss(prediction, self.y, demo_sensitive, demo_pop,
-                       demo_mask_arr, beta)
-        if beta == 1.0:
-            cost = acc_loss + lamda * fair_loss
-        else:
-            cost = weighted_mae + lamda * fair_loss
-        '''
-
-        # weighted_mae = differential_weighed_MAE_loss(prediction, self.y, demo_sensitive, demo_pop,
-        #               demo_mask_arr, beta)
-        # cost = weighted_mae + lamda * fair_loss
-        # bin_loss = binary_loss(prediction, self.y, demo_sensitive, demo_pop,
-               #        demo_mask_arr)
-        # cost = acc_loss + lamda * fair_loss + beta * bin_loss
-
-        # cost = acc_loss
-        #cost = acc_loss + lamda * fair_loss
-        #cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=y_input))
-        #cost = tf.losses.absolute_difference(prediction, self.y, weight)
-
-        with tf.name_scope("training"):
-        # with tf.control_dependencies(update_ops):
-            optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost, global_step = self.global_step)
-
-        saver = tf.train.Saver()
-    #     correct = tf.equal(tf.argmax(prediction, 1), tf.argmax(y_input, 1))
-    #     accuracy = tf.reduce_mean(tf.cast(correct, 'float'))
-
-        test_result = list()
-
-        if not os.path.exists(save_folder_path):
-            os.makedirs(save_path)
-
-        with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
-            # restore latest checkpoint from train_dir
-
-            if checkpoint_path is not None:
-                saver.restore(sess, checkpoint_path)
-            else:
-                saver.restore(sess, tf.train.latest_checkpoint(save_folder_path))
-            # check global step
-            print("global step: ", sess.run([self.global_step]))
-            print("Model restore finished, current globle step: %d" % self.global_step.eval())
-
-            # get new epoch num
-            print("int(len(x_train_data) / batch_size +1): ", int(len(x_train_data) / batch_size +1))
-            start_epoch_num = tf.div(self.global_step, int(len(x_train_data) / batch_size +1))
-            #self.global_step/ (len(x_train_data) / batch_size +1) -1
-            print("start_epoch_num: ", start_epoch_num.eval())
-            start_epoch = start_epoch_num.eval()
-
-            start_time = datetime.datetime.now()
-            if len(x_train_data)%batch_size ==0:
-                iterations = int(len(x_train_data)/batch_size)
-            else:
-                iterations = int(len(x_train_data)/batch_size) + 1
-            # run epochs
-            # global step = epoch * ( len(x_train_data)/ batchsize +1) + itr
-
-            for epoch in range(start_epoch, epochs):
-                start_time_epoch = datetime.datetime.now()
-                print('Epoch', epoch, 'started', end='')
-                epoch_loss = 0
-                epoch_fairloss = 0
-                epoch_accloss = 0
-                # mini batch
-                for itr in range(iterations):
-                    mini_batch_x = x_train_data[itr*batch_size: (itr+1)*batch_size]
-                    mini_batch_y = y_train_data[itr*batch_size: (itr+1)*batch_size]
-                    # model fusion
-                    if data_1d_train is not None:
-                        mini_batch_data_1d = data_1d_train[itr*batch_size: (itr+1)*batch_size]
-                    else:
-                        mini_batch_data_1d = None
-                    if data_2d_train is not None:
-                        mini_batch_data_2d = np.expand_dims(data_2d_train, 0)
-                        mini_batch_data_2d = np.tile(mini_batch_data_2d, [mini_batch_x.shape[0], 1,1,1])
-                    else:
-                        mini_batch_data_2d = None
-
-
-                    # 1d, 2d, and 3d
-                    if data_1d_train is not None and data_2d_train is not None:
-
-                        _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
-                                                            self.input_1d_feature:mini_batch_data_1d,  self.input_2d_feature: mini_batch_data_2d,
-                                                            self.is_training: True   })
-                    elif data_1d_train is not None:  # 1d and 3d
-                        _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
-                                                            self.input_1d_feature:mini_batch_data_1d,
-                                                            self.is_training: True   })
-                    elif data_2d_train is not None:
-                        _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
-                                                            self.input_2d_feature: mini_batch_data_2d,
-                                                            self.is_training: True   })
-                    else: # only 3d
-                        _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
-                                                            self.is_training: True   })
-
-
-
-
-                    # _optimizer, _cost, _fair_loss, _acc_loss = sess.run([optimizer, cost, fair_loss, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
-                    #                                      self.input_1d_feature:mini_batch_data_1d,  self.input_2d_feature: mini_batch_data_2d,
-                    #                                      self.is_training: True   })
-                    epoch_loss += _cost
-                    epoch_fairloss += _fair_loss
-                    epoch_accloss += _acc_loss
-
-                    if itr % 10 == 0:
-                        #print('epoch: {}, step: {}\t\ttrain err: {}'.format(epoch, itr, _cost))
-                        print('epoch: {}, step: {}, train err: {}, _fair_loss:{}, mae:{}'.format(epoch, itr, _cost, _fair_loss, _acc_loss))
-
-                # report loss per epoch
-                epoch_loss = epoch_loss/ iterations
-                epoch_fairloss = epoch_fairloss / iterations
-                epoch_accloss = epoch_accloss / iterations
-
-                # train_acc_loss.append(epoch_accloss)
-                print('epoch: ', epoch, 'Trainig Set Epoch total Cost: ',epoch_loss)
-                print('epoch: ', epoch, 'Trainig Set Epoch fair Cost: ',epoch_fairloss)
-                print('epoch: ', epoch, 'Trainig Set Epoch accuracy Cost: ',epoch_accloss)
-
-
-
-                #  using mini batch in case not enough memory
-                test_cost = 0
-                test_acc_loss = 0
-                test_fair_loss = 0
-                final_output = list()
-
-                print('testing')
-                itrs = int(len(x_test_data)/batch_size) + 1
-                for itr in range(itrs):
-                    mini_batch_x_test = x_test_data[itr*batch_size: (itr+1)*batch_size]
-                    mini_batch_y_test = y_test_data[itr*batch_size: (itr+1)*batch_size]
-                    # model fusion
-                    if data_1d_test is not None:
-                        mini_batch_data_1d_test = data_1d_test[itr*batch_size: (itr+1)*batch_size]
-                    else:
-                        mini_batch_data_1d_test  = None
-
-                    if data_2d_test is not None:
-                        mini_batch_data_2d_test = np.expand_dims(data_2d_test, 0)
-                        mini_batch_data_2d_test = np.tile(mini_batch_data_2d_test, [mini_batch_x_test.shape[0], 1,1,1])
-                    else:
-                        mini_batch_data_2d_test = None
-
-                    if data_1d_test is not None and data_2d_test is not None:
-                        #acc += sess.run(accuracy, feed_dict={x_input: mini_batch_x_test, y_input: mini_batch_y_test})
-                        test_cost += sess.run(cost, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test ,
-                                            self.is_training: True  })
-                        test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
-                                            self.is_training: True})
-                        test_acc_loss += sess.run(acc_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
-                                            self.is_training: True})
-
-                        batch_output = sess.run(prediction, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                        self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
-                                        self.is_training: True})
-                    elif data_1d_test is not None:
-                        #acc += sess.run(accuracy, feed_dict={x_input: mini_batch_x_test, y_input: mini_batch_y_test})
-                        test_cost += sess.run(cost, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_1d_feature:mini_batch_data_1d_test,
-                                            self.is_training: True  })
-                        test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_1d_feature:mini_batch_data_1d_test,
-                                            self.is_training: True})
-                        test_acc_loss += sess.run(acc_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_1d_feature:mini_batch_data_1d_test,
-                                            self.is_training: True})
-
-                        batch_output = sess.run(prediction, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                        self.input_1d_feature:mini_batch_data_1d_test,
-                                        self.is_training: True})
-                    elif data_2d_test is not None:
-                                                #acc += sess.run(accuracy, feed_dict={x_input: mini_batch_x_test, y_input: mini_batch_y_test})
-                        test_cost += sess.run(cost, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_2d_feature: mini_batch_data_2d_test,
-                                            self.is_training: True  })
-                        test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_2d_feature: mini_batch_data_2d_test,
-                                            self.is_training: True})
-                        test_acc_loss += sess.run(acc_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_2d_feature: mini_batch_data_2d_test,
-                                            self.is_training: True})
-
-                        batch_output = sess.run(prediction, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                        self.input_2d_feature: mini_batch_data_2d_test,
-                                        self.is_training: True})
-                    else:
-                        test_cost += sess.run(cost, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                          self.is_training: True  })
-                        test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.is_training: True})
-                        test_acc_loss += sess.run(acc_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.is_training: True})
-                        batch_output = sess.run(prediction, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                        self.is_training: True})
-
-
-                    # #acc += sess.run(accuracy, feed_dict={x_input: mini_batch_x_test, y_input: mini_batch_y_test})
-                    # test_cost += sess.run(cost, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                    #                     self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test ,
-                    #                     self.is_training: True  })
-                    # test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                    #                     self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
-                    #                     self.is_training: True})
-                    # test_acc_loss += sess.run(acc_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                    #                     self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
-                    #                     self.is_training: True})
-
-                    # batch_output = sess.run(prediction, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                    #                  self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
-                    #                  self.is_training: True})
-
-                    final_output.extend(batch_output)
-    #             output = np.array(final_output)
-
-                end_time_epoch = datetime.datetime.now()
-                #print(' Testing Set Accuracy:',test_cost/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
-                print(' Testing Set Cost:',test_cost/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
-                print(' Testing Set Fair Cost:',test_fair_loss/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
-                print(' Testing Set Accuracy Cost:',test_acc_loss/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
-                # test_acc_loss.append(test_acc_loss/itrs)
-
-
-                #save_folder_path  = './fusion_model_'+ str(lamda)+'/'
-                # save globel step for resuming training later
-                save_path = saver.save(sess, save_folder_path +'fusion_model_' + str(lamda)+'_'+str(epoch)+'.ckpt', global_step=self.global_step)
-                print('Model saved to {}'.format(save_path))
-
-                # save epoch statistics to csv
-                ecoch_res_df = pd.DataFrame([[epoch_loss, test_cost/itrs, epoch_accloss, test_acc_loss/itrs,
-                              epoch_fairloss, test_fair_loss/itrs]],
-                    columns=[ 'train_loss','test_loss', 'train_acc', 'test_acc', 'train_fair', 'test_fair'])
-
-                res_csv_path = save_folder_path + 'ecoch_res_df_' + str(lamda)+'.csv'
-
-                with open(res_csv_path, 'a') as f:
-                    # Add header if file is being created, otherwise skip it
-                    ecoch_res_df.to_csv(f, header=f.tell()==0)
-
-                # save results to txt
-                txt_name = save_folder_path + 'fusion_pairwise_df_' +str(lamda)+'.txt'
-                with open(txt_name, 'w') as the_file:
-                    #the_file.write('Only account for grids that intersect with city boundary \n')
-                    the_file.write('epoch\n')
-                    the_file.write(str(epoch)+'\n')
-                    the_file.write('lamda\n')
-                    the_file.write(str(lamda) + '\n')
-                    the_file.write(' Testing Set Cost:\n')
-                    the_file.write(str(test_cost/itrs) + '\n')
-                    the_file.write('Testing Set Fair Cost\n')
-                    the_file.write(str(test_fair_loss/itrs)+ '\n')
-                    the_file.write('Testing Set Accuracy Cost\n')
-                    the_file.write(str(test_acc_loss/itrs)+ '\n')
-                    the_file.write('\n')
-                    the_file.close()
-
-                if epoch == epochs-1:
-                    test_result.extend(final_output)
-
-
-                # plot results
-                print('saving train_test plots')
-                train_test = pd.read_csv(save_folder_path  + 'ecoch_res_df_' + str(lamda)+'.csv')
-                # train_test = train_test.loc[:, ~train_test.columns.str.contains('^Unnamed')]
-                train_test[['train_loss', 'test_loss']].plot()
-                plt.savefig(save_folder_path + 'total_loss_inprogress.png')
-                train_test[['train_acc', 'test_acc']].plot()
-                plt.savefig(save_folder_path + 'acc_loss_inprogress.png')
-                train_test[['train_fair', 'test_fair']].plot()
-                plt.savefig(save_folder_path + 'fair_loss_inprogress.png')
-                plt.close()
-
-            end_time = datetime.datetime.now()
-            output = np.array(test_result)
-            print('Time elapse: ', str(end_time - start_time))
-            return output
-
-
-
-    # given test data and checkpoint, do inference
-    # TODO: add switch cities and 1d/2d use
-    def inference(self, x_test_data, y_test_data, demo_mask_arr,
-                     checkpoint_path,
-                    data_2d_test, data_1d_test,
-                    # demo_sensitive,demo_pop,
-                    # pop_g1, pop_g2,
-                    #  grid_g1, grid_g2, fairloss_func,
-                      save_folder_path,
-                      keep_rate=0.7,
-                    batch_size=64):
-        # tf.reset_default_graph()
-        test_result = list()
-        final_output = list()
-
-            # demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr, 0)  # [1, 2]
-            # with tf.name_scope('inputs'):
-            # # [batchsize, depth, height, width, channel]
-            #     x_input = tf.placeholder(tf.float32, shape=[None,time_steps, height, width, channel])
-            #     #
-            #     #y_input = tf.placeholder(tf.float32, shape=[None, n_classes])
-            #     y_input = tf.placeholder(tf.float32, shape= [None, height, width, channel])
-
-        #     with tf.name_scope("rmse"):
-            #prediction = cnn_model(x_input)
-            #cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=y_input))
-
-            #weight = tf.cast(tf.greater(demo_mask_arr_expanded, 0), tf.float32)
-
-            # customize loss function
-            #fair_loss = group_fairloss(prediction, y_input, demo_sensitive, demo_pop)
-
-            #fair_loss = mean_diff(prediction, y_input, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-
-            #fair_loss = multi_var_mean_diff(prediction, y_input, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-        #     fair_loss = multi_var_fine_grained_diff(prediction, y_input, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-            #acc_loss = tf.losses.absolute_difference(prediction, y_input, weight)
-        #     print('fair_loss: ',fair_loss)
-            #cost = acc_loss
-        #     cost = acc_loss + lamda * fair_loss
-            #cost = tf.losses.absolute_difference(prediction, y_input, weight)
-
-                   #prediction = self.cnn_model(self.x, keep_rate, seed=1)
-            # fusion model
-        prediction_3d = self.cnn_model(self.x, self.is_training, keep_rate, seed=1)
-
-        if data_2d_test is None:
-            prediction_2d = None
-                # 32,20,1
-                #prediction_2d = self.cnn_2d_msodel(self.input_2d_feature)
-        else:
-            prediction_2d = self.cnn_2d_model(self.input_2d_feature, self.is_training, )
-
-        if data_1d_test is None:
-                # batchsize, 1,1,1
-            prediction_1d = None
-                #prediction_1d = self.cnn_1d_model(self.input_1d_feature)
-        else:
-            prediction_1d = self.cnn_1d_model(self.input_1d_feature, self.is_training, )
-                #prediction_1d = None
-
-            # fusion
-        prediction = self.model_fusion(prediction_3d, prediction_2d, prediction_1d, self.is_training, )
-
-        demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr, 0)  # [1, 2]
-            # [1, 32, 20, 1] -> [batchsize, 32, 20, 1]
-            # batchsize = tf.shape(prediction)[0]
-        demo_mask_arr_expanded = tf.tile(demo_mask_arr_expanded, [tf.shape(prediction)[0],1,1,1])
-        weight = tf.cast(tf.greater(demo_mask_arr_expanded, 0), tf.float32)
-            #fair_loss = group_fairloss(prediction, y_input, demo_sensitive, demo_pop)
-            #fair_loss = mean_diff(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-            # multi_var fairness loss: input multi_demo_sensitive shape : [32, 20, 3]
-            #fair_loss = multi_var_mean_diff(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-            #fair_loss = multi_var_fine_grained_diff(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-
-        # fair_loss = pairwise_fairloss(prediction, self.y, demo_sensitive, demo_pop, demo_mask_arr)
-        acc_loss = tf.losses.absolute_difference(prediction, self.y, weight)
-        # if fairloss_func != None:
-        if fairloss_func == "RFG":
-            fair_loss = multi_var_mean_diff(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-        if fairloss_func == "IFG":
-            fair_loss = multi_var_fine_grained_diff(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2, demo_mask_arr)
-        if fairloss_func == "equalmean":
-            fair_loss = equal_mean(prediction, self.y, demo_sensitive, demo_pop, pop_g1, pop_g2,
-                        grid_g1, grid_g2, demo_mask_arr)
-        if fairloss_func == "pairwise":
-            fair_loss = pairwise_fairloss(prediction, self.y, demo_sensitive, demo_pop, demo_mask_arr)
-        cost = acc_loss + lamda * fair_loss
-        print('fair_loss: ',fair_loss)
-
-        # weighed MAE loss
-        '''
-        weighted_mae = weighted_MAE_loss(prediction, self.y, demo_sensitive, demo_pop,
-                       demo_mask_arr, beta)
-        if beta == 1.0:
-            cost = acc_loss + lamda * fair_loss
-        else:
-            cost = weighted_mae + lamda * fair_loss
-        '''
-
-        # weighted_mae = differential_weighed_MAE_loss(prediction, self.y, demo_sensitive, demo_pop,
-        #               demo_mask_arr, beta)
-
-        # bin_loss = binary_loss(prediction, self.y, demo_sensitive, demo_pop,
-                    #    demo_mask_arr)
-        # cost = acc_loss + lamda * fair_loss + beta * bin_loss
-
-
-       #cost = weighted_mae + lamda * fair_loss
-
-        cost = acc_loss
-        # cost = acc_loss + lamda * fair_loss
-
-            #saver = tf.train.Saver(restore_vars, name='ema_restore')
-        #     saver = tf.train.Saver(tf.global_variables(), write_version=tf.train.SaverDef.V1)
-        saver = tf.train.Saver()
-        #     new_saver = tf.train.import_meta_graph("3d_cnn_model_metric1_0.75_119.ckpt.meta")
-
-        test_cost = 0
-        test_acc_loss = 0
-        test_fair_loss = 0
-
-        # global_step = tf.train.get_or_create_global_step()
-
-        with tf.Session() as sess:
-        #         tf.get_variable_scope().reuse_variables()
-            sess.run(tf.global_variables_initializer())
-            saver.restore(sess, checkpoint_path)
-            # check global step
-            print("global step: ", sess.run([self.global_step]))
-            print("Model restore finished, current globle step: %d" % self.global_step.eval())
-
-            print('testing')
-            itrs = int(len(x_test_data)/batch_size) + 1
-            for itr in range(itrs):
-                mini_batch_x_test = x_test_data[itr*batch_size: (itr+1)*batch_size]
-                mini_batch_y_test = y_test_data[itr*batch_size: (itr+1)*batch_size]
-                    # model fusion
-                if data_1d_test is not None:
-                    mini_batch_data_1d_test = data_1d_test[itr*batch_size: (itr+1)*batch_size]
-                else:
-                    mini_batch_data_1d_test  = None
-
-                if data_2d_test is not None:
-                    mini_batch_data_2d_test = np.expand_dims(data_2d_test, 0)
-                    mini_batch_data_2d_test = np.tile(mini_batch_data_2d_test, [mini_batch_x_test.shape[0], 1,1,1])
-                else:
-                    mini_batch_data_2d_test = None
-
-
-                if data_1d_test is not None and data_2d_test is not None:
-                        #acc += sess.run(accuracy, feed_dict={x_input: mini_batch_x_test, y_input: mini_batch_y_test})
-                    test_cost += sess.run(cost, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test ,
-                                            self.is_training: True  })
-                    test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
-                                            self.is_training: True})
-                    test_acc_loss += sess.run(acc_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
-                                            self.is_training: True})
-
-                    batch_output = sess.run(prediction, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                        self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
-                                        self.is_training: True})
-                elif data_1d_test is not None:
-                        #acc += sess.run(accuracy, feed_dict={x_input: mini_batch_x_test, y_input: mini_batch_y_test})
-                    test_cost += sess.run(cost, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_1d_feature:mini_batch_data_1d_test,
-                                            self.is_training: True  })
-                    test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_1d_feature:mini_batch_data_1d_test,
-                                            self.is_training: True})
-                    test_acc_loss += sess.run(acc_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_1d_feature:mini_batch_data_1d_test,
-                                            self.is_training: True})
-
-                    batch_output = sess.run(prediction, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                        self.input_1d_feature:mini_batch_data_1d_test,
-                                        self.is_training: True})
-                elif data_2d_test is not None:
-                                                #acc += sess.run(accuracy, feed_dict={x_input: mini_batch_x_test, y_input: mini_batch_y_test})
-                    test_cost += sess.run(cost, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_2d_feature: mini_batch_data_2d_test,
-                                            self.is_training: True  })
-                    test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_2d_feature: mini_batch_data_2d_test,
-                                            self.is_training: True})
-                    test_acc_loss += sess.run(acc_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.input_2d_feature: mini_batch_data_2d_test,
-                                            self.is_training: True})
-
-                    batch_output = sess.run(prediction, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                        self.input_2d_feature: mini_batch_data_2d_test,
-                                        self.is_training: True})
-                else:
-                    test_cost += sess.run(cost, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                          self.is_training: True  })
-                    test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.is_training: True})
-                    test_acc_loss += sess.run(acc_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                            self.is_training: True})
-                    batch_output = sess.run(prediction, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                                        self.is_training: True})
-
-
-                    #acc += sess.run(accuracy, feed_dict={x_input: mini_batch_x_test, y_input: mini_batch_y_test})
-                # test_cost += sess.run(cost, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                #                         self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test ,
-                #                         self.is_training: True  })
-                # test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                #                         self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
-                #                         self.is_training: True})
-                # test_acc_loss += sess.run(acc_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                #                         self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
-                #                         self.is_training: True})
-
-                # batch_output = sess.run(prediction, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
-                #                      self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
-                #                      self.is_training: True})
-                final_output.extend(batch_output)
-
-            print(' Testing Set Cost:',test_cost/itrs)
-            print(' Testing Set Fair Cost:',test_fair_loss/itrs)
-            print(' Testing Set Accuracy Cost:',test_acc_loss/itrs)
-            output = np.array(final_output)
-
-        return output
-
-
-
-
 
 
 '''
@@ -1493,46 +924,28 @@ class Conv3D:
         #data = data_loader.load_series('international-airline-passengers.csv')
         # rawdata, timesteps, batchsize
         self.train_data = generateData(self.train_arr, TIMESTEPS, BATCH_SIZE)
-        # train_x shape should be : [num_examples (batch size), time_step (168), feature_dim (1)]
-
-        # create batches, feed batches into predictor
-        # predictor.train(self.train_data)
-        # print('finished training')
-
-        # prep test data, split test_arr into test_x and test_y
         self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
         print('test_data.y.shape', self.test_data.y.shape)
+        # create batch data for 3d data
+        self.train_data_3d = generateData(self.fea_train_arr_3d, TIMESTEPS, BATCH_SIZE)
+        self.test_data_3d = generateData(self.fea_test_arr_3d, TIMESTEPS, BATCH_SIZE)
+        self.train_data_3d = np.squeeze(self.train_data_3d.X, axis = 4)
+        self.test_data_3d= np.squeeze(self.test_data_3d.X, axis = 4)
 
-        if self.train_arr_1d is not None:
-            self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
-            self.test_data_1d = generateData_1d(self.test_arr_1d, TIMESTEPS, BATCH_SIZE)
-            print('test_data_1d.y.shape', self.test_data_1d.y.shape)
-            predicted_vals = predictor.train_neural_network(self.train_data.X, self.train_data.y,
-                        self.test_data.X, self.test_data.y,
-                        # self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
-                        #  self.grid_g1, self.grid_g2, self.fairloss,
-                         self.demo_mask_arr,
-                        self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
-                        self.fea_train_arr_3d.X, self.fea_test_arr_3d.X,
-                          self.save_path,
 
-                     epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
+        self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
+        self.test_data_1d = generateData_1d(self.test_arr_1d, TIMESTEPS, BATCH_SIZE)
+        print('test_data_1d.y.shape', self.test_data_1d.y.shape)
+        predicted_vals = predictor.train_neural_network(self.train_data.X, self.train_data.y,
+                    self.test_data.X, self.test_data.y,
+                    # self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
+                    #  self.grid_g1, self.grid_g2, self.fairloss,
+                     self.demo_mask_arr,
+                    self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
+                    self.train_data_3d.X, self.test_data_3d.X,
+                      self.save_path,
 
-        else:
-            print('No 1d feature')
-            self.train_data_1d = None
-            self.test_data_1d = None
-            predicted_vals = predictor.train_neural_network(self.train_data.X, self.train_data.y,
-                        self.test_data.X, self.test_data.y,
-                        # self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
-                        # self.grid_g1, self.grid_g2, self.fairloss,
-             self.demo_mask_arr,
-                        self.data_2d, None, self.data_2d, None,
-                        self.fea_train_arr_3d.X, self.fea_test_arr_3d.X,
-                          self.save_path,
-
-                     epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
-
+                 epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
 
         predicted = predicted_vals.flatten()
@@ -1559,37 +972,27 @@ class Conv3D:
         #data = data_loader.load_series('international-airline-passengers.csv')
         # rawdata, timesteps, batchsize
         self.train_data = generateData(self.train_arr, TIMESTEPS, BATCH_SIZE)
-        # train_x shape should be : [num_examples (batch size), time_step (168), feature_dim (1)]
-        # prep test data, split test_arr into test_x and test_y
         self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
         print('test_data.y.shape', self.test_data.y.shape)
 
-        if self.train_arr_1d is not None:
-            self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
-            self.test_data_1d = generateData_1d(self.test_arr_1d, TIMESTEPS, BATCH_SIZE)
-            print('test_data_1d.y.shape', self.test_data_1d.y.shape)
-            predicted_vals = predictor.train_from_checkpoint(self.train_data.X, self.train_data.y,
-                        self.test_data.X, self.test_data.y,
-                        # self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
-                        # self.grid_g1, self.grid_g2, self.fairloss,
-                     self.demo_mask_arr,
-                        self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
-                        self.fea_train_arr_3d.X, self.fea_test_arr_3d.X,
-                          self.train_dir, self.checkpoint_path,
-                     epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
-        else:
-            print('No 1d feature')
-            self.train_data_1d = None
-            self.test_data_1d = None
-            predicted_vals = predictor.train_from_checkpoint(self.train_data.X, self.train_data.y,
-                        self.test_data.X, self.test_data.y,
-                        # self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
-                        # self.grid_g1, self.grid_g2, self.fairloss,
-                         self.demo_mask_arr,
-                        self.data_2d, None, self.data_2d, None,
-                        self.fea_train_arr_3d.X, self.fea_test_arr_3d.X,
-                          self.train_dir,self.checkpoint_path,
-                     epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
+        self.train_data_3d = generateData(self.fea_train_arr_3d, TIMESTEPS, BATCH_SIZE)
+        self.test_data_3d = generateData(self.fea_test_arr_3d, TIMESTEPS, BATCH_SIZE)
+        self.train_data_3d = np.squeeze(self.train_data_3d.X, axis = 4)
+        self.test_data_3d= np.squeeze(self.test_data_3d.X, axis = 4)
+
+
+        self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
+        self.test_data_1d = generateData_1d(self.test_arr_1d, TIMESTEPS, BATCH_SIZE)
+        print('test_data_1d.y.shape', self.test_data_1d.y.shape)
+        predicted_vals = predictor.train_neural_network(self.train_data.X, self.train_data.y,
+                    self.test_data.X, self.test_data.y,
+                    # self.demo_sensitive, self.demo_pop, self.pop_g1, self.pop_g2,
+                    # self.grid_g1, self.grid_g2, self.fairloss,
+                 self.demo_mask_arr,
+                    self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
+                    self.train_data_3d.X, self.test_data_3d.X,
+                      self.train_dir, self.checkpoint_path,
+                 epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
         predicted = predicted_vals.flatten()
         y = self.test_data.y.flatten()
@@ -1597,67 +1000,6 @@ class Conv3D:
         #print ("Error: %f" % mse)
         rmse = np.sqrt((np.asarray((np.subtract(predicted, y))) ** 2).mean())
         mae = mean_absolute_error(predicted, y)
-        print('Metrics for all grids: ')
-        print("RSME: %f" % rmse)
-        print('MAE: %f' %mae)
-        return predicted_vals
-
-
-
-    # run inference only
-    def run_inference(self):
-        tf.reset_default_graph()
-        # self, channel, time_steps, height, width
-        predictor = Conv3DPredictor(self.intersect_pos_set, self.demo_sensitive, self.demo_pop,
-                                    self.pop_g1, self.pop_g2,self.grid_g1, self.grid_g2, self.fairloss,
-                                    # self.data_2d, self.data_1d.X, self.data_2d, self.data_1d_test.X,
-                                     self.lamda, self.demo_mask_arr, channel=BIKE_CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH,
-                                    )
-        #data = data_loader.load_series('international-airline-passengers.csv')
-        # rawdata, timesteps, batchsize
-       #self.train_data = generateData(self.train_arr, TIMESTEPS, BATCH_SIZE)
-        # train_x shape should be : [num_examples (batch size), time_step (168), feature_dim (1)]
-
-        # create batches, feed batches into predictor
-        # predictor.train(self.train_data)
-        # print('finished training')
-
-        # prep test data, split test_arr into test_x and test_y
-        self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
-        print('test_data.y.shape', self.test_data.y.shape)
-
-        if self.test_arr_1d is not None:
-            # self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
-            self.test_data_1d = generateData_1d(self.test_arr_1d, TIMESTEPS, BATCH_SIZE)
-            print('test_data_1d.y.shape', self.test_data_1d.y.shape)
-            predicted_vals = predictor.inference(self.test_data.X, self.test_data.y,  self.demo_mask_arr,
-                    # self.lamda, self.checkpoint_path,
-                    # self.data_2d, self.test_data_1d.X, self.demo_sensitive,self.demo_pop,
-                    self.pop_g1, self.pop_g2,
-                        self.grid_g1, self.grid_g2, self.fairloss,
-                      self.save_path,
-                    batch_size=BATCH_SIZE)
-        else:
-            print('No 1d feature')
-            # self.train_data_1d = None
-            self.test_data_1d = None
-            predicted_vals = predictor.inference(self.test_data.X, self.test_data.y,  self.demo_mask_arr,
-                    self.lamda, self.checkpoint_path,
-                    self.data_2d, None, self.demo_sensitive,self.demo_pop,
-                    self.pop_g1, self.pop_g2,
-                        self.grid_g1, self.grid_g2, self.fairloss,
-                      self.save_path, self.beta,
-                    batch_size=BATCH_SIZE)
-
-
-
-        predicted = predicted_vals.flatten()
-        y = self.test_data.y.flatten()
-        #mse = mean_absolute_error(y['test'], predicted)
-        #print ("Error: %f" % mse)
-        rmse = np.sqrt((np.asarray((np.subtract(predicted, y))) ** 2).mean())
-        mae = mean_absolute_error(predicted, y)
-        print('INFERENCE results')
         print('Metrics for all grids: ')
         print("RSME: %f" % rmse)
         print('MAE: %f' %mae)
