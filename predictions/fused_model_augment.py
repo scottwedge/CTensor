@@ -44,6 +44,59 @@ LEARNING_RATE = 0.003
 def my_leaky_relu(x):
     return tf.nn.leaky_relu(x, alpha=0.2)
 
+class generateData_3d_feature(object):
+    def __init__(self, input_data, timesteps, batchsize):
+        self.timesteps = timesteps
+        self.batchsize = batchsize
+        self.rawdata = input_data
+        self.train_batch_id = 0
+
+        X, y = self.load_data()
+        # x should be [batchsize, time_steps, height, width,channel]
+        self.X = X['train']
+        # y should be [batchsize, height, width, channel]
+        self.y = y['train']
+
+
+    # load raw data
+    # raw_data.shape for mnist: (20, 10000, 64, 64)
+    def load_data(self):
+        data = self.rawdata
+        train_x = data[:self.timesteps, :, :, :, :]
+        train_y = data[self.timesteps:,:, :, :, 0]
+
+        # reshape x to [None, time_steps, height, width,channel]
+        # train_x = np.expand_dims(train_x, axis=4)
+        # transpose
+        train_x = np.swapaxes(train_x,0,1)
+        #sample_train_x = np.reshape(sample_train_x, [-1, time_steps, height, width, 1])
+        # transpose y to [batch_size, height, width, channel]
+        #sample_train_y = np.reshape(sample_train_y, [-1,  height, width, 1])
+        train_y = np.expand_dims(train_y, axis=4)
+        # transpose
+        train_y = np.swapaxes(train_y,0,1)
+        # sqeeze to [batch_size, height, width, channel]
+        train_y = np.squeeze(train_y, axis = 1)
+
+        return dict(train=train_x), dict(train = train_y)
+
+
+    # input train_x, train_y or test_x or test_y
+    def train_next(self):
+        """ Return a batch of data. When dataset end is reached, start over.
+        """
+        if self.train_batch_id == len(self.X):
+            self.train_batch_id = 0
+        batch_data = (self.X[self.train_batch_id:min(self.train_batch_id +
+                                                  self.batchsize, len(self.X))])
+        batch_labels = (self.y[self.train_batch_id:min(self.train_batch_id +
+                                                  self.batchsize, len(self.y))])
+
+        self.train_batch_id = min(self.train_batch_id + self.batchsize, len(self.X))
+        return batch_data, batch_labels
+
+
+
 class generateData(object):
     def __init__(self, input_data, timesteps, batchsize):
         self.timesteps = timesteps
@@ -403,7 +456,7 @@ class Conv3DPredictor:
     # prediction_2d: batchsize, 32, 20,1
     # prediction_1d: batchsize, 1
     # output : batchsize, 32,20,1
-    def model_fusion(self, prediction_3d, prediction_2d, prediction_1d, prediction_3d_fea, is_training):
+    def model_fusion(self, prediction_3d, prediction_2d, prediction_1d, is_training):
 
         # Fuse features using concatenation
 
@@ -445,7 +498,6 @@ class Conv3DPredictor:
             fuse_feature = tf.concat([prediction_3d, prediction_2d], 3)
             # batch size, 32, 20, 3
             fuse_feature = tf.concat([fuse_feature, prediction_1d_expand], 3)
-            fuse_feature = tf.concat([fuse_feature, prediction_3d_fea], 3)
 
 
         with tf.name_scope("fusion_layer_a"):
@@ -483,7 +535,7 @@ class Conv3DPredictor:
                      # grid_g1, grid_g2, fairloss_func,
                       demo_mask_arr,
                       data_2d_train, data_1d_train, data_2d_test, data_1d_test,
-                      data_3d_train, data_3d_test,
+
                       save_folder_path,
                     resume_training = False, checkpoint_path = None,
                       keep_rate=0.7, epochs=10, batch_size=64):
@@ -495,7 +547,7 @@ class Conv3DPredictor:
 
         # fusion model
         prediction_3d = self.cnn_model(self.x, self.is_training, 1, keep_rate, seed=1)
-        prediction_3d_fea = self.cnn_model(self.input_3d_feature, self.is_training, 1, keep_rate, seed=1)
+        #prediction_3d_fea = self.cnn_model(self.input_3d_feature, self.is_training, 1, keep_rate, seed=1)
 
         if data_2d_train is None:
             prediction_2d = None
@@ -514,7 +566,7 @@ class Conv3DPredictor:
             #prediction_1d = None
 
         # fusion
-        prediction = self.model_fusion(prediction_3d, prediction_2d, prediction_1d, prediction_3d_fea, self.is_training)
+        prediction = self.model_fusion(prediction_3d, prediction_2d, prediction_1d, self.is_training)
 
 
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr, 0)  # [1, 2]
@@ -543,13 +595,6 @@ class Conv3DPredictor:
 
         if not os.path.exists(save_folder_path):
             os.makedirs(save_path)
-
-        # keep results for plotting
-        # train_acc_loss = []
-        # test_acc_loss = []
-
-        # ecoch_res_df['train_acc'] = train_acc_loss
-        # ecoch_res_df['test_acc'] = test_acc_loss
 
 
         with tf.Session() as sess:
@@ -801,7 +846,7 @@ class Conv3D:
     def __init__(self, train_obj, train_arr, test_arr, intersect_pos_set,
                     # demo_sensitive, demo_pop, pop_g1, pop_g2,
                     # grid_g1, grid_g2, fairloss,
-                    train_arr_1d, test_arr_1d, data_2d, fea_train_arr_3d, fea_test_arr_3d,
+                    train_arr_1d, test_arr_1d, data_2d,
                      demo_mask_arr,
                      save_path,
                      HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
@@ -833,8 +878,6 @@ class Conv3D:
         self.train_arr_1d = train_arr_1d
         self.test_arr_1d = test_arr_1d
         self.data_2d = data_2d
-        self.fea_train_arr_3d = fea_train_arr_3d
-        self.fea_test_arr_3d = fea_test_arr_3d
         self.save_path = save_path
 
         globals()['HEIGHT']  = HEIGHT
@@ -905,15 +948,14 @@ class Conv3D:
                                     )
         #data = data_loader.load_series('international-airline-passengers.csv')
         # rawdata, timesteps, batchsize
-        self.train_data = generateData(self.train_arr, TIMESTEPS, BATCH_SIZE)
-        self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
+        self.train_data = generateData_3d_feature(self.train_arr, TIMESTEPS, BATCH_SIZE)
+        self.test_data = generateData_3d_feature(self.test_arr, TIMESTEPS, BATCH_SIZE)
         print('test_data.y.shape', self.test_data.y.shape)
         # create batch data for 3d data
-        self.train_data_3d = generateData(self.fea_train_arr_3d, TIMESTEPS, BATCH_SIZE)
-        self.test_data_3d = generateData(self.fea_test_arr_3d, TIMESTEPS, BATCH_SIZE)
-        self.train_data_3d_X = np.squeeze(self.train_data_3d.X, axis = 4)
-        self.test_data_3d_X= np.squeeze(self.test_data_3d.X, axis = 4)
-
+        # self.train_data_3d = generateData(self.fea_train_arr_3d, TIMESTEPS, BATCH_SIZE)
+        # self.test_data_3d = generateData(self.fea_test_arr_3d, TIMESTEPS, BATCH_SIZE)
+        # self.train_data_3d_X = np.squeeze(self.train_data_3d.X, axis = 4)
+        # self.test_data_3d_X= np.squeeze(self.test_data_3d.X, axis = 4)
 
         self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
         self.test_data_1d = generateData_1d(self.test_arr_1d, TIMESTEPS, BATCH_SIZE)
@@ -924,7 +966,7 @@ class Conv3D:
                     #  self.grid_g1, self.grid_g2, self.fairloss,
                      self.demo_mask_arr,
                     self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
-                    self.train_data_3d_X, self.test_data_3d_X,
+                    # self.train_data_3d_X, self.test_data_3d_X,
                       self.save_path,
 
                  epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
@@ -953,14 +995,14 @@ class Conv3D:
                                     )
         #data = data_loader.load_series('international-airline-passengers.csv')
         # rawdata, timesteps, batchsize
-        self.train_data = generateData(self.train_arr, TIMESTEPS, BATCH_SIZE)
-        self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
+        self.train_data = generateData_3d_feature(self.train_arr, TIMESTEPS, BATCH_SIZE)
+        self.test_data = generateData_3d_feature(self.test_arr, TIMESTEPS, BATCH_SIZE)
         print('test_data.y.shape', self.test_data.y.shape)
 
-        self.train_data_3d = generateData(self.fea_train_arr_3d, TIMESTEPS, BATCH_SIZE)
-        self.test_data_3d = generateData(self.fea_test_arr_3d, TIMESTEPS, BATCH_SIZE)
-        self.train_data_3d_X = np.squeeze(self.train_data_3d.X, axis = 4)
-        self.test_data_3d_X= np.squeeze(self.test_data_3d.X, axis = 4)
+        # self.train_data_3d = generateData(self.fea_train_arr_3d, TIMESTEPS, BATCH_SIZE)
+        # self.test_data_3d = generateData(self.fea_test_arr_3d, TIMESTEPS, BATCH_SIZE)
+        # self.train_data_3d_X = np.squeeze(self.train_data_3d.X, axis = 4)
+        # self.test_data_3d_X= np.squeeze(self.test_data_3d.X, axis = 4)
 
 
         self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
@@ -972,7 +1014,7 @@ class Conv3D:
                     # self.grid_g1, self.grid_g2, self.fairloss,
                  self.demo_mask_arr,
                     self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
-                    self.train_data_3d_X, self.test_data_3d_X,
+                    # self.train_data_3d_X, self.test_data_3d_X,
                       self.train_dir, self.checkpoint_path,
                  epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
