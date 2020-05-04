@@ -620,8 +620,8 @@ def main():
             }
 
         rawdata_3d_dict = {
-              'building_permit': np.expand_dims(building_permit_arr_seq_extend[start_idx:end_idx,: ,:], axis=3),
-            'collisions': np.expand_dims(collisions_arr_seq_extend[start_idx:end_idx,:,:],axis=3),  # (7, 45840, 32, 20)
+            #  'building_permit': np.expand_dims(building_permit_arr_seq_extend[start_idx:end_idx,: ,:], axis=3),
+            #'collisions': np.expand_dims(collisions_arr_seq_extend[start_idx:end_idx,:,:],axis=3),  # (7, 45840, 32, 20)
             'seattle911calls': np.expand_dims(seattle911calls_arr[start_idx:end_idx,:,:], axis=3) # (45984, 32, 20)
             }
 

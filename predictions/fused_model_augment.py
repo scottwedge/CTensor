@@ -777,12 +777,11 @@ class Conv3DPredictor:
     #             output = np.array(final_output)
 
                 end_time_epoch = datetime.datetime.now()
+                end_time_epoch = datetime.datetime.now()
                 #print(' Testing Set Accuracy:',test_cost/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
                 print(' Testing Set Cost:',test_cost/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
-                #print(' Testing Set Fair Cost:',test_fair_loss/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
+                print(' Testing Set Fair Cost:',test_fair_loss/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
                 print(' Testing Set Accuracy Cost:',test_acc_loss/itrs, ' Time elapse: ', str(end_time_epoch - start_time_epoch))
-                # test_acc_loss.append(test_acc_loss/itrs)
-
 
                 #save_folder_path  = './fusion_model_'+ str(lamda)+'/'
                 # save globel step for resuming training later
@@ -806,12 +805,8 @@ class Conv3DPredictor:
                     #the_file.write('Only account for grids that intersect with city boundary \n')
                     the_file.write('epoch\n')
                     the_file.write(str(epoch)+'\n')
-                    # the_file.write('lamda\n')
-                    # the_file.write(str(lamda) + '\n')
                     the_file.write(' Testing Set Cost:\n')
                     the_file.write(str(test_cost/itrs) + '\n')
-                    # the_file.write('Testing Set Fair Cost\n')
-                    # the_file.write(str(test_fair_loss/itrs)+ '\n')
                     the_file.write('Testing Set Accuracy Cost\n')
                     the_file.write(str(test_acc_loss/itrs)+ '\n')
                     the_file.write('\n')
@@ -819,7 +814,6 @@ class Conv3DPredictor:
 
                 if epoch == epochs-1:
                     test_result.extend(final_output)
-
 
                 # plot results
                 print('saving train_test plots')
