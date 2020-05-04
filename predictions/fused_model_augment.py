@@ -495,7 +495,7 @@ class Conv3DPredictor:
 
         # fusion model
         prediction_3d = self.cnn_model(self.x, self.is_training, 1, keep_rate, seed=1)
-        prediction_3d_fea = self.cnn_model(self.input_3d_feature, self.is_training, NUM_3D_FEA, keep_rate, seed=1)
+        prediction_3d_fea = self.cnn_model(self.input_3d_feature, self.is_training, 1, keep_rate, seed=1)
 
         if data_2d_train is None:
             prediction_2d = None
