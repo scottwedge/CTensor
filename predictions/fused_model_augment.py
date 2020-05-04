@@ -852,6 +852,8 @@ class Conv3D:
         print('HEIGHT: ', HEIGHT)
         print('start learning rate: ',LEARNING_RATE)
 
+        print('NUM_3D_FEA: ', NUM_3D_FEA)
+
         # print("self.data_2d: shape: ", self.data_2d.shape)
 
         self.is_inference = is_inference
