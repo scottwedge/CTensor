@@ -824,7 +824,7 @@ class Conv3D:
                      #  if s_inference = True, do inference only
         self.train_obj = train_obj
         self.train_df = train_obj.train_df
-        self.test_df = train_obj.test_dfs
+        self.test_df = train_obj.test_df
         self.train_arr = train_arr
         self.test_arr = test_arr
 
