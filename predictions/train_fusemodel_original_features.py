@@ -620,8 +620,8 @@ def main():
             }
 
         rawdata_3d_dict = {
-            #  'building_permit': np.expand_dims(building_permit_arr_seq_extend[start_idx:end_idx,: ,:], axis=3),
-            #'collisions': np.expand_dims(collisions_arr_seq_extend[start_idx:end_idx,:,:],axis=3),  # (7, 45840, 32, 20)
+            'building_permit': np.expand_dims(building_permit_arr_seq_extend[start_idx:end_idx,: ,:], axis=3),
+            'collisions': np.expand_dims(collisions_arr_seq_extend[start_idx:end_idx,:,:],axis=3),  # (7, 45840, 32, 20)
             'seattle911calls': np.expand_dims(seattle911calls_arr[start_idx:end_idx,:,:], axis=3) # (45984, 32, 20)
             }
 
@@ -671,7 +671,6 @@ def main():
         # train_arr = np.concatenate([train_arr,fea_train_arr_3d], axis=4)
         # test_arr = np.concatenate([test_arr,fea_test_arr_3d], axis=4)
         # print('train_arr.shape: ', train_arr.shape)
-
 
         globals()['NUM_2D_FEA']  = data_2d.shape[-1]
         globals()['NUM_1D_FEA']  = train_arr_1d.shape[-1]

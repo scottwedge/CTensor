@@ -233,7 +233,7 @@ class Conv3DPredictor:
         self.channel = channel
 
         # [batchsize, depth, height, width, channel]
-        self.x = tf.placeholder(tf.float32, shape=[None,time_steps, height, width, channel + NUM_3D_FEA], name = 'x_input')
+        self.x = tf.placeholder(tf.float32, shape=[None,time_steps, height, width, channel], name = 'x_input')
         #
         #y_input = tf.placeholder(tf.float32, shape=[None, n_classes])
         self.y = tf.placeholder(tf.float32, shape= [None, height, width, channel], name = 'y_input')
@@ -241,7 +241,10 @@ class Conv3DPredictor:
         self.input_2d_feature = tf.placeholder(tf.float32, shape=[None, height, width, NUM_2D_FEA], name = "input_2d_feature")
         # (168, 9336,  3)
         self.input_1d_feature =  tf.placeholder(tf.float32, shape=[None,time_steps, NUM_1D_FEA], name = "input_1d_feature")
-        # self.input_3d_feature =  tf.placeholder(tf.float32, shape=[None,time_steps, height, width, NUM_3D_FEA], name = "input_1d_feature")
+
+        self.input_3d_feature1 =  tf.placeholder(tf.float32, shape=[None,time_steps, height, width, 1])
+        self.input_3d_feature2 =  tf.placeholder(tf.float32, shape=[None,time_steps, height, width, 1])
+        self.input_3d_feature3 =  tf.placeholder(tf.float32, shape=[None,time_steps, height, width, 1])
 
         # this is usefor Batch normalization.
         # https://towardsdatascience.com/pitfalls-of-batch-norm-in-tensorflow-and-sanity-checks-for-training-networks-e86c207548c8
@@ -456,7 +459,7 @@ class Conv3DPredictor:
     # prediction_2d: batchsize, 32, 20,1
     # prediction_1d: batchsize, 1
     # output : batchsize, 32,20,1
-    def model_fusion(self, prediction_3d, prediction_2d, prediction_1d, is_training):
+    def model_fusion(self, prediction_3d, prediction_2d, prediction_1d, feature_3d_list, is_training):
 
         # Fuse features using concatenation
 
@@ -498,6 +501,8 @@ class Conv3DPredictor:
             fuse_feature = tf.concat([prediction_3d, prediction_2d], 3)
             # batch size, 32, 20, 3
             fuse_feature = tf.concat([fuse_feature, prediction_1d_expand], 3)
+            fused_3d = tf.concat(feature_3d_list, 3)
+            fuse_feature = tf.concat([fuse_feature, fused_3d], 3)
 
 
         with tf.name_scope("fusion_layer_a"):
@@ -547,7 +552,11 @@ class Conv3DPredictor:
 
         # fusion model
         prediction_3d = self.cnn_model(self.x, self.is_training, 1, keep_rate, seed=1)
-        #prediction_3d_fea = self.cnn_model(self.input_3d_feature, self.is_training, 1, keep_rate, seed=1)
+
+        prediction_3d_fea1 = self.cnn_model(self.input_3d_feature1, self.is_training, 1, keep_rate, seed=1)
+        prediction_3d_fea2 = self.cnn_model(self.input_3d_feature2, self.is_training, 1, keep_rate, seed=1)
+        prediction_3d_fea3 = self.cnn_model(self.input_3d_feature2, self.is_training, 1, keep_rate, seed=1)
+        feature_3d_list = [prediction_3d_fea1, prediction_3d_fea2, prediction_3d_fea3]
 
         if data_2d_train is None:
             prediction_2d = None
@@ -566,7 +575,7 @@ class Conv3DPredictor:
             #prediction_1d = None
 
         # fusion
-        prediction = self.model_fusion(prediction_3d, prediction_2d, prediction_1d, self.is_training)
+        prediction = self.model_fusion(prediction_3d, prediction_2d, prediction_1d, feature_3d_list, self.is_training)
 
 
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr, 0)  # [1, 2]
@@ -640,7 +649,6 @@ class Conv3DPredictor:
                     mini_batch_y = y_train_data[itr*batch_size: (itr+1)*batch_size]
                     # model fusion
                     mini_batch_data_3d = data_3d_train[itr*batch_size: (itr+1)*batch_size]
-                    mini_batch_x = np.concatenate([mini_batch_x,mini_batch_data_3d], axis=4)
 
                     if data_1d_train is not None:
                         mini_batch_data_1d = data_1d_train[itr*batch_size: (itr+1)*batch_size]
@@ -657,6 +665,8 @@ class Conv3DPredictor:
 
                         _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             self.input_1d_feature:mini_batch_data_1d,  self.input_2d_feature: mini_batch_data_2d,
+                                                            self.input_3d_feature1: mini_batch_data_3d[:,:,:,:0], self.input_3d_feature2: mini_batch_data_3d[:,:,:,:1],
+                                                            self.input_3d_feature3: mini_batch_data_3d[:,:,:,:2],
                                                             self.is_training: True   })
                     elif data_1d_train is not None:  # 1d and 3d
                         _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
@@ -701,8 +711,7 @@ class Conv3DPredictor:
                     mini_batch_y_test = y_test_data[itr*batch_size: (itr+1)*batch_size]
                     # model fusion
                     mini_batch_data_3d_test = data_3d_test[itr*batch_size: (itr+1)*batch_size]
-                    mini_batch_x_test = np.concatenate([mini_batch_x_test,mini_batch_data_3d_test], axis=4)
-
+                    # mini_batch_x_test = np.concatenate([mini_batch_x_test,mini_batch_data_3d_test], axis=4)
 
                     if data_1d_test is not None:
                         mini_batch_data_1d_test = data_1d_test[itr*batch_size: (itr+1)*batch_size]
@@ -719,17 +728,22 @@ class Conv3DPredictor:
                         #acc += sess.run(accuracy, feed_dict={x_input: mini_batch_x_test, y_input: mini_batch_y_test})
                         test_cost += sess.run(cost, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
                                             self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test ,
-
+                                            self.input_3d_feature1: mini_batch_data_3d_test[:,:,:,:0], self.input_3d_feature2: mini_batch_data_3d_test[:,:,:,:1],
+                                            self.input_3d_feature3: mini_batch_data_3d_test[:,:,:,:2],
                                             self.is_training: True  })
                         # test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
                         #                     self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
                         #                     self.is_training: True})
                         test_acc_loss += sess.run(acc_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
                                             self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
+                                            self.input_3d_feature1: mini_batch_data_3d_test[:,:,:,:0], self.input_3d_feature2: mini_batch_data_3d_test[:,:,:,:1],
+                                            self.input_3d_feature3: mini_batch_data_3d_test[:,:,:,:2],
                                             self.is_training: True})
 
                         batch_output = sess.run(prediction, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
                                         self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
+                                        self.input_3d_feature1: mini_batch_data_3d_test[:,:,:,:0], self.input_3d_feature2: mini_batch_data_3d_test[:,:,:,:1],
+                                        self.input_3d_feature3: mini_batch_data_3d_test[:,:,:,:2],
                                         self.is_training: True})
                     elif data_1d_test is not None:
                         #acc += sess.run(accuracy, feed_dict={x_input: mini_batch_x_test, y_input: mini_batch_y_test})
