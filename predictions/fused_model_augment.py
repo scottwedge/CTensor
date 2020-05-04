@@ -649,7 +649,9 @@ class Conv3DPredictor:
                     mini_batch_y = y_train_data[itr*batch_size: (itr+1)*batch_size]
                     # model fusion
                     mini_batch_data_3d = data_3d_train[itr*batch_size: (itr+1)*batch_size]
-                    print('mini_batch_data_3d.shape: ', mini_batch_data_3d.shape)
+                    input_3d_feature1 = np.expand_dims(mini_batch_data_3d[:,:,:,:,0], axis = 4)
+                    input_3d_feature2 = np.expand_dims(mini_batch_data_3d[:,:,:,:,1], axis = 4)
+                    input_3d_feature3 = np.expand_dims(mini_batch_data_3d[:,:,:,:,2], axis = 4)
 
                     if data_1d_train is not None:
                         mini_batch_data_1d = data_1d_train[itr*batch_size: (itr+1)*batch_size]
@@ -666,8 +668,8 @@ class Conv3DPredictor:
 
                         _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
                                                             self.input_1d_feature:mini_batch_data_1d,  self.input_2d_feature: mini_batch_data_2d,
-                                                            self.input_3d_feature1: mini_batch_data_3d[:,:,:,:,0], self.input_3d_feature2: mini_batch_data_3d[:,:,:,:,1],
-                                                            self.input_3d_feature3: mini_batch_data_3d[:,:,:,:,2],
+                                                            self.input_3d_feature1: input_3d_feature1, self.input_3d_feature2: input_3d_feature2,
+                                                            self.input_3d_feature3: input_3d_feature3,
                                                             self.is_training: True   })
                     elif data_1d_train is not None:  # 1d and 3d
                         _optimizer, _cost, _acc_loss = sess.run([optimizer, cost, acc_loss], feed_dict={self.x: mini_batch_x, self.y: mini_batch_y,
@@ -729,22 +731,22 @@ class Conv3DPredictor:
                         #acc += sess.run(accuracy, feed_dict={x_input: mini_batch_x_test, y_input: mini_batch_y_test})
                         test_cost += sess.run(cost, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
                                             self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test ,
-                                            self.input_3d_feature1: mini_batch_data_3d_test[:,:,:,:0], self.input_3d_feature2: mini_batch_data_3d_test[:,:,:,:1],
-                                            self.input_3d_feature3: mini_batch_data_3d_test[:,:,:,:2],
+                                                    self.input_3d_feature1: input_3d_feature1, self.input_3d_feature2: input_3d_feature2,
+                                                    self.input_3d_feature3: input_3d_feature3,
                                             self.is_training: True  })
                         # test_fair_loss += sess.run(fair_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
                         #                     self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
                         #                     self.is_training: True})
                         test_acc_loss += sess.run(acc_loss, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
                                             self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
-                                            self.input_3d_feature1: mini_batch_data_3d_test[:,:,:,:0], self.input_3d_feature2: mini_batch_data_3d_test[:,:,:,:1],
-                                            self.input_3d_feature3: mini_batch_data_3d_test[:,:,:,:2],
+                                                                    self.input_3d_feature1: input_3d_feature1, self.input_3d_feature2: input_3d_feature2,
+                                                                    self.input_3d_feature3: input_3d_feature3,
                                             self.is_training: True})
 
                         batch_output = sess.run(prediction, feed_dict={self.x: mini_batch_x_test, self.y: mini_batch_y_test,
                                         self.input_1d_feature:mini_batch_data_1d_test,  self.input_2d_feature: mini_batch_data_2d_test,
-                                        self.input_3d_feature1: mini_batch_data_3d_test[:,:,:,:0], self.input_3d_feature2: mini_batch_data_3d_test[:,:,:,:1],
-                                        self.input_3d_feature3: mini_batch_data_3d_test[:,:,:,:2],
+                                                                    self.input_3d_feature1: input_3d_feature1, self.input_3d_feature2: input_3d_feature2,
+                                                                    self.input_3d_feature3: input_3d_feature3,
                                         self.is_training: True})
                     elif data_1d_test is not None:
                         #acc += sess.run(accuracy, feed_dict={x_input: mini_batch_x_test, y_input: mini_batch_y_test})
