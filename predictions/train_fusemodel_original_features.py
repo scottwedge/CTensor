@@ -580,7 +580,7 @@ def main():
         raw_seq_arr = train_obj.generate_fixlen_timeseries(rawdata_arr)
         train_arr, test_arr = train_obj.train_test_split(raw_seq_arr)
         print('input train_arr shape: ',train_arr.shape )
-        
+
         train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
         total_length = raw_seq_arr.shape[1]  # 9336
         test_len = total_length - train_hours  # 1296
@@ -620,9 +620,9 @@ def main():
             }
 
         rawdata_3d_dict = {
-              'building_permit': building_permit_arr_seq_extend[start_idx:end_idx,: ,:],
-            'collisions': collisions_arr_seq_extend[start_idx:end_idx,:,:],  # (7, 45840, 32, 20)
-            'seattle911calls': seattle911calls_arr[start_idx:end_idx,:,:] # (45984, 32, 20)
+              'building_permit': np.expand_dims(building_permit_arr_seq_extend[start_idx:end_idx,: ,:], axis=3),
+            'collisions': np.expand_dims(collisions_arr_seq_extend[start_idx:end_idx,:,:],axis=3),  # (7, 45840, 32, 20)
+            'seattle911calls': np.expand_dims(seattle911calls_arr[start_idx:end_idx,:,:], axis=3) # (45984, 32, 20)
             }
 
 
