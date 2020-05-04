@@ -642,7 +642,7 @@ class Conv3DPredictor:
 
                     if itr % 10 == 0:
                         #print('epoch: {}, step: {}\t\ttrain err: {}'.format(epoch, itr, _cost))
-                        print('epoch: {}, step: {}, train err: {}, _fair_loss:{}, mae:{}'.format(epoch, itr, _cost, _fair_loss, _acc_loss))
+                        print('epoch: {}, step: {}, train err: {}, mae:{}'.format(epoch, itr, _cost, _acc_loss))
 
                 # report loss per epoch
                 epoch_loss = epoch_loss/ iterations
