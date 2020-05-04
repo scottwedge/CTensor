@@ -649,6 +649,7 @@ class Conv3DPredictor:
                     mini_batch_y = y_train_data[itr*batch_size: (itr+1)*batch_size]
                     # model fusion
                     mini_batch_data_3d = data_3d_train[itr*batch_size: (itr+1)*batch_size]
+                    print('mini_batch_data_3d.shape: ', mini_batch_data_3d.shape)
 
                     if data_1d_train is not None:
                         mini_batch_data_1d = data_1d_train[itr*batch_size: (itr+1)*batch_size]
