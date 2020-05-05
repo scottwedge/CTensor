@@ -476,7 +476,9 @@ def main():
         'collisions': collisions_arr_seq_extend,  # (7, 45840, 32, 20)
         'seattle911calls': seattle911calls_arr # (45984, 32, 20)
         }
-
+    keys_1d = list(rawdata_1d_dict.keys())
+    keys_2d = list(rawdata_2d_dict.keys())
+    keys_3d = list(rawdata_3d_dict.keys())
 ################  read corrputed data ########################
 
     with open(path_1d + 'rawdata_1d_corrupted_dict', 'rb') as handle:
