@@ -862,7 +862,7 @@ class Autoencoder:
 
                 epoch_loss = 0
                 epoch_subloss = {}  # ave loss for each dataset
-                epoch_total_loss = 0  # sum of equal loss
+                # epoch_total_loss = 0  # sum of equal loss
                 epoch_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
                 epoch_subrmse = {}  # ave loss for each dataset
@@ -932,7 +932,7 @@ class Autoencoder:
                     for k, v in weight_per_epoch.items():
                         feed_dict_all[self.weights_dict[k]] = v
                     #batch_cost, batch_loss_dict, batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict=feed_dict_all)
-                    batch_cost, batch_total_loss, batch_loss_dict, batch_rmse_dict, batch_weighedloss_dict, _ = sess.run([cost,total_loss, loss_dict, rmse_dict, weighedloss_dict, optimizer],
+                    batch_cost, batch_loss_dict, batch_rmse_dict, batch_weighedloss_dict, _ = sess.run([total_loss, loss_dict, rmse_dict, weighedloss_dict, optimizer],
                                             feed_dict=feed_dict_all)
 
                     # debug
@@ -1018,14 +1018,14 @@ class Autoencoder:
 
                     epoch_loss += batch_cost
                     # total loss: equal weighting
-                    epoch_total_loss += batch_total_loss
+                    # epoch_total_loss += batch_total_loss
 
 
                 # report loss per epoch
                 epoch_loss = epoch_loss/ iterations
                 print('epoch: ', epoch, 'Trainig Set Epoch total Cost: ',epoch_loss)
-                epoch_total_loss = epoch_total_loss / iterations
-                print('epoch: ', epoch, 'Trainig Set Epoch sum of loss: ',epoch_total_loss)
+                # epoch_total_loss = epoch_total_loss / iterations
+                # print('epoch: ', epoch, 'Trainig Set Epoch sum of loss: ',epoch_total_loss)
 
                 end_time = datetime.datetime.now()
                 train_time_per_epoch = end_time - start_time
@@ -1066,7 +1066,7 @@ class Autoencoder:
 
                 test_cost = 0
                 test_final_output = list()
-                test_total_loss = 0
+                # test_total_loss = 0
                 test_subloss = {}  # ave loss for each dataset
                 test_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
@@ -1130,7 +1130,7 @@ class Autoencoder:
                     test_feed_dict_all[self.is_training] = True
 
                     #test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict= test_feed_dict_all)
-                    test_batch_cost, test_batch_total_loss, test_batch_loss_dict, test_batch_rmse_dict, test_batch_weighedloss_dict = sess.run([cost, total_loss, loss_dict, rmse_dict, weighedloss_dict],
+                    test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict, test_batch_weighedloss_dict = sess.run([total_loss, loss_dict, rmse_dict, weighedloss_dict],
                                             feed_dict= test_feed_dict_all)
                     # debug
                     for k, v in test_batch_loss_dict.items():
@@ -1153,12 +1153,12 @@ class Autoencoder:
 
 
                     test_cost += test_batch_cost
-                    test_total_loss += test_batch_total_loss
+                    # test_total_loss += test_batch_total_loss
 
                 test_epoch_loss = test_cost/ itrs
                 print('epoch: ', epoch, 'Test Set Epoch total Cost: ',test_epoch_loss)
-                test_total_loss = test_total_loss /itrs
-                print('epoch: ', epoch, 'Test Set Epoch total loss: ',test_total_loss)
+                # test_total_loss = test_total_loss /itrs
+                # print('epoch: ', epoch, 'Test Set Epoch total loss: ',test_total_loss)
                 test_end_time = datetime.datetime.now()
                 test_time_per_epoch = test_end_time - test_start_time
                 test_time_per_sample = test_time_per_epoch/ test_len
@@ -1267,11 +1267,11 @@ class Autoencoder:
                     the_file.write(str(epoch_loss) + '\n')
                     the_file.write(' test_epoch_loss:\n')
                     the_file.write(str(test_epoch_loss) + '\n')
-
-                    the_file.write(' epoch_total_loss: equal weight sum of loss \n')
-                    the_file.write(str(epoch_total_loss) + '\n')
-                    the_file.write(' test_total_loss: equal weight sum of test loss\n')
-                    the_file.write(str(test_total_loss) + '\n')
+                    #
+                    # the_file.write(' epoch_total_loss: equal weight sum of loss \n')
+                    # the_file.write(str(epoch_total_loss) + '\n')
+                    # the_file.write(' test_total_loss: equal weight sum of test loss\n')
+                    # the_file.write(str(test_total_loss) + '\n')
 
                     the_file.write('\n')
                     the_file.write('total time of last train epoch\n')
