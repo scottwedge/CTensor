@@ -1707,6 +1707,7 @@ class Autoencoder_entry:
         self.rawdata_1d_corrupted_dict = rawdata_1d_corrupted_dict
         self.rawdata_2d_corrupted_dict = rawdata_2d_corrupted_dict
         self.rawdata_3d_corrupted_dict = rawdata_3d_corrupted_dict
+        self.all_keys = set(list(self.rawdata_1d_dict.keys()) +  list(self.rawdata_2d_dict.keys()) +  list(self.rawdata_3d_dict.keys()))
 
         globals()['HEIGHT']  = HEIGHT
         globals()['WIDTH']  = WIDTH
@@ -1740,7 +1741,10 @@ class Autoencoder_entry:
                 ckpt_path = '.'.join(f.split('.')[0:2])
                 keys_set.add(ds_key)
                 path_set.add(ckpt_path)
-                self.ckpt_path_dict[ds_key] = os.path.join(self.pretrained_ckpt_path, ckpt_path)
+                if ds_key in self.all_keys:
+                    self.ckpt_path_dict[ds_key] = os.path.join(self.pretrained_ckpt_path, ckpt_path)
+
+                #self.ckpt_path_dict[ds_key] = os.path.join(self.pretrained_ckpt_path, ckpt_path)
 
             for k, v in self.ckpt_path_dict.items():
                 print(k, v)
