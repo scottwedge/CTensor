@@ -676,7 +676,7 @@ def main():
 
         globals()['NUM_2D_FEA']  = data_2d.shape[-1]
         globals()['NUM_1D_FEA']  = train_arr_1d.shape[-1]
-        globals()['NUM_3D_FEA']  = fea_seq_arr_3d.shape[-1]
+        globals()['NUM_3D_FEA']  = data_3d.shape[-1]
 
 
     elif place == "Austin":
