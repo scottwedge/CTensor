@@ -767,9 +767,9 @@ def main():
     # the save_path is the same dir as train_dir
     # otherwise, create ta new dir for training
     if suffix == '':
-        save_path =  './fusion_model_originalfeatures_'+ str(place) + '_'+ str(fairloss) +'_' + str(lamda)+'_'+  str(beta)+'_'    +str(use_1d_fea) +'_'+str(use_2d_fea) + '_' + str(multivar)  + '/'
+        save_path =  './fusion_model_originalfeatures_'+ str(place) + '_'+ str(fairloss) +'_' +str(use_1d_fea) +'_'+str(use_2d_fea) + '_' + str(multivar)  + '/'
     else:
-        save_path = './fusion_model_originalfeatures_'+ str(place) + '_'+ str(fairloss) +'_' + str(lamda)+'_'+  str(beta)+'_'   +str(use_1d_fea) +'_'+str(use_2d_fea)+'_' + str(multivar)  + '_'+ suffix  +'/'
+        save_path = './fusion_model_originalfeatures_'+ str(place) + '_'+ str(fairloss) +'_'  +str(use_1d_fea) +'_'+str(use_2d_fea)+'_' + str(multivar)  + '_'+ suffix  +'/'
 
     if train_dir:
         save_path = train_dir
@@ -850,7 +850,7 @@ def main():
     txt_name = save_path + 'fused_model_df_' +   str(beta)+'_'+   timer + '.txt'
     with open(txt_name, 'w') as the_file:
         the_file.write('Only account for grids that intersect with city boundary \n')
-    
+
         the_file.write('place\n')
         the_file.write(str(place) + '\n')
         the_file.write('use_1d_fea\n')
