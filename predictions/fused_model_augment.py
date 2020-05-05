@@ -683,7 +683,7 @@ class Conv3DPredictor:
                         end_idx = len(x_train_data)
                     else:
                         end_idx = (itr+1)*batch_size
-                    print('Epoch, itr, start_idx, end_idx', epoch, itr, start_idx, end_idx)
+                    
 
                     temp_batch = create_mini_batch_3d(start_idx, end_idx, data_3d, TIMESTEPS)
                     # print('temp_batch.shape: ', temp_batch.shape)  # (32, 168, 32, 20, 1, 3)
