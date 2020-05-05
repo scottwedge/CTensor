@@ -641,7 +641,7 @@ class Conv3DPredictor:
                 start_time_epoch = datetime.datetime.now()
                 print('Epoch', epoch, 'started', end='')
                 epoch_loss = 0
-        
+
                 epoch_accloss = 0
                 # mini batch
                 for itr in range(iterations):
@@ -813,14 +813,14 @@ class Conv3DPredictor:
                               ]],
                     columns=[ 'train_loss','test_loss', 'train_acc', 'test_acc'])
 
-                res_csv_path = save_folder_path + 'ecoch_res_df_' + str(lamda)+'.csv'
+                res_csv_path = save_folder_path + 'ecoch_res_df_' +'.csv'
 
                 with open(res_csv_path, 'a') as f:
                     # Add header if file is being created, otherwise skip it
                     ecoch_res_df.to_csv(f, header=f.tell()==0)
 
                 # save results to txt
-                txt_name = save_folder_path + 'fusion_df_' +str(lamda)+ '.txt'
+                txt_name = save_folder_path + 'fusion_df_'+ '.txt'
                 with open(txt_name, 'w') as the_file:
                     #the_file.write('Only account for grids that intersect with city boundary \n')
                     the_file.write('epoch\n')
@@ -837,7 +837,7 @@ class Conv3DPredictor:
 
                 # plot results
                 print('saving train_test plots')
-                train_test = pd.read_csv(save_folder_path  + 'ecoch_res_df_' + str(lamda)+'.csv')
+                train_test = pd.read_csv(save_folder_path  + 'ecoch_res_df_' +'.csv')
                 # train_test = train_test.loc[:, ~train_test.columns.str.contains('^Unnamed')]
                 train_test[['train_loss', 'test_loss']].plot()
                 plt.savefig(save_folder_path + 'total_loss_inprogress.png')
@@ -1011,7 +1011,7 @@ class Conv3D:
         predictor = Conv3DPredictor(self.intersect_pos_set,
                                     self.pop_g1, self.pop_g2,self.grid_g1, self.grid_g2, self.fairloss,
                                     # self.data_2d, self.data_1d.X, self.data_2d, self.data_1d_test.X,
-                                     self.lamda, self.demo_mask_arr, channel=BIKE_CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH,
+                                     self.demo_mask_arr, channel=BIKE_CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH,
                                     )
         #data = data_loader.load_series('international-airline-passengers.csv')
         # rawdata, timesteps, batchsize
