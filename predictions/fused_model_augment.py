@@ -679,8 +679,8 @@ class Conv3DPredictor:
                     mini_batch_y = y_train_data[itr*batch_size: (itr+1)*batch_size]
 
                     start_idx = itr*batch_size
-                    if x_train_data < (itr+1)*batch_size:
-                        end_idx = x_train_data
+                    if len(x_train_data) < (itr+1)*batch_size:
+                        end_idx = len(x_train_data)
                     else:
                         end_idx = (itr+1)*batch_size
                     print('Epoch, itr, start_idx, end_idx', epoch, itr, start_idx, end_idx)
@@ -751,7 +751,7 @@ class Conv3DPredictor:
                 final_output = list()
 
                 print('testing')
-                test_start = x_train_data
+                test_start = len(x_train_data)
                 test_end  = data_3d.shape[0]
                 test_len = test_end - test_start  # 4200
                 print('test_start: ', test_start) # 41616
