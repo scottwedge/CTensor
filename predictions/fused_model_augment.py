@@ -56,19 +56,19 @@ def create_mini_batch_3d(start_idx, end_idx,data_3d, timestep = TIMESTEPS):
     # (timestep (168/56/7), batchsize, 32, 20, 1)
     return test_data_3d_seq
 
-    def generate_fixlen_timeseries(rawdata_arr):
-        raw_seq_list = list()
-        # arr_shape: [# of timestamps, w, h]
-        arr_shape = rawdata_arr.shape
-        for i in range(0, arr_shape[0] - (TIMESTEPS + 1)+1):
-            start = i
-            end = i+ (TIMESTEPS + 1)
-            # temp_seq = rawdata_arr[start: end, :, :]
-            temp_seq = rawdata_arr[start: end]
-            raw_seq_list.append(temp_seq)
-        raw_seq_arr = np.array(raw_seq_list)
-        raw_seq_arr = np.swapaxes(raw_seq_arr,0,1)
-        return raw_seq_arr
+def generate_fixlen_timeseries(rawdata_arr):
+    raw_seq_list = list()
+    # arr_shape: [# of timestamps, w, h]
+    arr_shape = rawdata_arr.shape
+    for i in range(0, arr_shape[0] - (TIMESTEPS + 1)+1):
+        start = i
+        end = i+ (TIMESTEPS + 1)
+        # temp_seq = rawdata_arr[start: end, :, :]
+        temp_seq = rawdata_arr[start: end]
+        raw_seq_list.append(temp_seq)
+    raw_seq_arr = np.array(raw_seq_list)
+    raw_seq_arr = np.swapaxes(raw_seq_arr,0,1)
+    return raw_seq_arr
 
 
 def my_leaky_relu(x):
