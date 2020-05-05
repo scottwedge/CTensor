@@ -835,7 +835,7 @@ def main():
     print('mae for conv3d: ', eval_obj4.mae_val)
 
     # plot train test accuracy
-    train_test = pd.read_csv(save_path  + 'ecoch_res_df_' + str(lamda)+'.csv')
+    train_test = pd.read_csv(save_path  + 'ecoch_res_df_' +'.csv')
     train_test = train_test.loc[:, ~train_test.columns.str.contains('^Unnamed')]
     total_loss = train_test[['train_loss', 'test_loss']].plot()
     plt.savefig(save_path + 'total_loss_finish.png')
@@ -847,13 +847,10 @@ def main():
 
 
 
-    txt_name = save_path + 'fused_model_df_' +str(lamda)+'_'+   str(beta)+'_'+   timer + '.txt'
+    txt_name = save_path + 'fused_model_df_' +   str(beta)+'_'+   timer + '.txt'
     with open(txt_name, 'w') as the_file:
         the_file.write('Only account for grids that intersect with city boundary \n')
-        the_file.write('lamda\n')
-        the_file.write(str(lamda) + '\n')
-        the_file.write('beta\n')
-        the_file.write(str(beta) + '\n')
+    
         the_file.write('place\n')
         the_file.write(str(place) + '\n')
         the_file.write('use_1d_fea\n')
