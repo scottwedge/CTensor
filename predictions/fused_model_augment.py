@@ -44,7 +44,7 @@ LEARNING_RATE = 0.003
 # create sequences in real time
 def create_mini_batch_3d(start_idx, end_idx,data_3d, timestep = TIMESTEPS+1):
     # test_size = end_idx - start_idx
-    test_data_3d = data_3d[start_idx :end_idx + timestep - 1, :, :]
+    test_data_3d = data_3d[start_idx :end_idx + timestep, :, :]
     test_data_3d_seq = generate_fixlen_timeseries(test_data_3d)
     test_data_3d_seq = np.expand_dims(test_data_3d_seq, axis=4)
     test_data_3d_seq = np.swapaxes(test_data_3d_seq,0,1)
