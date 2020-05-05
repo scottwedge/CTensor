@@ -5,7 +5,7 @@
 # added gradnorm similar to
 # http://openaccess.thecvf.com/content_CVPR_2019/papers/Liu_End-To-End_Multi-Task_Learning_With_Attention_CVPR_2019_paper.pdf
 # https://github.com/lorenmt/mtan/blob/master/im2im_pred/model_segnet_mtan.py
-
+# This is the version used
 
 import pandas as pd
 import numpy as np
