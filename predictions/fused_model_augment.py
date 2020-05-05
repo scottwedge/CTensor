@@ -42,13 +42,8 @@ LEARNING_RATE = 0.003
 #save_folder_path = './fairness_res/'
 
 # create sequences in real time
-def create_mini_batch_3d(start_idx, end_idx,data_3d, timestep = TIMESTEPS):
-    # data_3d : (45984, 32, 20, ?)
-    # data_1d: (45984, ?)
-    # data_2d: (32, 20, ?)
-
+def create_mini_batch_3d(start_idx, end_idx,data_3d, timestep = TIMESTEPS+1):
     test_size = end_idx - start_idx
-    # handle different time frame
     test_data_3d = data_3d[start_idx :end_idx + timestep - 1, :, :]
     test_data_3d_seq = generate_fixlen_timeseries(test_data_3d, timestep)
     test_data_3d_seq = np.expand_dims(test_data_3d_seq, axis=4)
@@ -56,14 +51,15 @@ def create_mini_batch_3d(start_idx, end_idx,data_3d, timestep = TIMESTEPS):
     # (timestep (168/56/7), batchsize, 32, 20, 1)
     return test_data_3d_seq
 
-def generate_fixlen_timeseries(rawdata_arr):
+
+def generate_fixlen_timeseries(rawdata_arr, timestep = TIMESTEPS+1):
     raw_seq_list = list()
-    # arr_shape: [# of timestamps, w, h]
+        # arr_shape: [# of timestamps, w, h]
     arr_shape = rawdata_arr.shape
-    for i in range(0, arr_shape[0] - (TIMESTEPS + 1)+1):
+    for i in range(0, arr_shape[0] - (timestep)+1):
         start = i
-        end = i+ (TIMESTEPS + 1)
-        # temp_seq = rawdata_arr[start: end, :, :]
+        end = i+ (timestep )
+            # temp_seq = rawdata_arr[start: end, :, :]
         temp_seq = rawdata_arr[start: end]
         raw_seq_list.append(temp_seq)
     raw_seq_arr = np.array(raw_seq_list)
@@ -570,7 +566,8 @@ class Conv3DPredictor:
                      # grid_g1, grid_g2, fairloss_func,
                       demo_mask_arr,
                       data_2d_train, data_1d_train, data_2d_test, data_1d_test,
-                      data_3d_train, data_3d_test,
+                      data_3d,
+                      # data_3d_train, data_3d_test,
                       save_folder_path,
                     resume_training = False, checkpoint_path = None,
                       keep_rate=0.7, epochs=10, batch_size=64):
@@ -675,17 +672,29 @@ class Conv3DPredictor:
                 start_time_epoch = datetime.datetime.now()
                 print('Epoch', epoch, 'started', end='')
                 epoch_loss = 0
-
                 epoch_accloss = 0
                 # mini batch
                 for itr in range(iterations):
                     mini_batch_x = x_train_data[itr*batch_size: (itr+1)*batch_size]
                     mini_batch_y = y_train_data[itr*batch_size: (itr+1)*batch_size]
+
+                    start_idx = itr*batch_size
+                    if x_train_data < (itr+1)*batch_size:
+                        end_idx = x_train_data
+                    else:
+                        end_idx = (itr+1)*batch_size
+                    print('Epoch, itr, start_idx, end_idx', epoch, itr, start_idx, end_idx)
+
+                    temp_batch = create_mini_batch_3d(start_idx, end_idx, data_3d, TIMESTEPS)
+                    input_3d_feature1 = np.expand_dims(temp_batch[:, 0:HOURLY_TIMESTEPS, :, :, 0], axis = 4) # # shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+                    input_3d_feature2 = np.expand_dims(temp_batch[:, 0:HOURLY_TIMESTEPS, :, :, 1], axis = 4)
+                    input_3d_feature3 = np.expand_dims(temp_batch[:, 0:HOURLY_TIMESTEPS, :, :, 2], axis = 4)
+
                     # model fusion
-                    mini_batch_data_3d = data_3d_train[itr*batch_size: (itr+1)*batch_size]
-                    input_3d_feature1 = np.expand_dims(mini_batch_data_3d[:,:,:,:,0], axis = 4)
-                    input_3d_feature2 = np.expand_dims(mini_batch_data_3d[:,:,:,:,1], axis = 4)
-                    input_3d_feature3 = np.expand_dims(mini_batch_data_3d[:,:,:,:,2], axis = 4)
+                    # mini_batch_data_3d = data_3d_train[itr*batch_size: (itr+1)*batch_size]
+                    # input_3d_feature1 = np.expand_dims(mini_batch_data_3d[:,:,:,:,0], axis = 4)
+                    # input_3d_feature2 = np.expand_dims(mini_batch_data_3d[:,:,:,:,1], axis = 4)
+                    # input_3d_feature3 = np.expand_dims(mini_batch_data_3d[:,:,:,:,2], axis = 4)
 
                     if data_1d_train is not None:
                         mini_batch_data_1d = data_1d_train[itr*batch_size: (itr+1)*batch_size]
@@ -742,16 +751,38 @@ class Conv3DPredictor:
                 final_output = list()
 
                 print('testing')
+                test_start = x_train_data
+                test_end  = data_3d.shape[0]
+                test_len = test_end - test_start  # 4200
+                print('test_start: ', test_start) # 41616
+                print('test_end: ', test_end)
+                print('test_len: ', test_len) #  4200
+
+
                 itrs = int(len(x_test_data)/batch_size) + 1
                 for itr in range(itrs):
                     mini_batch_x_test = x_test_data[itr*batch_size: (itr+1)*batch_size]
                     mini_batch_y_test = y_test_data[itr*batch_size: (itr+1)*batch_size]
-                    # model fusion
-                    mini_batch_data_3d_test = data_3d_test[itr*batch_size: (itr+1)*batch_size]
-                    # mini_batch_x_test = np.concatenate([mini_batch_x_test,mini_batch_data_3d_test], axis=4)
-                    input_3d_feature1_test = np.expand_dims(mini_batch_data_3d_test[:,:,:,:,0], axis = 4)
-                    input_3d_feature2_test = np.expand_dims(mini_batch_data_3d_test[:,:,:,:,1], axis = 4)
-                    input_3d_feature3_test = np.expand_dims(mini_batch_data_3d_test[:,:,:,:,2], axis = 4)
+
+                    start_idx = itr*batch_size + test_start
+                    if test_len < (itr+1)*batch_size:
+                        end_idx = test_end
+                    else:
+                        end_idx = (itr+1)*batch_size + test_start
+                    print('testing: start_idx, end_idx', start_idx, end_idx)
+
+                    temp_batch = create_mini_batch_3d(start_idx, end_idx, data_3d, TIMESTEPS)
+                    input_3d_feature1_test = np.expand_dims(temp_batch[:, 0:HOURLY_TIMESTEPS, :, :, 0], axis = 4) # # shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+                    input_3d_feature2_test = np.expand_dims(temp_batch[:, 0:HOURLY_TIMESTEPS, :, :, 1], axis = 4)
+                    input_3d_feature3_test = np.expand_dims(temp_batch[:, 0:HOURLY_TIMESTEPS, :, :, 2], axis = 4)
+
+
+                    # # model fusion
+                    # mini_batch_data_3d_test = data_3d_test[itr*batch_size: (itr+1)*batch_size]
+                    # # mini_batch_x_test = np.concatenate([mini_batch_x_test,mini_batch_data_3d_test], axis=4)
+                    # input_3d_feature1_test = np.expand_dims(mini_batch_data_3d_test[:,:,:,:,0], axis = 4)
+                    # input_3d_feature2_test = np.expand_dims(mini_batch_data_3d_test[:,:,:,:,1], axis = 4)
+                    # input_3d_feature3_test = np.expand_dims(mini_batch_data_3d_test[:,:,:,:,2], axis = 4)
 
                     if data_1d_test is not None:
                         mini_batch_data_1d_test = data_1d_test[itr*batch_size: (itr+1)*batch_size]
@@ -897,8 +928,8 @@ class Conv3D:
     def __init__(self, train_obj, train_arr, test_arr, intersect_pos_set,
                     # demo_sensitive, demo_pop, pop_g1, pop_g2,
                     # grid_g1, grid_g2, fairloss,
-                    train_arr_1d, test_arr_1d, data_2d,
-                    fea_train_arr_3d, fea_test_arr_3d,
+                    train_arr_1d, test_arr_1d, data_2d,data_3d,
+                    # fea_train_arr_3d, fea_test_arr_3d,
                      demo_mask_arr,
                      save_path,
                      HEIGHT, WIDTH, TIMESTEPS, BIKE_CHANNEL,
@@ -930,8 +961,9 @@ class Conv3D:
         self.train_arr_1d = train_arr_1d
         self.test_arr_1d = test_arr_1d
         self.data_2d = data_2d
-        self.fea_train_arr_3d = fea_train_arr_3d
-        self.fea_test_arr_3d = fea_test_arr_3d
+        self.data_3d = data_3d
+        # self.fea_train_arr_3d = fea_train_arr_3d
+        # self.fea_test_arr_3d = fea_test_arr_3d
         self.save_path = save_path
 
         globals()['HEIGHT']  = HEIGHT
@@ -1006,10 +1038,10 @@ class Conv3D:
         self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
         print('test_data.y.shape', self.test_data.y.shape)
         # create batch data for 3d data
-        self.train_data_3d = generateData(self.fea_train_arr_3d, TIMESTEPS, BATCH_SIZE)
-        self.test_data_3d = generateData(self.fea_test_arr_3d, TIMESTEPS, BATCH_SIZE)
-        self.train_data_3d_X = np.squeeze(self.train_data_3d.X, axis = 4)
-        self.test_data_3d_X= np.squeeze(self.test_data_3d.X, axis = 4)
+        # self.train_data_3d = generateData(self.fea_train_arr_3d, TIMESTEPS, BATCH_SIZE)
+        # self.test_data_3d = generateData(self.fea_test_arr_3d, TIMESTEPS, BATCH_SIZE)
+        # self.train_data_3d_X = np.squeeze(self.train_data_3d.X, axis = 4)
+        # self.test_data_3d_X= np.squeeze(self.test_data_3d.X, axis = 4)
 
         self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
         self.test_data_1d = generateData_1d(self.test_arr_1d, TIMESTEPS, BATCH_SIZE)
@@ -1020,7 +1052,8 @@ class Conv3D:
                     #  self.grid_g1, self.grid_g2, self.fairloss,
                      self.demo_mask_arr,
                     self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
-                    self.train_data_3d_X, self.test_data_3d_X,
+                    self.data_3d,
+                    # self.train_data_3d_X, self.test_data_3d_X,
                       self.save_path,
 
                  epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
@@ -1053,10 +1086,10 @@ class Conv3D:
         self.test_data = generateData(self.test_arr, TIMESTEPS, BATCH_SIZE)
         print('test_data.y.shape', self.test_data.y.shape)
 
-        self.train_data_3d = generateData(self.fea_train_arr_3d, TIMESTEPS, BATCH_SIZE)
-        self.test_data_3d = generateData(self.fea_test_arr_3d, TIMESTEPS, BATCH_SIZE)
-        self.train_data_3d_X = np.squeeze(self.train_data_3d.X, axis = 4)
-        self.test_data_3d_X= np.squeeze(self.test_data_3d.X, axis = 4)
+        # self.train_data_3d = generateData(self.fea_train_arr_3d, TIMESTEPS, BATCH_SIZE)
+        # self.test_data_3d = generateData(self.fea_test_arr_3d, TIMESTEPS, BATCH_SIZE)
+        # self.train_data_3d_X = np.squeeze(self.train_data_3d.X, axis = 4)
+        # self.test_data_3d_X= np.squeeze(self.test_data_3d.X, axis = 4)
 
 
         self.train_data_1d = generateData_1d(self.train_arr_1d, TIMESTEPS, BATCH_SIZE)
@@ -1068,7 +1101,8 @@ class Conv3D:
                     # self.grid_g1, self.grid_g2, self.fairloss,
                  self.demo_mask_arr,
                     self.data_2d, self.train_data_1d.X, self.data_2d, self.test_data_1d.X,
-                    self.train_data_3d_X, self.test_data_3d_X,
+                    self.data_3d,
+                    # self.train_data_3d_X, self.test_data_3d_X,
                       self.train_dir, self.checkpoint_path,
                  epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
