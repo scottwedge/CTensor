@@ -449,7 +449,7 @@ def parse_args():
     parser.add_argument('-e',   '--epoch',  type=int,
                      action="store", help = 'epochs to train', default = 200)
     parser.add_argument('-l',   '--learning_rate',  type=float,
-                     action="store", help = 'epochs to train', default = 0.005)
+                     action="store", help = 'epochs to train', default = 0.003)
 
     return parser.parse_args()
 
