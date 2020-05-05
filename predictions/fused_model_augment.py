@@ -41,6 +41,36 @@ LEARNING_RATE = 0.003
 
 #save_folder_path = './fairness_res/'
 
+# create sequences in real time
+def create_mini_batch_3d(start_idx, end_idx,data_3d, timestep = TIMESTEPS):
+    # data_3d : (45984, 32, 20, ?)
+    # data_1d: (45984, ?)
+    # data_2d: (32, 20, ?)
+
+    test_size = end_idx - start_idx
+    # handle different time frame
+    test_data_3d = data_3d[start_idx :end_idx + timestep - 1, :, :]
+    test_data_3d_seq = generate_fixlen_timeseries(test_data_3d, timestep)
+    test_data_3d_seq = np.expand_dims(test_data_3d_seq, axis=4)
+    test_data_3d_seq = np.swapaxes(test_data_3d_seq,0,1)
+    # (timestep (168/56/7), batchsize, 32, 20, 1)
+    return test_data_3d_seq
+
+    def generate_fixlen_timeseries(rawdata_arr):
+        raw_seq_list = list()
+        # arr_shape: [# of timestamps, w, h]
+        arr_shape = rawdata_arr.shape
+        for i in range(0, arr_shape[0] - (TIMESTEPS + 1)+1):
+            start = i
+            end = i+ (TIMESTEPS + 1)
+            # temp_seq = rawdata_arr[start: end, :, :]
+            temp_seq = rawdata_arr[start: end]
+            raw_seq_list.append(temp_seq)
+        raw_seq_arr = np.array(raw_seq_list)
+        raw_seq_arr = np.swapaxes(raw_seq_arr,0,1)
+        return raw_seq_arr
+
+
 def my_leaky_relu(x):
     return tf.nn.leaky_relu(x, alpha=0.2)
 
