@@ -1345,20 +1345,20 @@ class Autoencoder:
                 # save weights for loss for each dataset
                 weights_df = pd.DataFrame({key: pd.Series(value) for key, value in all_weights.items()})
                 weights_csv_path = save_folder_path + 'weights_df' +'.csv'
-                with open(weights_csv_path, 'w') as f:
+                with open(weights_csv_path, 'a') as f:
                     weights_df.to_csv(f, header=f.tell()==0)
 
                 # save L0_dict as the base loss for all datasets
                 L0_df = pd.DataFrame([list(L0_dict.values())],
                                 columns= list(L0_dict.keys()))
                 L0_csv_path = save_folder_path + 'L0_df' +'.csv'
-                with open(L0_csv_path, 'w') as f:
+                with open(L0_csv_path, 'a') as f:
                     L0_df.to_csv(f, header=f.tell()==0)
 
                 # all_inv_rate: all inverse training rate
                 all_inv_rate_df = pd.DataFrame({key: pd.Series(value) for key, value in all_inv_rate.items()})
                 all_inv_rate_csv_path = save_folder_path + 'all_inv_rate_df' +'.csv'
-                with open(all_inv_rate_csv_path, 'w') as f:
+                with open(all_inv_rate_csv_path, 'a') as f:
                     all_inv_rate_df.to_csv(f, header=f.tell()==0)
 
                 # save the latest weight_per_epoch

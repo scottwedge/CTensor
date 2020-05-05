@@ -43,9 +43,9 @@ LEARNING_RATE = 0.003
 
 # create sequences in real time
 def create_mini_batch_3d(start_idx, end_idx,data_3d, timestep = TIMESTEPS+1):
-    test_size = end_idx - start_idx
+    # test_size = end_idx - start_idx
     test_data_3d = data_3d[start_idx :end_idx + timestep - 1, :, :]
-    test_data_3d_seq = generate_fixlen_timeseries(test_data_3d, timestep)
+    test_data_3d_seq = generate_fixlen_timeseries(test_data_3d)
     test_data_3d_seq = np.expand_dims(test_data_3d_seq, axis=4)
     test_data_3d_seq = np.swapaxes(test_data_3d_seq,0,1)
     # (timestep (168/56/7), batchsize, 32, 20, 1)
@@ -65,6 +65,7 @@ def generate_fixlen_timeseries(rawdata_arr, timestep = TIMESTEPS+1):
     raw_seq_arr = np.array(raw_seq_list)
     raw_seq_arr = np.swapaxes(raw_seq_arr,0,1)
     return raw_seq_arr
+
 
 
 def my_leaky_relu(x):
@@ -683,7 +684,7 @@ class Conv3DPredictor:
                         end_idx = len(x_train_data)
                     else:
                         end_idx = (itr+1)*batch_size
-                    
+
 
                     temp_batch = create_mini_batch_3d(start_idx, end_idx, data_3d, TIMESTEPS)
                     # print('temp_batch.shape: ', temp_batch.shape)  # (32, 168, 32, 20, 1, 3)
@@ -755,10 +756,10 @@ class Conv3DPredictor:
                 print('testing')
                 test_start = len(x_train_data)
                 test_end  = data_3d.shape[0]
-                test_len = test_end - test_start  # 4200
-                print('test_start: ', test_start) # 41616
+                test_len = test_end - test_start
+                print('test_start: ', test_start)
                 print('test_end: ', test_end)
-                print('test_len: ', test_len) #  4200
+                print('test_len: ', test_len)
 
 
                 itrs = int(len(x_test_data)/batch_size) + 1
