@@ -686,7 +686,8 @@ class Conv3DPredictor:
                     print('Epoch, itr, start_idx, end_idx', epoch, itr, start_idx, end_idx)
 
                     temp_batch = create_mini_batch_3d(start_idx, end_idx, data_3d, TIMESTEPS)
-                    print('temp_batch.shape: ', temp_batch.shape)
+                    # print('temp_batch.shape: ', temp_batch.shape)  # (32, 168, 32, 20, 1, 3)
+                    temp_batch = np.squeeze(temp_batch, axis = 4)
                     input_3d_feature1 = np.expand_dims(temp_batch[:, 0:TIMESTEPS, :, :, 0], axis = 4) # # shape=[None,HOURLY_TIMESTEPS, height, width, 1])
                     input_3d_feature2 = np.expand_dims(temp_batch[:, 0:TIMESTEPS, :, :, 1], axis = 4)
                     input_3d_feature3 = np.expand_dims(temp_batch[:, 0:TIMESTEPS, :, :, 2], axis = 4)
@@ -773,7 +774,7 @@ class Conv3DPredictor:
                     print('testing: start_idx, end_idx', start_idx, end_idx)
 
                     temp_batch = create_mini_batch_3d(start_idx, end_idx, data_3d, TIMESTEPS)
-
+                    temp_batch = np.squeeze(temp_batch, axis = 4)
                     input_3d_feature1_test = np.expand_dims(temp_batch[:, 0:TIMESTEPS, :, :, 0], axis = 4) # # shape=[None,HOURLY_TIMESTEPS, height, width, 1])
                     input_3d_feature2_test = np.expand_dims(temp_batch[:, 0:TIMESTEPS, :, :, 1], axis = 4)
                     input_3d_feature3_test = np.expand_dims(temp_batch[:, 0:TIMESTEPS, :, :, 2], axis = 4)
