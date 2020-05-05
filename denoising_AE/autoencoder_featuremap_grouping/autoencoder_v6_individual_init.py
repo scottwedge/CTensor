@@ -2256,7 +2256,7 @@ class Autoencoder_entry:
 
         self.use_pretrained = use_pretrained
         self.pretrained_ckpt_path = pretrained_ckpt_path
-
+        self.all_keys = set(list(self.rawdata_1d_dict.keys()) +  list(self.rawdata_2d_dict.keys()) +  list(self.rawdata_3d_dict.keys()))
 
         self.ckpt_path_dict = {}
         if self.use_pretrained:
@@ -2270,7 +2270,10 @@ class Autoencoder_entry:
                 ckpt_path = '.'.join(f.split('.')[0:2])
                 keys_set.add(ds_key)
                 path_set.add(ckpt_path)
-                self.ckpt_path_dict[ds_key] = os.path.join(self.pretrained_ckpt_path, ckpt_path)
+                if ds_key in self.all_keys:
+                    self.ckpt_path_dict[ds_key] = os.path.join(self.pretrained_ckpt_path, ckpt_path)
+
+                #self.ckpt_path_dict[ds_key] = os.path.join(self.pretrained_ckpt_path, ckpt_path)
 
             for k, v in self.ckpt_path_dict.items():
                 print(k, v)

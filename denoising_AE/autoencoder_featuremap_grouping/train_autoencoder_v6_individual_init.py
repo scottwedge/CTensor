@@ -480,13 +480,16 @@ def main():
 ################  read corrputed data ########################
 
     with open(path_1d + 'rawdata_1d_corrupted_dict', 'rb') as handle:
-        rawdata_1d_corrupted_dict = pickle.load(handle)
+        rawdata_1d_corrupted_dict_all = pickle.load(handle)
+        rawdata_1d_corrupted_dict = {k: rawdata_1d_corrupted_dict_all[k] for k in keys_1d}
 
     with open(path_2d + 'rawdata_2d_corrupted_dict', 'rb') as handle:
-        rawdata_2d_corrupted_dict = pickle.load(handle)
+        rawdata_2d_corrupted_dict_all = pickle.load(handle)
+        rawdata_2d_corrupted_dict = {k: rawdata_2d_corrupted_dict_all[k] for k in keys_2d}
 
     with open(path_3d + 'rawdata_3d_corrupted_dict', 'rb') as handle:
-        rawdata_3d_corrupted_dict = pickle.load(handle)
+        rawdata_2d_corrupted_dict_all = pickle.load(handle)
+        rawdata_3d_corrupted_dict = {k: rawdata_2d_corrupted_dict_all[k] for k in keys_3d}
 
     # check
     print('read corrupted data')
