@@ -26,7 +26,7 @@ import tensorflow.contrib.keras as keras
 from tensorflow.python.keras import backend as K
 
 import pickle
-
+from random import shuffle
 
 HEIGHT = 32
 WIDTH = 20
