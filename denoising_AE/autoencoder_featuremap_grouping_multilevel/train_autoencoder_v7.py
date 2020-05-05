@@ -326,7 +326,7 @@ def parse_args():
     				help="A boolean value whether or not to start from pretrained model")
     parser.add_argument('-pc',   '--pretrained_checkpoint',
                      action="store", help = 'checkpoint path to pretrained model',
-                     default = '../../denoising_AE/autoencoder_featuremap_grouping/denoise_autoencoder_v6_individual_init_dim5_denoise_autogroup/autoencoder_v6_49.ckpt-71578')
+                     default = '../../denoising_AE/autoencoder_featuremap_grouping/denoise_autoencoder_v6_individual_init_dim5_autogroup/autoencoder_v6_79.ckpt-105930')
     parser.add_argument("-i","--inference", type=bool, default=False,
         				help="inference")
 
@@ -510,22 +510,24 @@ def main():
 
     ########### group by ALL feature maps using cosine similarity  ####
     #### removed abs from cos similarity  #############################
+    # based on May 3 shuffled version
     first_level_grouping_dict = {
-    'group_1': ['precipitation', 'temperature', 'pressure'],
-    'group_2': ['airquality'],
-    'group_3': ['house_price'],
-    'group_4': ['POI_business', 'POI_school', 'total_flow_count', 'transit_stop'],
-    'group_5': ['POI_food', 'POI_government', 'POI_hospitals', 'POI_recreation', 'transit_routes', 'slope', 'bikelane'],
-    'group_6': ['POI_publicservices', 'POI_transportation', 'seattle_street', 'transit_signals'],
-    'group_7': ['building_permit', 'collisions'],
-    'group_8': ['seattle911calls'],
+        'group_1':  ['precipitation', 'temperature'],
+        'group_2': ['pressure', 'airquality'],
+        'group_3':  ['house_price', 'transit_signals'],
+        'group_4':  ['POI_business'],
+        'group_5':  ['POI_food', 'POI_government', 'POI_hospitals', 'POI_recreation', 'POI_school', 'seattle_street', 'transit_stop'],
+        'group_6': ['POI_publicservices'],
+        'group_7': ['POI_transportation', 'total_flow_count', 'transit_routes', 'slope', 'bikelane'],
+        'group_8': ['building_permit', 'seattle911calls'],
+        'group_9': ['collisions']
     }
 
 
     second_level_grouping_dict = {
-    'group_2_1': ['group_1', 'group_2', 'group_8'],
-    'group_2_2': ['group_3', 'group_4', 'group_6'],
-    'group_2_3':  ['group_5', 'group_7'],
+    'group_2_1': ['group_1', 'group_4', 'group_5', 'group_6', 'group_7', 'group_8'],
+    'group_2_2': ['group_2'],
+    'group_2_3': ['group_3', 'group_9'],
 
     }
 
