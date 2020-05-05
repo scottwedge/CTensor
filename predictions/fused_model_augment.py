@@ -576,7 +576,7 @@ class Conv3DPredictor:
         #global_step = tf.Variable(0, trainable=False)
         starter_learning_rate = LEARNING_RATE
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
-                                       5000, 0.8, staircase=True)
+                                       5000, 0.7, staircase=True)
 
         # fusion model
         prediction_3d = self.cnn_model(self.x, self.is_training, 1, keep_rate, seed=1)
