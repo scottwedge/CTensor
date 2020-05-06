@@ -423,7 +423,7 @@ def parse_args():
     parser.add_argument('-p',   '--place',
                      action="store", help = 'city to train on: Seattle or Austin', default = 'Seattle')
     parser.add_argument('-e',   '--epoch',  type=int,
-                     action="store", help = 'epochs to train', default = 200)
+                     action="store", help = 'epochs to train', default = 300)
     parser.add_argument('-l',   '--learning_rate',  type=float,
                      action="store", help = 'epochs to train', default = 0.005)
 
