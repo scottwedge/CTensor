@@ -1340,44 +1340,48 @@ class Autoencoder:
         keys_list = []
         first_order_encoder_list = []
         # first level output [dataset name: output]
-        first_level_output = dict()
+        first_level_output_1d = dict()
+        first_level_output_2d = dict()
+        first_level_output_3d = dict()
 
         for k, v in self.rawdata_1d_tf_x_dict.items():
             prediction_1d = self.cnn_1d_model(v, self.is_training, k)
-            prediction_1d = tf.expand_dims(prediction_1d, 2)
-            prediction_1d = tf.expand_dims(prediction_1d, 2)
-            prediction_1d_expand = tf.tile(prediction_1d, [1, 1, HEIGHT,
-                                                    WIDTH ,1])
-            first_level_output[k] = prediction_1d_expand
+            first_level_output_1d[k] = prediction_1d
             keys_list.append(k)
             first_order_encoder_list.append(prediction_1d)
+            # prediction_1d = tf.expand_dims(prediction_1d, 2)
+            # prediction_1d = tf.expand_dims(prediction_1d, 2)
+            # prediction_1d_expand = tf.tile(prediction_1d, [1, 1, HEIGHT,
+            #                                         WIDTH ,1])
+            # first_level_output[k] = prediction_1d_expand
+            # keys_list.append(k)
+            # first_order_encoder_list.append(prediction_1d)
 
         for k, v in self.rawdata_2d_tf_x_dict.items():
             prediction_2d = self.cnn_2d_model(v, self.is_training, k)
-            prediction_2d = tf.expand_dims(prediction_2d, 1)
-            prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
-                                                    1 ,1])
             keys_list.append(k)
-            first_level_output[k] = prediction_2d_expand
+            first_level_output_2d[k] = prediction_2d
             first_order_encoder_list.append(prediction_2d)
+            # prediction_2d = tf.expand_dims(prediction_2d, 1)
+            # prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
+            #                                         1 ,1])
+            # keys_list.append(k)
+            # first_level_output[k] = prediction_2d_expand
+            # first_order_encoder_list.append(prediction_2d)
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
             prediction_3d = self.cnn_model(v, self.is_training, k)
             # if k == 'seattle911calls':
-            first_level_output[k] = prediction_3d
+            first_level_output_3d[k] = prediction_3d
             first_order_encoder_list.append(prediction_3d)
-            # else:
-            #     # [None, 1, height, width, 1] -> [None, 24, height, width, 1]
-            #     prediction_3d_expand = tf.tile(prediction_3d, [1, TIMESTEPS, 1,
-            #                                             1 ,1])
-            #     first_level_output[k] = prediction_3d_expand
-            #     first_order_encoder_list.append(prediction_3d_expand)
-
+            keys_list.append(k)
 
 
         # dim: latent fea dimension
         # latent_fea = self.model_fusion(med_res_3d, med_res_2d, med_res_1d, dim, self.is_training)
-        latent_fea = self.fuse_and_train(list(first_level_output.values()),  self.is_training, '1', dim)
+        latent_fea =  self.fuse_and_train(list(first_level_output_1d.values()),
+                    list(first_level_output_2d.values()), list(first_level_output_3d.values()),
+                    self.is_training, '1', dim)
         print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 3)
         # recontruction
         print('recontruction')
