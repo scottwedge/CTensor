@@ -446,7 +446,7 @@ class Autoencoder:
     def cnn_1d_fuse(self, feature_map_list, is_training, suffix = '', output_dim =1, seed=None):
         # var_scope = "1d_data_process_" + suffix
         output_dim = (len(feature_map_list) / 4) + 1
-        with tf.variable_scope(var_scope):
+        with tf.variable_scope('cnn_1d_fuse'):
             fuse_feature =tf.concat(axis=-1,values=feature_map_list)
             print('fuse_feature.shape: ', fuse_feature.shape)
                         # Convolution Layer with 32 filters and a kernel size of 5
@@ -481,7 +481,7 @@ class Autoencoder:
     def cnn_2d_fuse(self, feature_map_list, is_training, suffix = '', output_dim = 1, seed=None):
         # var_scope = "2d_data_process_" + suffix
         output_dim = (len(feature_map_list) / 4) + 1
-        with tf.variable_scope(var_scope):
+        with tf.variable_scope('cnn_2d_fuse'):
             fuse_feature =tf.concat(axis=-1,values=feature_map_list)
             # Convolution Layer with 32 filters and a kernel size of 5
             conv1 = tf.layers.conv2d(fuse_feature, 16, 3, padding='same',activation=None)
