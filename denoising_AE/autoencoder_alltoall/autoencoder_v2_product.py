@@ -647,11 +647,11 @@ class Autoencoder:
         with tf.variable_scope(var_scope):
             fused_1d = self.cnn_1d_fuse(first_level_output_1d, is_training)
             fused_2d = self.cnn_2d_fuse(first_level_output_2d, is_training)
-            fused_1d2d = tf.matmul(fused_1d, fused_2d)
+            fused_1d2d = tf.multiply(fused_1d, fused_2d)
             print('fused_1d2d.shape: ', fused_1d2d.shape)
 
             fuse_3d =tf.concat(axis=-1,values=first_level_output_3d)
-            fuse_feature = tf.matmul(fused_1d2d, fuse_3d)
+            fuse_feature = tf.multiply(fused_1d2d, fuse_3d)
             print('fuse_feature.shape: ', fuse_feature.shape)
 
             # fuse_feature =tf.concat(axis=-1,values=feature_map_list)
