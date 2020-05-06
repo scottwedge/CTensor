@@ -658,9 +658,10 @@ class Autoencoder:
 
             fuse_3d =tf.concat(axis=-1,values=first_level_output_3d)
             dim_3d = fuse_3d.shape[-1] # temporarily only feed one 3d datasets
-            fused_3d_extend = tf.tile(fused_3d, [1, 1, 1,1 ,dim_2d * dim_2d / dim_3d])
+            fused_3d_extend = tf.tile(fused_3d, [1, 1, 1,1 ,dim_2d * dim_1d])
+            fused_1d2d_extend = tf.tile(fused_1d2d, [1, 1, 1,1 ,dim_3d])
 
-            fuse_feature = tf.multiply(fused_1d2d, fused_3d_extend)
+            fuse_feature = tf.multiply(fused_3d_extend, fused_1d2d_extend)
             print('fuse_feature.shape: ', fuse_feature.shape)
 
             # fuse_feature =tf.concat(axis=-1,values=feature_map_list)
