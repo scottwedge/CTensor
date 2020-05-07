@@ -524,7 +524,7 @@ class Autoencoder:
             conv2 = tf.layers.conv3d(
                       inputs=conv1,
                       filters=output_dim,
-                      kernel_size=[1, 1],
+                      kernel_size=[1, 1, 1],
                       padding="same",
                       activation=my_leaky_relu
                 )
