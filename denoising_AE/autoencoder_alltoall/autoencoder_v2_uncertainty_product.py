@@ -619,7 +619,7 @@ class Autoencoder:
                       activation=my_leaky_relu
                       #reuse = tf.AUTO_REUSE
                 )
-            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            # conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             # (batchsize, 168, dim)
             out = conv2
 
@@ -655,7 +655,7 @@ class Autoencoder:
                       activation=my_leaky_relu
                       #reuse = tf.AUTO_REUSE
                 )
-            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            # conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             out = conv2
             prediction_2d = tf.expand_dims(out, 1)
             prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
@@ -684,7 +684,7 @@ class Autoencoder:
                       padding="same",
                       activation=my_leaky_relu
                 )
-            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            # conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             out = conv2
         # output size should be [None, height, width, 1]
         return out
