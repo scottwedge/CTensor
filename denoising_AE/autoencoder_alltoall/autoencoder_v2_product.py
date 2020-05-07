@@ -463,6 +463,7 @@ class Autoencoder:
                       activation=my_leaky_relu
                       #reuse = tf.AUTO_REUSE
                 )
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             # (batchsize, 168, dim)
             out = conv2
 
@@ -498,12 +499,40 @@ class Autoencoder:
                       activation=my_leaky_relu
                       #reuse = tf.AUTO_REUSE
                 )
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             out = conv2
             prediction_2d = tf.expand_dims(out, 1)
             prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
                                                     1 ,1])
         # output size should be [None, height, width, 1]
         return prediction_2d_expand
+
+
+
+    def cnn_3d_fuse(self, feature_map_list, is_training, suffix = '', output_dim = 1, seed=None):
+        # var_scope = "2d_data_process_" + suffix
+        output_dim = int(len(feature_map_list) / 4) + 1
+        with tf.variable_scope('cnn_3d_fuse'):
+            fuse_feature =tf.concat(axis=-1,values=feature_map_list)
+            # Convolution Layer with 32 filters and a kernel size of 5
+            conv1 = tf.layers.conv3d(inputs=fuse_feature, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
+            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
+
+        # output should be (?, 32, 20, 1)
+        # with tf.name_scope("2d_layer_b"):
+            conv2 = tf.layers.conv3d(
+                      inputs=conv1,
+                      filters=output_dim,
+                      kernel_size=[1, 1],
+                      padding="same",
+                      activation=my_leaky_relu
+                )
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            out = conv2
+        # output size should be [None, height, width, 1]
+        return out
+
 
 
 
@@ -658,7 +687,8 @@ class Autoencoder:
 
             if len(first_level_output_3d)!=0:
 
-                fused_3d =tf.concat(axis=-1,values=first_level_output_3d)
+                #fused_3d =tf.concat(axis=-1,values=first_level_output_3d)
+                fused_3d = self.cnn_3d_fuse(first_level_output_3d, is_training)
                 dim_3d = fused_3d.shape[-1] # temporarily only feed one 3d datasets
                 fused_3d_extend = tf.tile(fused_3d, [1, 1, 1,1 ,dim_2d * dim_1d])
                 fused_1d2d_extend = tf.tile(fused_1d2d, [1, 1, 1,1 ,dim_3d])
