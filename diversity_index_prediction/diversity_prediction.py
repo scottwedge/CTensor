@@ -173,6 +173,8 @@ def main():
     result_df.loc['oracle_latrep', 'train_score'] = oracle_latrep_train_score
     result_df.loc['oracle_latrep', 'test_score'] = oracle_latrep_test_score
 
+    result_df.to_csv(save_path+ 'result_df.csv')
+
     timer = str(time.time())
     txt_name = save_path + 'diversity' +   timer + '.txt'
     with open(txt_name, 'w') as the_file:
