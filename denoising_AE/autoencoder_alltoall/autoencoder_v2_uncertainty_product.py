@@ -1,7 +1,14 @@
 # updated April 27, 2020
 # added permutation for training / test data
-# May 5, 2020
-# instead of feature conacatenation, use elementwise product
+# updated April 29, 2020
+# added gradnorm similar to
+# http://openaccess.thecvf.com/content_CVPR_2019/papers/Liu_End-To-End_Multi-Task_Learning_With_Attention_CVPR_2019_paper.pdf
+# https://github.com/lorenmt/mtan/blob/master/im2im_pred/model_segnet_mtan.py
+
+# May 6, 2020
+# -- use outer product
+# -- use adaptive weights for datasets
+
 
 import numpy as np
 import tensorflow as tf
@@ -25,6 +32,7 @@ import copy
 from random import shuffle
 
 
+
 HEIGHT = 32
 WIDTH = 20
 TIMESTEPS = 24
@@ -38,6 +46,10 @@ LEARNING_RATE = 0.003
 HOURLY_TIMESTEPS = 24
 DAILY_TIMESTEPS = 1
 THREE_HOUR_TIMESTEP = 56
+
+ALPH = 3
+STARTER_ITERATION = 50
+T = 5
 
 
 def my_leaky_relu(x):
@@ -134,7 +146,6 @@ def create_mini_batch_1d(start_index_list, start_idx, end_idx, data_1d):
     raw_seq_arr = np.array(raw_seq_list)
 
     return raw_seq_arr
-
 
 
 
@@ -249,7 +260,30 @@ def get_scopes_to_restore_for_eachdataset(key, keys_1d, keys_2d, keys_3d):
     return scopes_to_reserve
 
 
+# for gradnorm, get all parameters from AE,
+# except for loss weights.
+def get_parameters_from_model():
+    scopes_to_discard = 'lossweight'
+    variables_to_restore = []
+    for v in tf.trainable_variables():
+        # # DEBUG:
+        if v.name.split(':')[0].split('/')[0].startswith(scopes_to_discard):
+            print("Variables discard: %s" % v.name)
+        if not v.name.split(':')[0].split('/')[0].startswith(scopes_to_discard):
+            print("Variables in models: %s" % v.name)
+            variables_to_restore.append(v)
+    return variables_to_restore
 
+
+
+def get_parameters_from_sharedlayers(model_parameters):
+    scopes_to_reserve = 'last_shared_layer'
+    variables_to_restore = []
+    for v in model_parameters:
+        if v.name.split(':')[0].split('/')[1] == scopes_to_reserve:
+            print("last layer parameters: %s" % v.name)
+            variables_to_restore.append(v)
+    return variables_to_restore
 
 
 class Autoencoder:
@@ -269,10 +303,13 @@ class Autoencoder:
         # https://towardsdatascience.com/pitfalls-of-batch-norm-in-tensorflow-and-sanity-checks-for-training-networks-e86c207548c8
         self.is_training = tf.placeholder(tf.bool)
         self.global_step = tf.Variable(0, trainable=False)
+        # globale step for Lgrad
+        # self.Lgrad_global_step = tf.Variable(0, trainable=False)
         self.dataset_keys = list(rawdata_1d_dict.keys()) + list(rawdata_2d_dict.keys()) + list(rawdata_3d_dict.keys())
 
         self.rawdata_1d_tf_x_dict = {}
         self.rawdata_1d_tf_y_dict = {}
+        self.number_of_tasks = len(rawdata_1d_dict)+ len(rawdata_2d_dict) + len(rawdata_3d_dict)
         if len(rawdata_1d_dict) != 0:
             # rawdata_1d_dict
             for k, v in rawdata_1d_dict.items():
@@ -301,10 +338,6 @@ class Autoencoder:
 
 
         # -------- 3d --------------#
-        # building_permit_x = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
-        # building_permit_y = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
-        # collisions_x = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
-        # collisions_y = tf.placeholder(tf.float32, shape=[None,DAILY_TIMESTEPS, height, width, 1])
         self.rawdata_3d_tf_x_dict = {}
         self.rawdata_3d_tf_y_dict = {}
         if len(rawdata_3d_dict) != 0:
@@ -315,6 +348,41 @@ class Autoencoder:
             for k, v in rawdata_3d_corrupted_dict.items():
                 self.rawdata_3d_tf_x_dict[k] = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
 
+        ############# variables for gradnorm ######################
+
+        # weights for loss of each dataset
+        self.weights_dict = {}
+        if len(rawdata_1d_dict) != 0:
+            for k, v in rawdata_1d_dict.items():
+                var_name =  k
+                # self.weights_dict[var_name] = tf.Variable(1, trainable = True, dtype = tf.float32, name = var_name)
+                self.weights_dict[var_name] = tf.placeholder(tf.float32, shape=[], name = var_name)
+        if len(rawdata_2d_dict) != 0:
+            for k, v in rawdata_2d_dict.items():
+                var_name =  k
+                self.weights_dict[var_name] = tf.placeholder(tf.float32, shape=[], name = var_name)
+        if len(rawdata_3d_dict) != 0:
+            for k, v in rawdata_3d_dict.items():
+                var_name =  k
+                self.weights_dict[var_name] = tf.placeholder(tf.float32, shape=[], name = var_name)
+
+
+        # batchloss for each dataset in each step, for computing inverse training rate
+        # self.batchloss_dict = {}
+        # self.L0_dict = {}
+        # if len(rawdata_1d_dict) != 0:
+        #     for k, v in rawdata_1d_dict.items():
+        #         #self.batchloss_dict[k] =  tf.placeholder(tf.float32, shape=[])
+        #         self.L0_dict[k] = tf.placeholder(tf.float32, shape=[])
+        #
+        # if len(rawdata_2d_dict) != 0:
+        #     for k, v in rawdata_2d_dict.items():
+        #         #self.batchloss_dict[k] =  tf.placeholder(tf.float32, shape=[])
+        #         self.L0_dict[k] = tf.placeholder(tf.float32, shape=[])
+        # if len(rawdata_3d_dict) != 0:
+        #     for k, v in rawdata_3d_dict.items():
+        #         #self.batchloss_dict[k] =  tf.placeholder(tf.float32, shape=[])
+        #         self.L0_dict[k] = tf.placeholder(tf.float32, shape=[])
 
 
     # update on Jan, 2020: change variable_scopes
@@ -440,6 +508,94 @@ class Autoencoder:
 
 
 
+    # [batchsize, height, width, dim] -> recontruct to [None, DAILY_TIMESTEPS, height, width, 1]
+    # update: [None, 168, 32, 20, dim_decode] -> recontruct to [None, DAILY_TIMESTEPS, height, width, 1]
+    def reconstruct_3d(self, latent_fea, timestep, is_training, suffix = ''):
+        var_scope = "3d_data_reconstruct_" + suffix
+        with tf.variable_scope(var_scope):
+            padding = 'SAME'
+            stride = [1,1,1]
+
+                # [None, 168, 32, 20, dim_decode] ->  [None, DAILY_TIMESTEPS, height, width, 1]
+            conv1 = tf.layers.conv3d(inputs=latent_fea, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
+            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
+                # conv => 16*16*16
+            conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+                # pool => 8*8*8
+
+                # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, dim]
+            conv3 = tf.layers.conv3d(inputs=conv2, filters= 1, kernel_size=[3,3,3], padding='same', activation=None)
+            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+            conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
+
+            output = conv3
+
+        return output
+
+
+    # previous: [None, 32, 20, dim ] -> recontruct to data_2d: (None, 32, 20, dim_2d)
+    # update: [None, 168, 32, 20, dim_decode] ->  (None, 32, 20, dim_2d)
+    def reconstruct_2d(self, latent_fea, dim_2d, is_training, suffix = ''):
+        var_scope = "2d_data_reconstruct_" + suffix
+        with tf.variable_scope(var_scope):
+            padding = 'SAME'
+
+            #Average Pooling  [None, 168, 32, 20, dim_decode] ->  (None, 1, 32, 20, dim_decode)
+            # https://www.tensorflow.org/api_docs/python/tf/compat/v1/layers/average_pooling3d
+            conv1 = tf.layers.average_pooling3d(latent_fea, [TIMESTEPS, 1, 1], [1,1,1], padding='valid')
+            # (None, 1, 32, 20, dim_decode)  -> (None,  32, 20, dim_decode)
+            conv1 = tf.squeeze(conv1, axis = 1)
+
+            conv2 = tf.layers.conv2d(conv1, 16, 3, padding='same',activation=None)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+
+            conv3 = tf.layers.conv2d(conv2, 32, 3, padding='same',activation=None)
+            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+            conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
+            # [None, 32, 20, 16]  -> [None,32, 20 32]
+
+            conv4 = tf.layers.conv2d(conv3, dim_2d, 3, padding='same',activation=None)
+            conv4 = tf.layers.batch_normalization(conv4, training=is_training)
+            conv4 = tf.nn.leaky_relu(conv4, alpha=0.2)
+
+            #[None,32, 20 32] -> [None, 32, 20, dim_2d]
+        return conv4
+
+
+    # previsou: [None, 32, 20, dim ] -> recontruct to [None,168, dim_1d]
+    # new: [None, 168, 32, 20, dim_decode] ->  [None,168, dim_1d]
+    def reconstruct_1d(self, latent_fea, dim_1d, is_training, suffix= ''):
+        var_scope = "1d_data_reconstruct_" + suffix
+        with tf.variable_scope(var_scope):
+            # [None, 168, 32, 20, dim_decode] ->  [None,168, 1, 1, dim_decode]
+            conv1 = tf.layers.average_pooling3d(latent_fea, [1, HEIGHT, WIDTH], [1,1,1], padding='valid')
+            # [None,168, 1, 1, dim_decode]  -> [None,168, 1, dim_decode]
+            conv1 = tf.squeeze(conv1, axis = 2)
+            # [None,168, 1,  dim_decode]  -> [None,168, dim_decode]
+            conv1 = tf.squeeze(conv1, axis = 2)
+
+            conv2 = tf.layers.conv1d(conv1, 16, 3, padding='same',activation=None)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+
+            #  Convolution Layer with 64 filters and a kernel size of 3
+            # output shape: None, 168,16
+            # conv2 change from 16 to 32
+            conv3 = tf.layers.conv1d(conv2, 32, 3,padding='same', activation=None)
+            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+            conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
+
+            conv4 = tf.layers.conv1d(conv3, dim_1d, 3,padding='same', activation=None)
+            conv4 = tf.layers.batch_normalization(conv4, training=is_training)
+            conv4 = tf.nn.leaky_relu(conv4, alpha=0.2)
+
+        return conv4
+
+
     # after 1d cnn encoding layer, concat the 1d latent rep together
     # feed a list of 1d latent rep into cnn_1d_fuse, compress and output
     # (batchsize, 168, # of features)
@@ -536,131 +692,6 @@ class Autoencoder:
 
 
 
-    # [batchsize, height, width, dim] -> recontruct to [None, DAILY_TIMESTEPS, height, width, 1]
-    # update: [None, 168, 32, 20, dim_decode] -> recontruct to [None, DAILY_TIMESTEPS, height, width, 1]
-    def reconstruct_3d(self, latent_fea, timestep, is_training, suffix = ''):
-        var_scope = "3d_data_reconstruct_" + suffix
-        with tf.variable_scope(var_scope):
-            padding = 'SAME'
-            stride = [1,1,1]
-
-                # [None, 168, 32, 20, dim_decode] ->  [None, DAILY_TIMESTEPS, height, width, 1]
-            conv1 = tf.layers.conv3d(inputs=latent_fea, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
-            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
-            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
-                # conv => 16*16*16
-            conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
-            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
-            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
-                # pool => 8*8*8
-
-                # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, dim]
-            conv3 = tf.layers.conv3d(inputs=conv2, filters= 1, kernel_size=[3,3,3], padding='same', activation=None)
-            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
-            conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
-
-            output = conv3
-
-        return output
-
-
-    # previous: [None, 32, 20, dim ] -> recontruct to data_2d: (None, 32, 20, dim_2d)
-    # update: [None, 168, 32, 20, dim_decode] ->  (None, 32, 20, dim_2d)
-    def reconstruct_2d(self, latent_fea, dim_2d, is_training, suffix = ''):
-        var_scope = "2d_data_reconstruct_" + suffix
-        with tf.variable_scope(var_scope):
-            padding = 'SAME'
-
-            #Average Pooling  [None, 168, 32, 20, dim_decode] ->  (None, 1, 32, 20, dim_decode)
-            # https://www.tensorflow.org/api_docs/python/tf/compat/v1/layers/average_pooling3d
-            conv1 = tf.layers.average_pooling3d(latent_fea, [TIMESTEPS, 1, 1], [1,1,1], padding='valid')
-            # (None, 1, 32, 20, dim_decode)  -> (None,  32, 20, dim_decode)
-            conv1 = tf.squeeze(conv1, axis = 1)
-
-            conv2 = tf.layers.conv2d(conv1, 16, 3, padding='same',activation=None)
-            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
-            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
-
-            conv3 = tf.layers.conv2d(conv2, 32, 3, padding='same',activation=None)
-            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
-            conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
-            # [None, 32, 20, 16]  -> [None,32, 20 32]
-
-            conv4 = tf.layers.conv2d(conv3, dim_2d, 3, padding='same',activation=None)
-            conv4 = tf.layers.batch_normalization(conv4, training=is_training)
-            conv4 = tf.nn.leaky_relu(conv4, alpha=0.2)
-
-            #[None,32, 20 32] -> [None, 32, 20, dim_2d]
-        return conv4
-
-
-    # previsou: [None, 32, 20, dim ] -> recontruct to [None,168, dim_1d]
-    # new: [None, 168, 32, 20, dim_decode] ->  [None,168, dim_1d]
-    def reconstruct_1d(self, latent_fea, dim_1d, is_training, suffix= ''):
-        var_scope = "1d_data_reconstruct_" + suffix
-        with tf.variable_scope(var_scope):
-            # [None, 168, 32, 20, dim_decode] ->  [None,168, 1, 1, dim_decode]
-            conv1 = tf.layers.average_pooling3d(latent_fea, [1, HEIGHT, WIDTH], [1,1,1], padding='valid')
-            # [None,168, 1, 1, dim_decode]  -> [None,168, 1, dim_decode]
-            conv1 = tf.squeeze(conv1, axis = 2)
-            # [None,168, 1,  dim_decode]  -> [None,168, dim_decode]
-            conv1 = tf.squeeze(conv1, axis = 2)
-
-            conv2 = tf.layers.conv1d(conv1, 16, 3, padding='same',activation=None)
-            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
-            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
-
-            #  Convolution Layer with 64 filters and a kernel size of 3
-            # output shape: None, 168,16
-            # conv2 change from 16 to 32
-            conv3 = tf.layers.conv1d(conv2, 32, 3,padding='same', activation=None)
-            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
-            conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
-
-            conv4 = tf.layers.conv1d(conv3, dim_1d, 3,padding='same', activation=None)
-            conv4 = tf.layers.batch_normalization(conv4, training=is_training)
-            conv4 = tf.nn.leaky_relu(conv4, alpha=0.2)
-
-        return conv4
-
-
-    # take a list of feature maps, combine them through stacking
-    # continue to train the stacked feature maps using several conv layers.
-    # output a latent feature with specified dim
-
-    # update input shape for
-    # 3d: [None, 168, 32, 20, dim]
-    # 2d: [height, width, dim]
-    # 1d: [None, 168, dim]
-    # all expand to shape [None, 168, 32, 20, total_dim]
-    # use 3d conv instead of 2d
-    def fuse_and_train_concatenation(self, feature_map_list, is_training, suffix = '', dim=3):
-        var_scope = 'fusion_layer_'+ suffix
-        with tf.variable_scope(var_scope):
-            fuse_feature =tf.concat(axis=-1,values=feature_map_list)
-            print('fuse_feature.shape: ', fuse_feature.shape)
-
-            # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, 16]
-            conv1 = tf.layers.conv3d(inputs=fuse_feature, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
-            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
-            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
-            # conv => 16*16*16
-            conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
-            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
-            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
-            # pool => 8*8*8
-
-            # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, dim]
-            conv3 = tf.layers.conv3d(inputs=conv2, filters= dim, kernel_size=[3,3,3], padding='same', activation=None)
-            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
-            conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
-
-            out = conv3
-            print('latent representation shape: ',out.shape)
-            # output size should be [batchsize, height, width, dim]
-            # updated: output size should be [batchsize, 168, height, width, dim]
-        return out
-
 
 
 
@@ -718,6 +749,46 @@ class Autoencoder:
 
 
 
+
+    # take a list of feature maps, combine them through stacking
+    # continue to train the stacked feature maps using several conv layers.
+    # output a latent feature with specified dim
+
+    # update input shape for
+    # 3d: [None, 168, 32, 20, dim]
+    # 2d: [height, width, dim]
+    # 1d: [None, 168, dim]
+    # all expand to shape [None, 168, 32, 20, total_dim]
+    # use 3d conv instead of 2d
+    def fuse_and_train_concatenation(self, feature_map_list, is_training, suffix = '', dim=3):
+        var_scope = 'fusion_layer_'+ suffix
+        with tf.variable_scope(var_scope):
+            fuse_feature =tf.concat(axis=-1,values=feature_map_list)
+            print('fuse_feature.shape: ', fuse_feature.shape)
+
+            # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, 16]
+            conv1 = tf.layers.conv3d(inputs=fuse_feature, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
+            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
+            # conv => 16*16*16
+            conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+            # pool => 8*8*8
+
+            # [None, 168, 32, 20, total_dim]->  [None, 168, 32, 20, dim]
+            conv3 = tf.layers.conv3d(inputs=conv2, filters= dim, kernel_size=[3,3,3],
+                        padding='same', activation=None, name = 'last_shared_layer')
+            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+            conv3 = tf.nn.leaky_relu(conv3, alpha=0.2)
+
+            out = conv3
+            print('latent representation shape: ',out.shape)
+            # output size should be [batchsize, height, width, dim]
+            # updated: output size should be [batchsize, 168, height, width, dim]
+        return out
+
+
     # take a latent fea, decode into [batchsize, 32, 20, dim_decode]
     # update: latent_fea: [batchsize, 168, height, width, dim]
     #         -> [None, 168, 32, 20, dim_decode]
@@ -753,14 +824,17 @@ class Autoencoder:
                      demo_mask_arr, save_folder_path, dim,
                      resume_training = False, checkpoint_path = None,
                       use_pretrained = False, pretrained_ckpt_path_dict = None,
+                      alph = ALPH,
                        epochs=1, batch_size=16):
         starter_learning_rate = LEARNING_RATE
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
                                        5000, 0.96, staircase=True)
-        # reconstructed, encoded = self.vanilla_autoencoder(self.x)
+
+        #########################  ENCODE ##############################
         keys_list = []
         first_order_encoder_list = []
         # first level output [dataset name: output]
+        # first_level_output = dict()
         first_level_output_1d = dict()
         first_level_output_2d = dict()
         first_level_output_3d = dict()
@@ -768,10 +842,6 @@ class Autoencoder:
         for k, v in self.rawdata_1d_tf_x_dict.items():
             # (batchsize, 168, # of features) should expand to (batchsize, 168, 32, 20, # of features)
             prediction_1d = self.cnn_1d_model(v, self.is_training, k)
-            # prediction_1d = tf.expand_dims(prediction_1d, 2)
-            # prediction_1d = tf.expand_dims(prediction_1d, 2)
-            # prediction_1d_expand = tf.tile(prediction_1d, [1, 1, HEIGHT,
-            #                                         WIDTH ,1])
             first_level_output_1d[k] = prediction_1d
             keys_list.append(k)
             first_order_encoder_list.append(prediction_1d)
@@ -779,27 +849,16 @@ class Autoencoder:
         for k, v in self.rawdata_2d_tf_x_dict.items():
             # [None, height, width, 1] -> [None, 168, height, width, 1]
             prediction_2d = self.cnn_2d_model(v, self.is_training, k)
-            # prediction_2d = tf.expand_dims(prediction_2d, 1)
-            # prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
-            #                                         1 ,1])
             keys_list.append(k)
             first_level_output_2d[k] = prediction_2d
             first_order_encoder_list.append(prediction_2d)
 
+
         for k, v in self.rawdata_3d_tf_x_dict.items():
             prediction_3d = self.cnn_model(v, self.is_training, k)
-            # if k == 'seattle911calls':
             first_level_output_3d[k] = prediction_3d
             first_order_encoder_list.append(prediction_3d)
-            # else:
-            #     # [None, 1, height, width, 1] -> [None, 24, height, width, 1]
-            #     prediction_3d_expand = tf.tile(prediction_3d, [1, TIMESTEPS, 1,
-            #                                             1 ,1])
-            #     first_level_output[k] = prediction_3d_expand
-            #     first_order_encoder_list.append(prediction_3d_expand)
-
             keys_list.append(k)
-
 
         # dim: latent fea dimension
         # latent_fea = self.model_fusion(med_res_3d, med_res_2d, med_res_1d, dim, self.is_training)
@@ -809,20 +868,21 @@ class Autoencoder:
                     self.is_training, '1', dim)
 
         print('latent_fea.shape: ', latent_fea.shape) # (?, 32, 20, 3)
+
+
+        ################### RECONSTRUCT AND COMPUTE COST #####################################
         # recontruction
         print('recontruction')
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr, 0)  # [1, 2]
-                # [1, 32, 20, 1]  -> [1, 1, 32, 20, 1]
-                # [1, 32, 20, 1] -> [batchsize, 32, 20, 1]
-                # batchsize = tf.shape(prediction)[0]
         demo_mask_arr_expanded = tf.tile(demo_mask_arr_expanded, [tf.shape(latent_fea)[0],1,1,1])
         weight = tf.cast(tf.greater(demo_mask_arr_expanded, 0), tf.float32)
 
-        total_loss = 0
+        total_loss = 0   #equal weighted
+        cost = 0  # weighted
         loss_dict = {} # {dataset name: loss}
         rmse_dict = {}
         reconstruction_dict = dict()  # {dataset name:  reconstruction for this batch}
-        grad_dict = {}  # grad_norm for each dataset
+        weighedloss_dict = {}
 
         for k, v in self.rawdata_1d_tf_y_dict.items():
             dim_1d = rawdata_1d_dict[k].shape[-1]
@@ -833,13 +893,10 @@ class Autoencoder:
             loss_dict[k] = temp_loss
             temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_1d, v))
             rmse_dict[k] = temp_rmse
-
             reconstruction_dict[k] = reconstruction_1d
-
-            # grads = tf.gradients(temp_loss, prediction_1d_expand, name=k+'_gradients')
-            # gradnorm = tf.norm(grads, name='norm')
-            # grad_dict[k] = gradnorm
-
+            # for gradnorm
+            weighedloss_dict[k] = temp_loss * self.weights_dict[k]
+            cost += weighedloss_dict[k]
 
         for k, v in self.rawdata_2d_tf_y_dict.items():
             dim_2d = rawdata_2d_dict[k].shape[-1]
@@ -849,18 +906,14 @@ class Autoencoder:
             loss_dict[k] = temp_loss
             temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_2d, v, weight))
             rmse_dict[k] = temp_rmse
-
             reconstruction_dict[k] = reconstruction_2d
 
-            # grads = tf.gradients(temp_loss, prediction_2d_expand, name=k+'_gradients')
-            # gradnorm = tf.norm(grads, name='norm')
-            # grad_dict[k] = gradnorm
+            weighedloss_dict[k] = temp_loss * self.weights_dict[k]
+            cost += weighedloss_dict[k]
 
 
         demo_mask_arr_expanded = tf.expand_dims(demo_mask_arr_expanded, 1)
             # (?, 1, 32, 20, 1) -> (?, 7, 32, 20, 1)
-
-
         for k, v in self.rawdata_3d_tf_y_dict.items():
             timestep_3d = v.shape[1]
             reconstruction_3d = self.reconstruct_3d(latent_fea, timestep_3d, self.is_training, k)
@@ -873,24 +926,73 @@ class Autoencoder:
             loss_dict[k] = temp_loss
             temp_rmse = tf.sqrt(tf.losses.mean_squared_error(reconstruction_3d, v, weight_3d))
             rmse_dict[k] = temp_rmse
-
             reconstruction_dict[k] = reconstruction_3d
 
-            # grads = tf.gradients(temp_loss, prediction_3d, name= k+'_gradients')
-            # gradnorm = tf.norm(grads, name='norm')
-            # grad_dict[k] = gradnorm
-
+            weighedloss_dict[k] = temp_loss * self.weights_dict[k]
+            cost += weighedloss_dict[k]
 
         print('total_loss: ', total_loss)
-        cost = total_loss
 
-        # variables_to_update = [v for v in tf.global_variables() if v not in variable_to_restore]
-
-
+        ##################### OPTIMIZATION ###################################
         with tf.name_scope("training"):
-            optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost, global_step = self.global_step)
+            # optimizer = tf.train.AdamOptimizer(learning_rate).minimize(cost, global_step = self.global_step)
+            optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
+            all_model_params = get_parameters_from_model()
+            # stardard_grad_lists = optimizer.compute_gradients(cost, var_list=all_model_params)
+            stardard_grad_lists = optimizer.compute_gradients(cost)
+
+        # Getting gradients of the last shared layer
+        # print('Getting gradients of the last shared layer')
+        # gradnorm_dict = {}  # grad_norm for each dataset
+        # debug_gradients_dict = {}
+        # shared_parameters = get_parameters_from_sharedlayers(all_model_params)
+        # for k, v in weighedloss_dict.items():
+        #     G1R = tf.gradients(weighedloss_dict[k], shared_parameters)
+        #     G1 = tf.norm(G1R[0], name='norm')  # with respect to kernel
+        #     gradnorm_dict[k] = G1
+        #     debug_gradients_dict[k] = G1R
+
+        # G_avg = tf.div(tf.add_n(list(gradnorm_dict.values())), self.number_of_tasks)
+
+        # Calculating relative losses: batch loss (not weighted) / L0
+        # lhat_dict = {}
+        # for k, v in loss_dict.items():
+        #     lhat_dict[k] = tf.div(v, self.L0_dict[k])
+        # lhat_avg = tf.div(tf.add_n(list(lhat_dict.values())), self.number_of_tasks)
+
+        # Calculating relative inverse training rates for tasks
+        # inv_rate = {}
+        # for k, v in lhat_dict.items():
+        #     inv_rate[k] = tf.div(v,lhat_avg)
+
+        # Calculating the constant target for Eq. 2 in the GradNorm paper
+        # detach the constant target from computation graph
+        # desiredgrad_dict = {}
+        # for k, v in inv_rate.items():
+        #     desiredgrad_dict[k] = tf.stop_gradient(G_avg* (v**alph))
+
+        # Calculating the gradient loss according to Eq. 2 in the GradNorm paper
+        # print('Calculating the gradient loss ')
+        # Lgrad_list = []
+        # for k, v in gradnorm_dict.items():
+        #     Lgrad_list.append(tf.losses.absolute_difference(v, desiredgrad_dict[k]))
+        #     # Lgrad_list.append(temp_Lgrad)
+        # Lgrad = tf.add_n(Lgrad_list)
+
+        # learning rate for optimizer_Lgrad may not be the same as standard.
+        # optimizer_Lgrad = tf.train.AdamOptimizer(learning_rate=0.001)
+        # variable weight loss
+        # Lgrad_lists = optimizer_Lgrad.compute_gradients(Lgrad, var_list=list(self.weights_dict.values()))
+
+        # Updating loss weights
+        # may not use globel step as once applied optimization for Lgrad.
+        # the globel step may increase
+        # Lgrad_op = optimizer_Lgrad.apply_gradients(Lgrad_lists, global_step= self.Lgrad_global_step, name=None)
+        # update model weights
+        train_op = optimizer.apply_gradients(stardard_grad_lists, global_step=self.global_step, name=None)
 
 
+        ###################### PREP for TRAINING ###########################
         train_result = list()
         test_result = list()
         # feature maps of last layer of encoder.
@@ -898,12 +1000,10 @@ class Autoencoder:
         encoded_list = list()
         # random sampling to calculate dataset similarity
         # sample_index = random.sample(range(0, train_hours), num_samples)
-
         final_reconstruction_dict = {} # temp: only first batch
 
         if not os.path.exists(save_folder_path):
-            os.makedirs(save_path)
-
+            os.makedirs(save_folder_path)
 
         keys_1d = list(rawdata_1d_dict.keys())
         keys_2d = list(rawdata_2d_dict.keys())
@@ -922,20 +1022,19 @@ class Autoencoder:
                 # get scopes_to_reserve
                 scopes_to_reserve = get_scopes_to_restore_for_eachdataset(k, keys_1d, keys_2d, keys_3d)
                 variable_to_restore = get_variables_to_restore(variables, scopes_to_reserve)
-                print('variable_to_restore in : ', k)
-                print(variable_to_restore)
+                # print('variable_to_restore in : ', k)
+                # print(variable_to_restore)
                 # make the dictionary, note that everything here will have “:0”, avoid it.
                 for v in variable_to_restore:
                     vars_to_restore_dict[v.name[:-2]] = v
                 # only for restoring pretrained model weights
-
                 saver_dict[k] = tf.train.Saver(vars_to_restore_dict)
-
 
              # save all variables
             saver = tf.train.Saver()
 
 
+        ######################## SESSION START ##########################
         config = tf.ConfigProto()
         config.gpu_options.allocator_type ='BFC'
         config.gpu_options.per_process_gpu_memory_fraction = 0.90
@@ -966,9 +1065,25 @@ class Autoencoder:
                 #self.global_step/ (len(x_train_data) / batch_size +1) -1
                 print("start_epoch_num: ", start_epoch_num.eval())
                 start_epoch = start_epoch_num.eval()
+
+                # load weight_per_epoch
+                print('load last saved weight_per_epoch dict')
+                with open(save_folder_path + 'weight_per_epoch_dict', 'rb') as handle:
+                    weight_per_epoch = pickle.load(handle)
+                print('load last L0 dict')
+                if os.path.exists(save_folder_path + 'L0_dict'):
+                    with open(save_folder_path + 'L0_dict', 'rb') as handle2:
+                        L0_dict = pickle.load(handle2)
+                else: # use pandas
+                    L0_dict = dict()
+                    L0_df = pd.read_csv(save_folder_path + 'L0_df.csv', index_col=0)
+                    cols = list(L0_df)
+                    for c in cols:
+                        L0_dict[c] = L0_df[c][0]
+
+
             else:
                 start_epoch = 0
-
 
             # temporary
             # train_hours = 200
@@ -978,9 +1093,30 @@ class Autoencoder:
             else:
                 iterations = int(train_hours/batch_size) + 1
 
+            ######  for grad norm ###################################
+            all_weights = {}  # weight for each dataset
+            all_weights = {k: [1] for k in self.dataset_keys}
+            # the relative inverse training rate of task i.
+            all_inv_rate = {k: [1] for k in self.dataset_keys}
+            all_ave_loss_eachdata = {k: [] for k in self.dataset_keys}
+            # change weights every epoch, using the first 'starter_interation' iterations
+            starter_interation =  STARTER_ITERATION
+            # calculated weight this epoch
+            if not resume_training:
+                print('re-intiate weight for all losses as 1')
+                weight_per_epoch = dict(zip(self.dataset_keys, [1]*len(self.dataset_keys)))
+                L0_dict = {}  # base cost for each dataset
+            # to calculate average inverse training rate
+            inv_rate = dict(zip(self.dataset_keys, [1]*len(self.dataset_keys)))
+            ############################################################
+
             for epoch in range(start_epoch, epochs):
                 print('Epoch', epoch, 'started', end='')
                 start_time = datetime.datetime.now()
+                # shuffle data for each epoch, create random index for all data: train + test
+                start_index_list = list(range(0, 45984-24))
+                shuffle(start_index_list)
+
                 epoch_loss = 0
                 epoch_subloss = {}  # ave loss for each dataset
                 epoch_subloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
@@ -988,16 +1124,20 @@ class Autoencoder:
                 epoch_subrmse = {}  # ave loss for each dataset
                 epoch_subrmse = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
-                epoch_subgrad = {}  # grad norm for each dataset
-                epoch_subgrad = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+                epoch_subweightedloss = {}  # ave loss for each dataset
+                epoch_subweightedloss = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
 
-
+                # epoch_weights = {}  # weight for each dataset
+                # epoch_weights = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
                 final_output = list()
                 final_encoded_list = list()
 
-                # create random index
-                start_index_list = list(range(0, 45984-24))
-                shuffle(start_index_list)
+                #########     for changing weights #####################
+                # average loss in the first iterations of each epoch for each data
+                ave_loss_eachdata = dict(zip(self.dataset_keys, [0]*len(self.dataset_keys)))
+                # ave loss / L0
+                lhat_dict = {}
+                #########################################################
 
                 # mini batch iterations
                 for itr in range(iterations):
@@ -1013,7 +1153,6 @@ class Autoencoder:
                     # create batches for 1d
                     for k, v in rawdata_1d_dict.items():
                         temp_batch = create_mini_batch_1d(start_index_list, start_idx, end_idx, v)
-                        #feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
                         feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
 
                     for k, v in rawdata_1d_corrupted_dict.items():
@@ -1023,35 +1162,122 @@ class Autoencoder:
                     # create batches for 2d
                     for k, v in rawdata_2d_dict.items():
                         temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
-                        #feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
                         feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
 
                     for k, v in rawdata_2d_corrupted_dict.items():
                         temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
                         feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
 
-
                      # create batches for 3d
                     for k, v in rawdata_3d_dict.items():
-                        # if k == 'seattle911calls':
                         timestep = TIMESTEPS
                         temp_batch = create_mini_batch_3d(start_index_list, start_idx, end_idx, v, timestep)
-    #                     print('3d temp_batch.shape: ',temp_batch.shape)
-                        # feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
                         feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
 
-
                     for k, v in rawdata_3d_corrupted_dict.items():
-                        # if k == 'seattle911calls':
                         timestep = TIMESTEPS
                         temp_batch = create_mini_batch_3d(start_index_list, start_idx, end_idx, v, timestep)
-    #                     print('3d temp_batch.shape: ',temp_batch.shape)
                         feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
-
 
                     # is_training: True
                     feed_dict_all[self.is_training] = True
-                    batch_cost, batch_loss_dict, batch_rmse_dict,batch_grads, _ = sess.run([cost,loss_dict, rmse_dict,grad_dict, optimizer], feed_dict=feed_dict_all)
+                    for k, v in weight_per_epoch.items():
+                        feed_dict_all[self.weights_dict[k]] = v
+
+                    batch_cost, batch_loss_dict, batch_rmse_dict, batch_weighedloss_dict, _= sess.run([total_loss,loss_dict, rmse_dict, weighedloss_dict, train_op],
+                                            feed_dict=feed_dict_all)
+                    # debug
+                    # for k, v in batch_loss_dict.items():
+                    #     print('loss: iter: k, v: ',itr, k, v)
+                    #     print('weightedloss: iter: k, v: ',itr, k, batch_weighedloss_dict[k])
+
+                    ##################  GRADNORM PART ###############################
+                    # base loss at the first iteration. all weights are 1
+                    if itr == 0 and epoch == 0:
+                        for k,v in batch_weighedloss_dict.items():
+                            L0_dict[k] = v
+
+                    # sess.run(stardard_grad_lists, feed_dict= feed_dict_all)
+                    # # Getting gradients of the first layers of each tower and calculate their l2-norm
+                    # batch_G_avg = sess.run(G_avg, feed_dict= feed_dict_all)
+
+                    # Calculating relative inverse training rates for tasks
+                    # print('Calculating relative inverse training rates for tasks')
+                    # for k, v in L0_dict.items():
+                    #     feed_dict_all[self.L0_dict[k]] = v
+
+                    # get weights for this epoch
+                    if itr < starter_interation:
+                        for k, v in batch_loss_dict.items():
+                            ave_loss_eachdata[k] += v
+                    if itr == starter_interation:
+                        print('starter_interation: update weights ',  starter_interation)
+                        for k, v in ave_loss_eachdata.items():
+                            ave_loss_eachdata[k] = float(v / starter_interation)
+                            # ave_loss_eachdata of all epochs
+                            all_ave_loss_eachdata[k].append(ave_loss_eachdata[k])
+
+                            ##########################################################
+                            # compare to ave loss of previous epoch
+                            # if epoch == 0:
+                            #     lhat_dict[k] = ave_loss_eachdata[k] / L0_dict[k]
+                            # else:
+                            #     lhat_dict[k] = ave_loss_eachdata[k] / all_ave_loss_eachdata[k][-2]
+                            ##########################################################
+                            # compare to L0
+                            lhat_dict[k] = ave_loss_eachdata[k] / L0_dict[k]
+
+                        #lhat_avg = tf.div(tf.add_n(list(lhat_dict.values())), self.number_of_tasks)
+                        lhat_avg = sum(list(lhat_dict.values())) / self.number_of_tasks
+                        # inverse training rate for this epoch
+                        for k, v in lhat_dict.items():
+                            inv_rate[k] = v / lhat_avg
+                            all_inv_rate[k].append(inv_rate[k])
+                            print('epoch, iter, k, inv_rate :', epoch, itr, k, inv_rate[k])
+                        # calculate weights
+                        divisor = 0
+                        for k, v in inv_rate.items():
+                            divisor = divisor + np.exp(v / T)
+                        for k, v in inv_rate.items():
+                            weight_per_epoch[k] = self.number_of_tasks * (np.exp(v /T) / divisor)
+                            all_weights[k].append(weight_per_epoch[k])
+                            # self.weights_dict[k] = weight_per_epoch[k]
+
+                    # record inverse learning rate and weights
+                    # batch_inv_rate, temp_batch_weights = sess.run([inv_rate, self.weights_dict], feed_dict= feed_dict_all)
+                    # for k, v in batch_inv_rate.items():
+                    #     print('lhat_list: k,v', k, v)
+                    #     all_inv_rate[k].append(v)
+                    #     all_weights[k].append(temp_batch_weights['lossweight_' + k])
+                    #     print('weights: k,v', k, temp_batch_weights['lossweight_' + k])
+
+                    # optimization
+                    # print('update Lgrad')
+                    # sess.run(Lgrad_op, feed_dict= feed_dict_all)
+                    # print('update training op')
+                    # sess.run(train_op, feed_dict= feed_dict_all)
+
+                    # Renormalizing the losses weights
+                    # print('Renormalizing the losses weights')
+                    # coef = self.number_of_tasks/tf.add_n(list(self.weights_dict.values()))
+                    # # temp_batch_weights = self.weights_dict.eval()
+                    # for k, v in self.weights_dict.items():
+                    #     self.weights_dict[k] = coef*v
+                        # ds_name = '_'.join(k.split('_')[1:])
+                        # print('ds_name: ', ds_name)
+
+                    ###################  GRADNORM END #####################################
+                    # else:  # if itr % 200 ! = 200, dont' use gradnorm
+                    #     # sess.run(stardard_grad_lists, feed_dict= feed_dict_all)
+                    #     sess.run([train_op], feed_dict= feed_dict_all)
+                    #     # DEBUG
+                        # batch_gradnorm_dict, batch_debug_gradients_dict,  _ = sess.run([gradnorm_dict, debug_gradients_dict, train_op], feed_dict= feed_dict_all)
+                        # for k, v in batch_gradnorm_dict.items():
+                        #     print("Iter/Epoch: {}/{}...".format(itr, epoch), 'grad norm:{},{}:'.format(k, v))
+                        # print("Iter/Epoch: {}/{}...".format(itr, epoch), 'gradient:{},{}:'.format('temperature', batch_debug_gradients_dict['temperature']))
+
+
+                    # ############### original normal operations #################
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     batch_output, batch_encoded_list = sess.run([latent_fea, first_order_encoder_list], feed_dict= feed_dict_all)
@@ -1062,8 +1288,6 @@ class Autoencoder:
                     if itr == 0:
                         batch_reconstruction_dict = sess.run([reconstruction_dict], feed_dict= feed_dict_all)
                         final_reconstruction_dict = copy.deepcopy(batch_reconstruction_dict)
-
-
 
                     # record results every 50 iterations, that is about 900 samples
                     if itr% 50 == 0:
@@ -1076,17 +1300,15 @@ class Autoencoder:
                     for k, v in epoch_subrmse.items():
                         epoch_subrmse[k] += batch_rmse_dict[k]
 
-                    # for k, v in epoch_subgrad.items():
-                    #     epoch_subgrad[k] += batch_grads[k]
-
+                    for k, v in epoch_subweightedloss.items():
+                        epoch_subweightedloss[k] += batch_weighedloss_dict[k]
 
                     if itr%30 == 0:
                         print("Iter/Epoch: {}/{}...".format(itr, epoch),
                             "Training loss: {:.4f}".format(batch_cost))
                         for k, v in batch_loss_dict.items():
-                            print('loss for k :', k, v)
-                        for k, v in batch_grads.items():
-                            print('gradnorm for k :', k, v)
+                            print('ave loss, latest loss weight, inv rate for k :', k, v,  weight_per_epoch[k], inv_rate[k])
+                            # all_weights[k][-1]
 
 
                 # report loss per epoch
@@ -1106,13 +1328,14 @@ class Autoencoder:
                     epoch_subrmse[k] = v/iterations
                     print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
 
+                for k, v in epoch_subweightedloss.items():
+                    epoch_subweightedloss[k] = v/iterations
+                    print('epoch: ', epoch, 'k: ', k, 'mean weighted loss: ', epoch_subweightedloss[k])
+
 
                 # for k, v in epoch_subgrad.items():
                 #     epoch_subgrad[k] = v/iterations
                 #     print('epoch: ', epoch, 'k: ', k, 'mean train grad: ', epoch_subgrad[k])
-
-
-
                 save_path = saver.save(sess, save_folder_path +'denoising_autoencoder_v2_' +str(epoch)+'.ckpt', global_step=self.global_step)
                 # save_path = saver.save(sess, './autoencoder.ckpt')
                 print('Model saved to {}'.format(save_path))
@@ -1157,47 +1380,46 @@ class Autoencoder:
                     # create batches for 1d
                     for k, v in rawdata_1d_dict.items():
                         temp_batch = create_mini_batch_1d(start_index_list, start_idx, end_idx, v)
-                        # test_feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
                         test_feed_dict_all[self.rawdata_1d_tf_y_dict[k]] = temp_batch
 
                     for k, v in rawdata_1d_corrupted_dict.items():
                         temp_batch = create_mini_batch_1d(start_index_list, start_idx, end_idx, v)
                         test_feed_dict_all[self.rawdata_1d_tf_x_dict[k]] = temp_batch
 
-
                     # create batches for 2d
                     for k, v in rawdata_2d_dict.items():
                         temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
-                        # test_feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
                         test_feed_dict_all[self.rawdata_2d_tf_y_dict[k]] = temp_batch
-
 
                     for k, v in rawdata_2d_corrupted_dict.items():
                         temp_batch = create_mini_batch_2d(start_idx, end_idx, v)
                         test_feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
 
-
                      # create batches for 3d
                     for k, v in rawdata_3d_dict.items():
-                        #if k == 'seattle911calls':
                         timestep = TIMESTEPS
                         temp_batch = create_mini_batch_3d(start_index_list, start_idx, end_idx, v, timestep)
-    #                     print('3d temp_batch.shape: ',temp_batch.shape)
-                        # test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
                         test_feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
 
 
                     for k, v in rawdata_3d_corrupted_dict.items():
-                        #if k == 'seattle911calls':
                         timestep = TIMESTEPS
                         temp_batch = create_mini_batch_3d(start_index_list, start_idx, end_idx, v, timestep)
                         test_feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
 
-
+                    # double check this
+                    for k, v in weight_per_epoch.items():
+                        test_feed_dict_all[self.weights_dict[k]] = v
                     # is_training: True
                     test_feed_dict_all[self.is_training] = True
 
-                    test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict, _ = sess.run([cost,loss_dict, rmse_dict, optimizer], feed_dict= test_feed_dict_all)
+                    test_batch_cost, test_batch_loss_dict, test_batch_rmse_dict, test_batch_weighedloss_dict = sess.run([total_loss,loss_dict, rmse_dict, weighedloss_dict],
+                                                        feed_dict= test_feed_dict_all)
+
+                    # debug
+                    for k, v in test_batch_loss_dict.items():
+                        print('test loss, weighted loss: ', k, v, test_batch_weighedloss_dict[k])
+
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                     test_batch_output = sess.run([latent_fea], feed_dict= test_feed_dict_all)
@@ -1254,6 +1476,13 @@ class Autoencoder:
 
 
 
+                train_weighedloss_df = pd.DataFrame([list(epoch_subweightedloss.values())],
+                                columns= list(epoch_subweightedloss.keys()))
+                train_weighedloss_csv_path = save_folder_path + 'autoencoder_train_epoch_subweightedloss' +'.csv'
+                with open(train_weighedloss_csv_path, 'a') as f:
+                    train_weighedloss_df.to_csv(f, header=f.tell()==0)
+
+
                 test_sub_res_df = pd.DataFrame([list(test_subloss.values())],
                                 columns= list(test_subloss.keys()))
                 test_sub_res_csv_path = save_folder_path + 'autoencoder_test_sub_res' +'.csv'
@@ -1269,19 +1498,42 @@ class Autoencoder:
                     train_sub_rmse_df.to_csv(f, header=f.tell()==0)
 
 
-
                 test_sub_rmse_df = pd.DataFrame([list(test_subrmse.values())],
                                 columns= list(test_subrmse.keys()))
                 test_sub_rmse_csv_path = save_folder_path + 'autoencoder_test_sub_rmse' +'.csv'
                 with open(test_sub_rmse_csv_path, 'a') as f:
                     test_sub_rmse_df.to_csv(f, header=f.tell()==0)
 
+                # save weights for loss for each dataset
+                weights_df = pd.DataFrame({key: pd.Series(value) for key, value in all_weights.items()})
+                weights_csv_path = save_folder_path + 'weights_df' +'.csv'
+                with open(weights_csv_path, 'a') as f:
+                    weights_df.to_csv(f, header=f.tell()==0)
 
-                # train_sub_grad_df = pd.DataFrame([list(epoch_subgrad.values())],
-                #     columns= list(epoch_subgrad.keys()))
-                # train_sub_grad_csv_path = save_folder_path + 'autoencoder_train_sub_grad' +'.csv'
-                # with open(train_sub_grad_csv_path, 'a') as f:
-                #     train_sub_grad_df.to_csv(f, header=f.tell()==0)
+                # save L0_dict as the base loss for all datasets
+                L0_df = pd.DataFrame([list(L0_dict.values())],
+                                columns= list(L0_dict.keys()))
+                L0_csv_path = save_folder_path + 'L0_df' +'.csv'
+                with open(L0_csv_path, 'a') as f:
+                    L0_df.to_csv(f, header=f.tell()==0)
+
+                # all_inv_rate: all inverse training rate
+                all_inv_rate_df = pd.DataFrame({key: pd.Series(value) for key, value in all_inv_rate.items()})
+                all_inv_rate_csv_path = save_folder_path + 'all_inv_rate_df' +'.csv'
+                with open(all_inv_rate_csv_path, 'a') as f:
+                    all_inv_rate_df.to_csv(f, header=f.tell()==0)
+
+                # save the latest weight_per_epoch
+                weight_per_epoch_file = open(save_folder_path + 'weight_per_epoch_dict', 'wb')
+                print('dumping weight_per_epoch_file to pickle')
+                pickle.dump(weight_per_epoch, weight_per_epoch_file)
+                weight_per_epoch_file.close()
+
+                # L0_dict
+                L0_dict_file = open(save_folder_path + 'L0_dict', 'wb')
+                print('dumping L0_dict_file to pickle')
+                pickle.dump(L0_dict, L0_dict_file)
+                L0_dict_file.close()
 
 
                 # save results to txt
@@ -1305,9 +1557,14 @@ class Autoencoder:
                     the_file.write(str(test_time_per_epoch) + '\n')
                     the_file.write('time per sample for test\n')
                     the_file.write(str(test_time_per_sample) + '\n')
-                    the_file.write('keys_list\n')
-                    for item in keys_list:
-                        the_file.write("%s\n" % item)
+                    # gradnorm_freq
+                    the_file.write('T\n')
+                    the_file.write(str(T) + '\n')
+                    # the_file.write('alpha\n')
+                    # the_file.write(str(alph) + '\n')
+                    # the_file.write('keys_list\n')
+                    # for item in keys_list:
+                    #     the_file.write("%s\n" % item)
                     the_file.close()
 
                 # plot results
@@ -1350,7 +1607,6 @@ class Autoencoder:
 
 
 
-
     # do inference using existing checkpoint
     # get latent representation for train and test data altogether
     # the input sequence (24 hours or 168 hours) should have no overlapps
@@ -1373,25 +1629,12 @@ class Autoencoder:
             first_level_output_1d[k] = prediction_1d
             keys_list.append(k)
             first_order_encoder_list.append(prediction_1d)
-            # prediction_1d = tf.expand_dims(prediction_1d, 2)
-            # prediction_1d = tf.expand_dims(prediction_1d, 2)
-            # prediction_1d_expand = tf.tile(prediction_1d, [1, 1, HEIGHT,
-            #                                         WIDTH ,1])
-            # first_level_output[k] = prediction_1d_expand
-            # keys_list.append(k)
-            # first_order_encoder_list.append(prediction_1d)
 
         for k, v in self.rawdata_2d_tf_x_dict.items():
             prediction_2d = self.cnn_2d_model(v, self.is_training, k)
             keys_list.append(k)
             first_level_output_2d[k] = prediction_2d
             first_order_encoder_list.append(prediction_2d)
-            # prediction_2d = tf.expand_dims(prediction_2d, 1)
-            # prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
-            #                                         1 ,1])
-            # keys_list.append(k)
-            # first_level_output[k] = prediction_2d_expand
-            # first_order_encoder_list.append(prediction_2d)
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
             prediction_3d = self.cnn_model(v, self.is_training, k)
@@ -1403,6 +1646,7 @@ class Autoencoder:
 
         # dim: latent fea dimension
         # latent_fea = self.model_fusion(med_res_3d, med_res_2d, med_res_1d, dim, self.is_training)
+        #latent_fea = self.fuse_and_train(list(first_level_output.values()),  self.is_training, '1', dim)
         latent_fea =  self.fuse_and_train(list(first_level_output_1d.values()),
                     list(first_level_output_2d.values()), list(first_level_output_3d.values()),
                     self.is_training, '1', dim)
@@ -1436,7 +1680,6 @@ class Autoencoder:
             reconstruction_dict[k] = reconstruction_1d
 
 
-
         for k, v in self.rawdata_2d_tf_y_dict.items():
             dim_2d = rawdata_2d_dict[k].shape[-1]
             reconstruction_2d = self.reconstruct_2d(latent_fea, dim_2d, self.is_training, k)
@@ -1467,8 +1710,6 @@ class Autoencoder:
             reconstruction_dict[k] = reconstruction_3d
 
 
-        print('total_loss: ', total_loss)
-        cost = total_loss
 
         train_result = list()
         test_result = list()
@@ -1490,7 +1731,6 @@ class Autoencoder:
             else:
                 saver.restore(sess, tf.train.latest_checkpoint(save_folder_path))
                 # check global step
-
 
             test_start = train_hours
             test_end  = 45960
@@ -1558,37 +1798,26 @@ class Autoencoder:
                     temp_batch = create_mini_batch_2d_nonoverlapping(start_idx, end_idx, v)
                     feed_dict_all[self.rawdata_2d_tf_x_dict[k]] = temp_batch
 
-
                     # create batches for 3d
                 for k, v in rawdata_3d_dict.items():
                     # if k == 'seattle911calls':
                     timestep = TIMESTEPS
-                    # else:
-                    #     timestep = DAILY_TIMESTEPS
                     temp_batch = create_mini_batch_3d_nonoverlapping(start_idx, end_idx, v, timestep)
-    #                     print('3d temp_batch.shape: ',temp_batch.shape)
-                    #feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
                     feed_dict_all[self.rawdata_3d_tf_y_dict[k]] = temp_batch
 
                 for k, v in rawdata_3d_corrupted_dict.items():
-                    # if k == 'seattle911calls':
                     timestep = TIMESTEPS
-                    # else:
-                    #     timestep = DAILY_TIMESTEPS
                     temp_batch = create_mini_batch_3d_nonoverlapping(start_idx, end_idx, v, timestep)
-    #                     print('3d temp_batch.shape: ',temp_batch.shape)
                     feed_dict_all[self.rawdata_3d_tf_x_dict[k]] = temp_batch
 
 
                 feed_dict_all[self.is_training] = True
-                batch_cost, batch_loss_dict, batch_rmse_dict = sess.run([cost,loss_dict, rmse_dict], feed_dict=feed_dict_all)
+                batch_cost, batch_loss_dict, batch_rmse_dict = sess.run([total_loss,loss_dict, rmse_dict], feed_dict=feed_dict_all)
                     # get encoded representation
                     # # [None, 1, 32, 20, 1]
                 batch_output, batch_encoded_list = sess.run([latent_fea, first_order_encoder_list], feed_dict= feed_dict_all)
 
-
                 final_output.extend(batch_output)
-
                 final_encoded_list.append(batch_encoded_list)
 
                 # temp, only ouput the first batch of reconstruction
@@ -1623,12 +1852,9 @@ class Autoencoder:
 
             for k, v in epoch_subloss.items():
                 epoch_subloss[k] = v/iterations
-                # print('epoch: ', epoch, 'k: ', k, 'mean train loss: ', epoch_subloss[k])
 
             for k, v in epoch_subrmse.items():
                 epoch_subrmse[k] = v/iterations
-                # print('epoch: ', epoch, 'k: ', k, 'mean train rmse: ', epoch_subrmse[k])
-
 
                 # save epoch statistics to csv
             ecoch_res_df = pd.DataFrame([[epoch_loss]],
@@ -1675,10 +1901,8 @@ class Autoencoder:
                     the_file.write("%s\n" % item)
                 the_file.close()
 
-
             final_output = np.array(final_output)
             train_result.extend(final_output)
-
 
             print('saving output_arr ....')
             train_encoded_res = train_result
@@ -1730,6 +1954,8 @@ class Autoencoder_entry:
         self.rawdata_2d_corrupted_dict = rawdata_2d_corrupted_dict
         self.rawdata_3d_corrupted_dict = rawdata_3d_corrupted_dict
 
+        self.all_keys = set(list(self.rawdata_1d_dict.keys()) +  list(self.rawdata_2d_dict.keys()) +  list(self.rawdata_3d_dict.keys()))
+
 
         globals()['HEIGHT']  = HEIGHT
         globals()['WIDTH']  = WIDTH
@@ -1749,7 +1975,6 @@ class Autoencoder_entry:
 
         self.use_pretrained = use_pretrained
         self.pretrained_ckpt_path = pretrained_ckpt_path
-        self.all_keys = set(list(self.rawdata_1d_dict.keys()) +  list(self.rawdata_2d_dict.keys()) +  list(self.rawdata_3d_dict.keys()))
 
 
         self.ckpt_path_dict = {}
@@ -1766,8 +1991,6 @@ class Autoencoder_entry:
                 path_set.add(ckpt_path)
                 if ds_key in self.all_keys:
                     self.ckpt_path_dict[ds_key] = os.path.join(self.pretrained_ckpt_path, ckpt_path)
-
-                #self.ckpt_path_dict[ds_key] = os.path.join(self.pretrained_ckpt_path, ckpt_path)
 
             for k, v in self.ckpt_path_dict.items():
                 print(k, v)
