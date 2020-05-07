@@ -450,7 +450,7 @@ class Autoencoder:
             fuse_feature =tf.concat(axis=-1,values=feature_map_list)
             print('fuse_feature.shape: ', fuse_feature.shape)
                         # Convolution Layer with 32 filters and a kernel size of 5
-            conv1 = tf.layers.conv1d(fuse_feature, 16, 3, padding='same',activation=None)
+            conv1 = tf.layers.conv1d(fuse_feature, 32, 3, padding='same',activation=None)
             conv1 = tf.layers.batch_normalization(conv1, training=is_training)
             conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
 
@@ -485,7 +485,7 @@ class Autoencoder:
         with tf.variable_scope('cnn_2d_fuse'):
             fuse_feature =tf.concat(axis=-1,values=feature_map_list)
             # Convolution Layer with 32 filters and a kernel size of 5
-            conv1 = tf.layers.conv2d(fuse_feature, 16, 3, padding='same',activation=None)
+            conv1 = tf.layers.conv2d(fuse_feature, 32, 3, padding='same',activation=None)
             conv1 = tf.layers.batch_normalization(conv1, training=is_training)
             conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
 
@@ -515,7 +515,7 @@ class Autoencoder:
         with tf.variable_scope('cnn_3d_fuse'):
             fuse_feature =tf.concat(axis=-1,values=feature_map_list)
             # Convolution Layer with 32 filters and a kernel size of 5
-            conv1 = tf.layers.conv3d(inputs=fuse_feature, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
+            conv1 = tf.layers.conv3d(inputs=fuse_feature, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
             conv1 = tf.layers.batch_normalization(conv1, training=is_training)
             conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
 
