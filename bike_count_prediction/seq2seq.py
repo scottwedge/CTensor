@@ -336,8 +336,8 @@ class lstm:
         # predicted = np.transpose(predicted_vals)
         # debug
         # print('predicted: ', predicted)
-        rmse = np.sqrt((np.asarray((np.subtract(predicted, test_data.y))) ** 2).mean())
-        mae = mean_absolute_error(predicted, test_data.y)
+        rmse = np.sqrt((np.asarray((np.subtract(predicted_vals, test_data.y))) ** 2).mean())
+        mae = mean_absolute_error(predicted_vals, test_data.y)
         print("RSME: %f" % rmse)
         print('MAE: %f' %mae)
 
