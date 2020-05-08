@@ -143,7 +143,7 @@ class SeriesPredictor:
         self.x = tf.placeholder(tf.float32, [None, seq_size, input_dim])
         # decoder outputs
         self.y = tf.placeholder(tf.float32, [None, PREDICTION_STEPS])
-        self.decoder_inputs = tf.placeholder(tf.float32, [None, seq_size, input_dim])
+        self.decoder_inputs = tf.placeholder(tf.float32, [None, PREDICTION_STEPS, input_dim])
 
         self.global_step = tf.Variable(0, trainable=False)
 
@@ -188,8 +188,8 @@ class SeriesPredictor:
             # At this point decoder_cell output is a hidden_units sized vector at every timestep
             decoder_outputs, decoder_states = tf.nn.dynamic_rnn(decoder_cell, self.decoder_inputs,
                                 initial_state=encoder_states, dtype=tf.float32)
-            print('decoder_outputs.shape: ', decoder_outputs.shape)
-        out = tf.contrib.layers.fully_connected(decoder_outputs, 1)
+            print('decoder_outputs.shape: ', decoder_outputs.shape) # decoder_outputs.shape:  (?, 168, 128)
+        out = tf.contrib.layers.fully_connected(decoder_outputs, 1) # (?, 168, 1)
         print('out.shape: ', out.shape)
 
         # Hack to build the indexing and retrieve the right output.
