@@ -330,7 +330,7 @@ class lstm:
 
         # inference
         with tf.Session() as sess:
-            predicted_vals = predictor.test(sess, test_data)[:,0]
+            predicted_vals = predictor.test(sess, test_data)
             print('predicted_vals', np.shape(predicted_vals))
 
         predicted = np.transpose(predicted_vals)
