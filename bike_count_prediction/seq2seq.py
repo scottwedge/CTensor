@@ -75,6 +75,7 @@ class generateData(object):
                 except AttributeError:
                     data_ = data['total_count'].iloc[i + self.timesteps:  i + self.timesteps + PREDICTION_STEPS].as_matrix()
                     rnn_df.append(data_ if len(data_.shape) > 1 else [[i] for i in data_])
+            elif decoder_inputs:
                 data_ = data.iloc[i: i + self.timesteps].as_matrix()
                 rnn_df.append(data_ if len(data_.shape) > 1 else [[i] for i in data_])
             else:
