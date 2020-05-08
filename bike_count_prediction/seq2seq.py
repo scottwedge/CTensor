@@ -333,7 +333,7 @@ class lstm:
             predicted_vals = predictor.test(sess, test_data)
             print('predicted_vals', np.shape(predicted_vals))
 
-        predicted = np.transpose(predicted_vals)
+        # predicted = np.transpose(predicted_vals)
         # debug
         print('predicted: ', predicted)
         rmse = np.sqrt((np.asarray((np.subtract(predicted, test_data.y))) ** 2).mean())
