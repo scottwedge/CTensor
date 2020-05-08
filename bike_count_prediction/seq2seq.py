@@ -93,7 +93,7 @@ class generateData(object):
             data = pd.DataFrame(data)
         train_x = self.rnn_data(data)
         train_y =self.rnn_data(data, labels = True)
-        # train_y = np.squeeze(train_y, axis=1)
+        train_y = np.squeeze(train_y, axis=2)
         # expand dim to [batchsize, 1]
         # train_y = np.expand_dims(train_y, axis=1)
         # debug
