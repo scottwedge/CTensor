@@ -91,14 +91,16 @@ class generateData(object):
             data = pd.DataFrame(data)
         train_x = self.rnn_data(data)
         train_y =self.rnn_data(data, labels = True)
+        train_y = np.squeeze(train_y, axis=1)
         # expand dim to [batchsize, 1]
-        train_y = np.expand_dims(train_y, axis=1)
+        # train_y = np.expand_dims(train_y, axis=1)
         # debug
         print('train_x.shape: ', train_x.shape) # (41448, 168, 1)
         print('train_y.shape: ', train_y.shape)
 
         # decoder input
         train_decoder_inputs = self.rnn_data(data, labels = False, decoder_inputs = True )
+        print('train_decoder_inputs.shape: ', train_decoder_inputs.shape)
 
         return dict(train=train_x), dict(train = train_y), dict(train = train_decoder_inputs)
 
