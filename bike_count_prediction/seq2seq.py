@@ -267,7 +267,7 @@ class SeriesPredictor:
         # self.saver.restore(sess, self.save_path +'model.ckpt', global_step=self.global_step)
         self.saver.restore(sess, tf.train.latest_checkpoint(self.save_path))
 
-        output = sess.run(self.model(), feed_dict={self.x: data.X, self.decoder_inputs: data.decoder_inputs})
+        output, _ = sess.run(self.model(), feed_dict={self.x: data.X, self.decoder_inputs: data.decoder_inputs})
         return output
 
 
