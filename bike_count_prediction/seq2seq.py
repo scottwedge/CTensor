@@ -76,7 +76,7 @@ class generateData(object):
                     data_ = data['total_count'].iloc[i + self.timesteps:  i + self.timesteps + PREDICTION_STEPS].as_matrix()
                     rnn_df.append(data_ if len(data_.shape) > 1 else [[i] for i in data_])
             elif decoder_inputs:
-                data_ = data.iloc[i + self.timesteps:  i + self.timesteps + PREDICTION_STEPS].as_matrix()
+                data_ = data.iloc[i + self.timesteps-1:  i + self.timesteps + PREDICTION_STEPS-1].as_matrix()
                 rnn_df.append(data_ if len(data_.shape) > 1 else [[i] for i in data_])
 
             else:
