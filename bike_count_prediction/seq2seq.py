@@ -171,21 +171,23 @@ class SeriesPredictor:
         :param b: vector of fully-connected output layer biases
         """
         #cell = rnn.BasicLSTMCell(self.hidden_dim)
-        encoder_cell = tf.nn.rnn_cell.LSTMCell(self.hidden_dim)
-        # num_examples = batch_size = 100
-        #num_examples = tf.shape(self.x)[0]
-        # added->  [timesteps, batch_size, 1]
-#         _x =  tf.unstack(self.x, num=TIMESTEPS, axis=1)
+        with tf.variable_scope('encoding'):
+            encoder_cell = tf.nn.rnn_cell.LSTMCell(self.hidden_dim, name = 'encoder_cell')
+            # num_examples = batch_size = 100
+            #num_examples = tf.shape(self.x)[0]
+            # added->  [timesteps, batch_size, 1]
+    #         _x =  tf.unstack(self.x, num=TIMESTEPS, axis=1)
 
-        # https://stackoverflow.com/questions/44162432/analysis-of-the-output-from-tf-nn-dynamic-rnn-tensorflow-function
+            # https://stackoverflow.com/questions/44162432/analysis-of-the-output-from-tf-nn-dynamic-rnn-tensorflow-function
 
-        # # tf.Tensor 'rnn_3/transpose:0' shape=(batchsize, 168, 100) dtype=float32
-        encoder_outputs, encoder_states = tf.nn.dynamic_rnn(encoder_cell, self.x, dtype=tf.float32)
-        # output shape (?, 168, 100)
-        decoder_cell = tf.nn.rnn_cell.LSTMCell(self.hidden_dim)
-        # At this point decoder_cell output is a hidden_units sized vector at every timestep
-        decoder_outputs, decoder_states = tf.nn.dynamic_rnn(decoder_cell, self.decoder_inputs,
-                            initial_state=encoder_states, dtype=tf.float32)
+            # # tf.Tensor 'rnn_3/transpose:0' shape=(batchsize, 168, 100) dtype=float32
+            encoder_outputs, encoder_states = tf.nn.dynamic_rnn(encoder_cell, self.x, dtype=tf.float32)
+            # output shape (?, 168, 100)
+        with tf.variable_scope('decoding'):
+            decoder_cell = tf.nn.rnn_cell.LSTMCell(self.hidden_dim, name = 'decoder_cell')
+            # At this point decoder_cell output is a hidden_units sized vector at every timestep
+            decoder_outputs, decoder_states = tf.nn.dynamic_rnn(decoder_cell, self.decoder_inputs,
+                                initial_state=encoder_states, dtype=tf.float32)
         out = tf.contrib.layers.fully_connected(decoder_outputs, 1)
 
         # Hack to build the indexing and retrieve the right output.
