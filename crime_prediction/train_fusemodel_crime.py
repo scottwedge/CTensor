@@ -503,7 +503,7 @@ def main():
             print("use 2d feature")
             house_price_arr = np.load(path_2d + 'house_price.npy')
             POI_business_arr = np.load(path_2d + 'POI_business.npy')
-            # POI_food_arr = np.load(path_2d + 'POI_food.npy')
+            POI_food_arr = np.load(path_2d + 'POI_food.npy')
             #POI_government_arr = np.load(path_2d + 'POI_government.npy')
             # POI_hospitals_arr = np.load(path_2d + 'POI_hospitals.npy')
             #POI_publicservices_arr = np.load(path_2d + 'POI_publicservices.npy')
