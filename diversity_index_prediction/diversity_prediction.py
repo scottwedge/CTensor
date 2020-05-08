@@ -39,6 +39,8 @@ from sklearn.model_selection import train_test_split
 HEIGHT = 32
 WIDTH = 20
 
+ALPHA = 0.001
+
 def lasso(input, feature_set):
     target_var = ['diversity_index']
     X = input[feature_set]
@@ -46,7 +48,7 @@ def lasso(input, feature_set):
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42)
 
-    clf = linear_model.Lasso(alpha= 0.01)
+    clf = linear_model.Lasso(alpha= ALPHA)
     clf.fit(X_train, y_train)
     for i in range(0, len(feature_set)):
         print(feature_set[i], clf.coef_[i])
@@ -180,6 +182,9 @@ def main():
     with open(txt_name, 'w') as the_file:
         the_file.write('encoding dir\n')
         the_file.write(str(encoding_dir) + '\n')
+
+        the_file.write('alpha \n')
+        the_file.write(str(ALPHA) + '\n')
 
         the_file.write('spatial features only: train score, test score: \n')
         the_file.write(str(spatial_train_score) + '\n')
