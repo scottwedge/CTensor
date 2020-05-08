@@ -39,7 +39,7 @@ from sklearn.model_selection import train_test_split
 HEIGHT = 32
 WIDTH = 20
 
-ALPHA = 0.001
+ALPHA = 0.01
 
 def lasso(input, feature_set):
     target_var = ['diversity_index']
