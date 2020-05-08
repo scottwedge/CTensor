@@ -29,7 +29,7 @@ import datetime_utils
 # import arima
 import argparse
 
-import lstm
+import seq2seq as lstm
 # import lstm_attn
 # import lstm_varying_window
 import evaluation
