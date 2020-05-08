@@ -188,7 +188,9 @@ class SeriesPredictor:
             # At this point decoder_cell output is a hidden_units sized vector at every timestep
             decoder_outputs, decoder_states = tf.nn.dynamic_rnn(decoder_cell, self.decoder_inputs,
                                 initial_state=encoder_states, dtype=tf.float32)
+            print('decoder_outputs.shape: ', decoder_outputs.shape)
         out = tf.contrib.layers.fully_connected(decoder_outputs, 1)
+        print('out.shape: ', out.shape)
 
         # Hack to build the indexing and retrieve the right output.
         # batch_size = tf.shape(outputs)[0]
