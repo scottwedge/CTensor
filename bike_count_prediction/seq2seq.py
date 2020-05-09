@@ -158,7 +158,7 @@ class SeriesPredictor:
 
         starter_learning_rate = LEARNING_RATE
         learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
-                                       5000, 0.96, staircase=True)
+                                       5000, 0.9, staircase=True)
 
         self.train_op = tf.train.AdamOptimizer(learning_rate).minimize(self.cost, global_step = self.global_step)
         # Auxiliary ops
