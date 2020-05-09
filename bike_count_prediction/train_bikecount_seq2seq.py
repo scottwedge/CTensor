@@ -186,10 +186,10 @@ def main():
         latent_bridge_rep = latent_rep[:, 11, 8, :]  # the location of fremont bridge
 
         # ---- try using the surrounding three grids as latent fea  ----
-        latent_bridge_rep2 = latent_rep[:, 12, 8, :]  # the location of fremont bridge
-        latent_bridge_rep3 = latent_rep[:, 11, 9, :]  # the location of fremont bridge
-        latent_bridge_rep = np.concatenate((latent_bridge_rep, latent_bridge_rep2, latent_bridge_rep3), axis=1)
-        print('latent_bridge_rep.shape: ', latent_bridge_rep.shape)
+        # latent_bridge_rep2 = latent_rep[:, 12, 8, :]  # the location of fremont bridge
+        # latent_bridge_rep3 = latent_rep[:, 11, 9, :]  # the location of fremont bridge
+        # latent_bridge_rep = np.concatenate((latent_bridge_rep, latent_bridge_rep2, latent_bridge_rep3), axis=1)
+        # print('latent_bridge_rep.shape: ', latent_bridge_rep.shape)
 
         # latent_bridge_rep = latent_bridge_rep[:-24, :]
         latent_df = pd.DataFrame(latent_bridge_rep)
