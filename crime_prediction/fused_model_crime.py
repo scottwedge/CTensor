@@ -279,7 +279,7 @@ class Conv3DPredictor:
             conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
 
             # conv => 16*16*16
-            conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
+            conv2 = tf.layers.conv3d(inputs=conv1, filters=16, kernel_size=[3,3,3], padding='same', activation=None)
             conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
 
@@ -575,7 +575,7 @@ class Conv3DPredictor:
             conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
 
             #  Convolution Layer with 64 filters and a kernel size of 3
-            conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
+            conv2 = tf.layers.conv2d(conv1, 16, 3, padding='same',activation=None)
             conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
 
