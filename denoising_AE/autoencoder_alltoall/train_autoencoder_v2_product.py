@@ -475,9 +475,9 @@ def main():
         'POI_transportation': POI_transportation_arr,
         'seattle_street': seattle_street_arr,  # core
         'total_flow_count': total_flow_count_arr,
-        'transit_routes': transit_routes_arr,
+        'transit_routes': transit_routes_arr, # core
         'transit_signals': transit_signals_arr,
-        'transit_stop':transit_stop_arr,
+        'transit_stop':transit_stop_arr, # core
         'slope': slope_arr, # core
         'bikelane': bikelane_arr, # core
         }
