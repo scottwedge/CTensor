@@ -463,7 +463,7 @@ class Autoencoder:
                       activation=my_leaky_relu
                       #reuse = tf.AUTO_REUSE
                 )
-            # conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             # (batchsize, 168, dim)
             out = conv2
 
@@ -499,7 +499,7 @@ class Autoencoder:
                       activation=my_leaky_relu
                       #reuse = tf.AUTO_REUSE
                 )
-            # conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             out = conv2
             prediction_2d = tf.expand_dims(out, 1)
             prediction_2d_expand = tf.tile(prediction_2d, [1, TIMESTEPS, 1,
@@ -528,7 +528,7 @@ class Autoencoder:
                       padding="same",
                       activation=my_leaky_relu
                 )
-            # conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
             out = conv2
         # output size should be [None, height, width, 1]
         return out
@@ -682,13 +682,13 @@ class Autoencoder:
             if len(first_level_output_3d)!=0:
 
                 fused_3d =tf.concat(axis=-1,values=first_level_output_3d)
-                fused_3d = self.cnn_3d_fuse(first_level_output_3d, is_training)
-                dim_3d = fused_3d.shape[-1] # temporarily only feed one 3d datasets
-                fused_3d_extend = tf.tile(fused_3d, [1, 1, 1,1 ,dim_2d * dim_1d])
-                fused_1d2d_extend = tf.tile(fused_1d2d, [1, 1, 1,1 ,dim_3d])
-
-                fuse_feature = tf.multiply(fused_3d_extend, fused_1d2d_extend)
-                #fuse_feature = tf.concat(axis=-1,values= [fused_3d, fused_1d2d])
+                # fused_3d = self.cnn_3d_fuse(first_level_output_3d, is_training)
+                # dim_3d = fused_3d.shape[-1] # temporarily only feed one 3d datasets
+                # fused_3d_extend = tf.tile(fused_3d, [1, 1, 1,1 ,dim_2d * dim_1d])
+                # fused_1d2d_extend = tf.tile(fused_1d2d, [1, 1, 1,1 ,dim_3d])
+                #
+                # fuse_feature = tf.multiply(fused_3d_extend, fused_1d2d_extend)
+                fuse_feature = tf.concat(axis=-1,values= [fused_3d, fused_1d2d])
                 print('fuse_feature.shape: ', fuse_feature.shape)
             else:
                 fuse_feature = fused_1d2d
