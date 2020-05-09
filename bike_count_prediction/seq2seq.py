@@ -35,7 +35,7 @@ PREDICTION_STEPS = 6
 TRAINING_STEPS = 3000
 # if use data from 2017-10  - 2018- 03 as training data, there are 4000 data samples
 # that is 20 batches an epoch. Run 30 epoches, -> 600 steps
-BATCH_SIZE = 64
+BATCH_SIZE = 128
 #PRINT_STEPS = TRAINING_STEPS / 100
 N_HIDDEN = 128 # previously 30
 LEARNING_RATE = 0.001
