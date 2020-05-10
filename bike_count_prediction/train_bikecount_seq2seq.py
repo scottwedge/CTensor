@@ -163,6 +163,11 @@ def main():
         hourly_grid_timeseries['temperature'] = list(weather_arr[:,1].flatten())
         # hourly_grid_timeseries['pressure'] = list(weather_arr[:,2].flatten())
 
+
+        #airquality_arr = np.load(path_1d + 'air_quality_arr_20140201_20190501.npy')
+        #airquality_arr = airquality_arr[0,0,:,:]
+        # hourly_grid_timeseries['airquality'] = list(airquality_arr.flatten())
+
     if use_3d_fea:
         # (45984, 32, 20)
         seattle911calls_arr = np.load(path_3d + 'seattle911calls_arr_20140201_20190501.npy')
@@ -173,8 +178,17 @@ def main():
         hourly_grid_timeseries['seattle_911'] = list(seattle911calls_arr_bridge.flatten())
         # hourly_grid_timeseries['collisions'] = list(collisions_arr_bridge.flatten())
 
-        # hourly_grid_timeseries = np.concatenate([hourly_grid_timeseries,weather_arr], axis=1)
-        # print('hourly_grid_timeseries.shape', hourly_grid_timeseries.shape)
+
+        # building_permit_arr = np.load(path_3d + 'building_permit_arr_20140201_20190501_python3.npy')
+        # collisions_arr = np.load(path_3d + 'collisions_arr_20140201_20190501_python3.npy')
+        # building_permit_arr_seq_extend = np.repeat(building_permit_arr, 24, axis =0)
+        # collisions_arr_seq_extend = np.repeat(collisions_arr, 24, axis =0)
+        # building_permit_arr_bridge = building_permit_arr[0: -24, 11, 8]
+        # collisions_arr_bridge = collisions_arr[0: -24, 11, 8]
+        # hourly_grid_timeseries['building_permit'] = list(building_permit_arr_bridge.flatten())
+        # hourly_grid_timeseries['collisions'] = list(collisions_arr_bridge.flatten())
+
+
 
     if use_latent_fea:
         latent_rep_path = '/home/ubuntu/CTensor/' + encoding_dir + 'latent_rep/final_lat_rep.npy'
