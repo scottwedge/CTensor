@@ -302,8 +302,6 @@ class train:
 
 
 
-
-
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s',   '--suffix',
@@ -477,8 +475,8 @@ def main():
         }
 
     rawdata_3d_dict = {
-          'building_permit': building_permit_arr_seq_extend,
-        'collisions': collisions_arr_seq_extend,  # (7, 45840, 32, 20)
+        #   'building_permit': building_permit_arr_seq_extend,
+        # 'collisions': collisions_arr_seq_extend,  # (7, 45840, 32, 20)
         'seattle911calls': seattle911calls_arr # (45984, 32, 20)
         }
     keys_1d = list(rawdata_1d_dict.keys())
@@ -506,6 +504,26 @@ def main():
 
 
     # -------------- grouping -----------------------
+    #####  may 10, 2020, grouping only within dim, based on alltoall product ###########
+    grouping_dict_1d = {
+        'group_1': ['precipitation', 'pressure', 'airquality'],
+        'group_2':['temperature'],
+    }
+
+    grouping_dict_2d = {
+        'group_3': ['house_price', 'POI_school', 'POI_transportation', 'transit_routes', 'slope'],
+        'group_4':['POI_business'],
+        'group_5':['POI_food'],
+        'group_6':['POI_government', 'POI_publicservices',
+                'POI_recreation', 'seattle_street', 'transit_signals', 'transit_stop', 'bikelane'],
+        'group_7': ['POI_hospitals', 'total_flow_count']
+    }
+
+    grouping_dict_3d = {
+        'group_8': ['seattle911calls']
+    }
+
+
     '''
     grouping_dict = {'weather_grp': ['precipitation','temperature', 'pressure', 'airquality'],
                 'transportation_grp': ['POI_transportation', 'seattle_street', 'total_flow_count',
@@ -559,43 +577,6 @@ def main():
 
 
     ########### grouping by feature maps using cosine distance  ########
-    # ---  1d2d = 0, no abs, ap ------- #
-    '''
-    grouping_dict = {
-    'group_1': ['precipitation', 'temperature', 'pressure', 'building_permit'],
-    'group_2': ['airquality', 'POI_transportation', 'total_flow_count', 'transit_stop',
-            'slope', 'bikelane'],
-    'group_3': ['house_price', 'seattle_street', 'transit_signals', 'collisions'],
-    'group_4': ['POI_business', 'POI_food', 'POI_government', 'POI_hospitals',
-        'POI_publicservices', 'POI_recreation', 'POI_school', 'transit_routes', 'seattle911calls']
-    }
-    '''
-
-    # ---- 1d2d = calc, no abs, ap  ------#
-    # grouping_dict = {
-    #
-    # 'group_1': ['precipitation', 'temperature', 'pressure', 'building_permit'],
-    # 'group_2':['airquality', 'POI_business', 'POI_food', 'POI_recreation', 'POI_school',
-    #      'seattle911calls'],
-    #  'group_3': ['house_price', 'seattle_street', 'total_flow_count', 'transit_signals', 'collisions'],
-    #  'group_4': ['POI_government', 'POI_hospitals', 'POI_publicservices',
-    #         'POI_transportation', 'transit_routes', 'transit_stop', 'slope', 'bikelane']
-    #
-    # }
-
-    # ---- 1d2d = 0, no abs, traditional AP ----- #
-    # grouping_dict = {
-    # 'group_1': ['precipitation', 'temperature', 'pressure'],
-    # 'group_2': ['airquality'],
-    # 'group_3': ['house_price', 'seattle_street', 'total_flow_count', 'transit_signals'],
-    # 'group_4':  ['POI_business', 'POI_food', 'POI_government', 'POI_hospitals', 'POI_publicservices',
-    #     'POI_recreation', 'POI_school', 'transit_routes', 'seattle911calls'],
-    # 'group_5':  ['POI_transportation', 'transit_stop', 'slope', 'bikelane'],
-    # 'group_6': ['building_permit', 'collisions'],
-    # }
-
-
-
 
 
     ########### grouping by feature maps using cosine distance BY DIM ########
@@ -640,17 +621,17 @@ def main():
     '''
 
     # updated on May 1, based on denoise alltoall shuffle
-    grouping_dict = {
-    'group_1':  ['precipitation', 'temperature'],
-    'group_2': ['pressure', 'airquality'],
-    'group_3':  ['house_price', 'transit_signals'],
-    'group_4':  ['POI_business'],
-    'group_5':  ['POI_food', 'POI_government', 'POI_hospitals', 'POI_recreation', 'POI_school', 'seattle_street', 'transit_stop'],
-    'group_6': ['POI_publicservices'],
-    'group_7': ['POI_transportation', 'total_flow_count', 'transit_routes', 'slope', 'bikelane'],
-    'group_8': ['building_permit', 'seattle911calls'],
-    'group_9': ['collisions']
-    }
+    # grouping_dict = {
+    # 'group_1':  ['precipitation', 'temperature'],
+    # 'group_2': ['pressure', 'airquality'],
+    # 'group_3':  ['house_price', 'transit_signals'],
+    # 'group_4':  ['POI_business'],
+    # 'group_5':  ['POI_food', 'POI_government', 'POI_hospitals', 'POI_recreation', 'POI_school', 'seattle_street', 'transit_stop'],
+    # 'group_6': ['POI_publicservices'],
+    # 'group_7': ['POI_transportation', 'total_flow_count', 'transit_routes', 'slope', 'bikelane'],
+    # 'group_8': ['building_permit', 'seattle911calls'],
+    # 'group_9': ['collisions']
+    # }
 
 
 
