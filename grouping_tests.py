@@ -453,13 +453,6 @@ def first_level_grouping_within_group(feature_map_dict, encoded_list_rearrange_c
             if ds_name1 in keys_1d:
                 temp_arr1 = feature_map_dict[ds_name1][n,:] # (24, 1, 1, 1)
                 # (24, 1) - > [32, 20, 24]
-                temp_1d_dup = np.repeat(temp_arr1, 32, axis = 1)
-                temp_1d_dup = np.repeat(temp_1d_dup, 20, axis = 2)  # 32, 20, 24, 1
-
-                temp_1d_dup = np.squeeze(temp_1d_dup, axis = -1)  #[24, 32, 20,]
-                temp_1d_dup = np.moveaxis(temp_1d_dup, 0, -1) # (32, 20, 24)
-
-
                 dim1 = temp_arr1.shape[0]  # number of layers in the 2d data
         #         dim1 = temp_arr1.shape[-1]  # number of layers in the 2d data
                 for ds_name2 in all_keys:
@@ -470,21 +463,6 @@ def first_level_grouping_within_group(feature_map_dict, encoded_list_rearrange_c
                                temp_arr2.reshape(1, -1))
                         ave_SR = sim_sparse[0][0]
                         relation_1d_df.loc[ds_name1, ds_name2]  += ave_SR
-                        # ave_SR = 0
-                        #
-                        # temp_arr2 = feature_map_dict[ds_name2][n, :]
-                        # temp_2d_dup = np.repeat(temp_arr2, 32, axis = 1)
-                        # temp_2d_dup = np.repeat(temp_2d_dup, 20, axis = 2)  # 32, 20, 24, 1
-                        # temp_2d_dup = np.squeeze(temp_2d_dup, axis = -1)  #[24, 32, 20,]
-                        # temp_2d_dup = np.moveaxis(temp_2d_dup, 0, -1) # (32, 20, 24)
-                        #
-                        # compress_arr2 = remove_outside_cells(temp_2d_dup, mask_arr) # [32, 20, 24]
-                        # compress_arr1 = remove_outside_cells( temp_1d_dup, mask_arr) # [32, 20, 24]
-                        #
-                        # sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
-                        #        compress_arr2.reshape(1, -1))
-                        # ave_SR = sim_sparse[0][0]
-                        # relation_1d_df.loc[ds_name1, ds_name2]  += ave_SR
 
             # 2D case
             if ds_name1 in keys_2d:
@@ -495,19 +473,6 @@ def first_level_grouping_within_group(feature_map_dict, encoded_list_rearrange_c
                     # 2D Vs 2D
                     # all duplicate to 3D
                     if ds_name2 in keys_2d:
-        #                 ave_SR = 0 # average spearman correlation
-        # #                 print(ds_name1, ds_name2)
-        #                 temp_arr2 = feature_map_dict[ds_name2][n,:,:,:]
-        #                 temp_arr2_mean_dup = np.repeat(temp_arr2, timestep, axis = -1)
-        #
-        #                 compress_arr2 = remove_outside_cells(temp_arr2_mean_dup, mask_arr)
-        #                 compress_arr1 = remove_outside_cells( temp_arr1_mean_dup, mask_arr)
-        #
-        #                 sim_sparse = cosine_similarity(compress_arr1.reshape(1, -1),
-        #                             compress_arr2.reshape(1, -1))
-        #
-        #                 ave_SR = sim_sparse[0][0]
-        #                 relation_2d_df.loc[ds_name1, ds_name2] += ave_SR
 
                         ave_SR = 0 # average spearman correlation
                         temp_arr2 = feature_map_dict[ds_name2][n,:,:,:]
@@ -704,15 +669,15 @@ def main():
         feature_map_dict = dict(zip(keys_list, encoded_list_rearrange_concat))
 
         print('begin grouping')
-        relation_all_df = first_level_grouping_simplified(feature_map_dict, encoded_list_rearrange_concat,
-                    mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
+        #relation_all_df = first_level_grouping_simplified(feature_map_dict, encoded_list_rearrange_concat,
+        #            mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
         # relation_all_df = first_level_grouping(feature_map_dict, encoded_list_rearrange_concat,
         #             mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
 
 
 
-        # relation_1d_df, relation_2d_df, relation_3d_df = first_level_grouping_within_group(feature_map_dict, encoded_list_rearrange_concat,
-        #      mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
+        relation_1d_df, relation_2d_df, relation_3d_df = first_level_grouping_within_group(feature_map_dict, encoded_list_rearrange_concat,
+             mask_arr, keys_list, keys_1d, keys_2d, keys_3d)
 
 
     if level == 'second':
@@ -734,7 +699,7 @@ def main():
 
 
     # -------------------  relation_all_df -------------------------- #
-
+    '''
     print('relation_all_df')
     print(relation_all_df)
     relation_all_df.to_csv(encoding_dir+  level+  '_level'+ '_grouping_' + suffix + '.csv')
@@ -746,14 +711,14 @@ def main():
     plot_name = encoding_dir + '_'+ method+'_' +level+  '_level'+ '_grouping_' + suffix + '.png'
     plot_grouping(relation_all_df, plot_name)
     print('plot saved to :', plot_name)
-
+    '''
 
     # -------------------------------------------------------------#
 
 
     # ---------------------------   by dim ------------------------- #
 
-    '''
+
     print('relation_all_df')
     print(relation_1d_df)
     print(relation_2d_df)
@@ -772,7 +737,7 @@ def main():
     print('relation_3d_df')
     txt_name = encoding_dir + '_'+ method+'_' +level+  '_level'+ '_grouping_' + suffix + '.txt'
     clustering(relation_3d_df, keys_3d,txt_name,method, n_clusters)
-    '''
+
 
     # ----------------------------------------------------------- #
 
