@@ -735,7 +735,7 @@ class Autoencoder:
             #                                         WIDTH ,1])
             # first_level_output[k] = prediction_1d_expand
             first_level_output_1d[k] = prediction_1d
-            first_order_encoder_list.append(prediction_1d)
+
 
         for k, v in self.rawdata_2d_tf_x_dict.items():
             prediction_2d = self.cnn_2d_model(v, self.is_training, k)
@@ -744,14 +744,13 @@ class Autoencoder:
             #                                         1 ,1])
             # first_level_output[k] = prediction_2d_expand
             first_level_output_2d[k] = prediction_2d
-            first_order_encoder_list.append(prediction_2d)
+
 
         for k, v in self.rawdata_3d_tf_x_dict.items():
             prediction_3d = self.cnn_model(v, self.is_training, k)
             # first_level_output[k] = prediction_3d
             first_level_output_3d[k] = prediction_3d
-            first_order_encoder_list.append(prediction_3d)
-
+        
 
 
         # ------------ grouping in encoder ------------- #
