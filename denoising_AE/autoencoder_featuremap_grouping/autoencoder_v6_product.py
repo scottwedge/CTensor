@@ -917,7 +917,10 @@ class Autoencoder:
                 # batchsize = tf.shape(prediction)[0]
         demo_mask_arr_expanded = tf.tile(demo_mask_arr_expanded, [tf.shape(latent_fea)[0],1,1,1])
         weight = tf.cast(tf.greater(demo_mask_arr_expanded, 0), tf.float32)
-
+        # decode by groups
+        keys_1d = rawdata_1d_dict.keys()
+        keys_2d = rawdata_2d_dict.keys()
+        keys_3d = rawdata_3d_dict.keys()
         # ------------------ branching -----------------------------#
         # branch one latent feature into [# of groups]'s latent representations
         '''
