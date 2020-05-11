@@ -750,7 +750,7 @@ class Autoencoder:
             prediction_3d = self.cnn_model(v, self.is_training, k)
             # first_level_output[k] = prediction_3d
             first_level_output_3d[k] = prediction_3d
-        
+
 
 
         # ------------ grouping in encoder ------------- #
@@ -771,7 +771,7 @@ class Autoencoder:
 
             scope_name = '1_'+ grp
             temp_dim = int(len(data_list) / 3) + 1
-            group_fusion_featuremap = cnn_1d_fuse(temp_list, is_training, suffix = '1', output_dim =temp_dim)
+            group_fusion_featuremap = self.cnn_1d_fuse(temp_list, is_training, suffix = '1', output_dim =temp_dim)
             second_level_output_1d[grp] = group_fusion_featuremap
             second_order_encoder_list.append(group_fusion_featuremap)
             keys_list.append(grp)
@@ -784,7 +784,7 @@ class Autoencoder:
 
             scope_name = '1_'+ grp
             temp_dim = int(len(data_list) / 3) + 1
-            group_fusion_featuremap = cnn_2d_fuse(temp_list, is_training, suffix = '1', output_dim =temp_dim)
+            group_fusion_featuremap = self.cnn_2d_fuse(temp_list, is_training, suffix = '1', output_dim =temp_dim)
             second_level_output_2d[grp] = group_fusion_featuremap
             second_order_encoder_list.append(group_fusion_featuremap)
             keys_list.append(grp)
@@ -797,7 +797,7 @@ class Autoencoder:
 
             scope_name = '1_'+ grp
             temp_dim = int(len(data_list) / 3) + 1
-            group_fusion_featuremap = cnn_3d_fuse(temp_list, is_training, suffix = '1', output_dim =temp_dim)
+            group_fusion_featuremap = self.cnn_3d_fuse(temp_list, is_training, suffix = '1', output_dim =temp_dim)
             second_level_output_3d[grp] = group_fusion_featuremap
             second_order_encoder_list.append(group_fusion_featuremap)
             keys_list.append(grp)
