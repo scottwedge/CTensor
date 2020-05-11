@@ -230,7 +230,9 @@ class Autoencoder:
         self.height = height
         self.channel = channel  # 27
         self.dim  = dim # default = 1, it is the dimension of latent representation
-        self.grouping_dict = grouping_dict
+        self.grouping_dict_1d = grouping_dict_1d
+        self.grouping_dict_2d = grouping_dict_2d
+        self.grouping_dict_3d = grouping_dict_3d
         # this is usefor Batch normalization.
         # https://towardsdatascience.com/pitfalls-of-batch-norm-in-tensorflow-and-sanity-checks-for-training-networks-e86c207548c8
         self.is_training = tf.placeholder(tf.bool)
