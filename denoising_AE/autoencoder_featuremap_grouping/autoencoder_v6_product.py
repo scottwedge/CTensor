@@ -517,6 +517,40 @@ class Autoencoder:
         return prediction_1d_expand
 
 
+    # grouping fuse
+    def cnn_1d_grouping_fuse(self, feature_map_list, is_training, suffix = '', output_dim =1, seed=None):
+        # var_scope = "1d_data_process_" + suffix
+        output_dim = int(len(feature_map_list) / 3) + 1
+        var_scope = "cnn_1d_grouping_fuse_" + suffix
+        with tf.variable_scope(var_scope):
+            fuse_feature =tf.concat(axis=-1,values=feature_map_list)
+            print('fuse_feature.shape: ', fuse_feature.shape)
+                        # Convolution Layer with 32 filters and a kernel size of 5
+            conv1 = tf.layers.conv1d(fuse_feature, 16, 3, padding='same',activation=None)
+            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
+
+
+            conv2 = tf.layers.conv1d(conv1, 32, 3, padding='same',activation=None)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+
+        # with tf.name_scope("1d_layer_b"):
+            conv3 = tf.layers.conv1d(
+                      inputs=conv2,
+                      filters=output_dim, # switch from 1 to 3
+                      kernel_size=1,
+                      padding="same",
+                      activation=my_leaky_relu
+                      #reuse = tf.AUTO_REUSE
+                )
+            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+            # (batchsize, 168, dim)
+            out = conv3
+        return out
+
+
+
 
     '''
     input: 2d feature tensor: height * width * # of features (batchsize, 32, 20, 4)
@@ -551,6 +585,37 @@ class Autoencoder:
         # output size should be [None, height, width, 1]
         return prediction_2d_expand
 
+    def cnn_2d_grouping_fuse(self, feature_map_list, is_training, suffix = '', output_dim = 1, seed=None):
+        # var_scope = "2d_data_process_" + suffix
+        output_dim = int(len(feature_map_list) / 3) + 1
+        var_scope = "cnn_2d_grouping_fuse_" + suffix
+        with tf.variable_scope(var_scope):
+            fuse_feature =tf.concat(axis=-1,values=feature_map_list)
+            # Convolution Layer with 32 filters and a kernel size of 5
+            conv1 = tf.layers.conv2d(fuse_feature, 16, 3, padding='same',activation=None)
+            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
+
+            conv2 = tf.layers.conv2d(conv1, 32, 3, padding='same',activation=None)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+
+            conv3 = tf.layers.conv2d(
+                      inputs=conv2,
+                      filters=output_dim,
+                      kernel_size=[1, 1],
+                      padding="same",
+                      activation=my_leaky_relu
+                      #reuse = tf.AUTO_REUSE
+                )
+            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+            out = conv3
+
+        # output size should be [None, height, width, 1]
+        return out
+
+
+
 
 
     def cnn_3d_fuse(self, feature_map_list, is_training, suffix = '', output_dim = 1, seed=None):
@@ -579,6 +644,35 @@ class Autoencoder:
         return out
 
 
+
+    def cnn_3d_grouping_fuse(self, feature_map_list, is_training, suffix = '', output_dim = 1, seed=None):
+        # var_scope = "2d_data_process_" + suffix
+        output_dim = int(len(feature_map_list) / 3) + 1
+        var_scope = "cnn_3d_grouping_fuse_" + suffix
+        with tf.variable_scope(var_scope):
+            fuse_feature =tf.concat(axis=-1,values=feature_map_list)
+            # Convolution Layer with 32 filters and a kernel size of 5
+            conv1 = tf.layers.conv3d(inputs=fuse_feature, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
+            conv1 = tf.layers.batch_normalization(conv1, training=is_training)
+            conv1 = tf.nn.leaky_relu(conv1, alpha=0.2)
+
+            conv2 = tf.layers.conv3d(inputs=conv1, filters=32, kernel_size=[3,3,3], padding='same', activation=None)
+            conv2 = tf.layers.batch_normalization(conv2, training=is_training)
+            conv2 = tf.nn.leaky_relu(conv2, alpha=0.2)
+
+        # output should be (?, 32, 20, 1)
+        # with tf.name_scope("2d_layer_b"):
+            conv3 = tf.layers.conv3d(
+                      inputs=conv2,
+                      filters=output_dim,
+                      kernel_size=[1, 1, 1],
+                      padding="same",
+                      activation=my_leaky_relu
+                )
+            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+            out = conv3
+        # output size should be [None, height, width, 1]
+        return out
 
 
 
@@ -771,7 +865,7 @@ class Autoencoder:
 
             scope_name = '1_'+ grp
             temp_dim = int(len(data_list) / 3) + 1
-            group_fusion_featuremap = self.cnn_1d_fuse(temp_list, self.is_training, suffix = scope_name, output_dim =temp_dim)
+            group_fusion_featuremap = self.cnn_1d_grouping_fuse(temp_list, self.is_training, suffix = scope_name, output_dim =temp_dim)
             second_level_output_1d[grp] = group_fusion_featuremap
             second_order_encoder_list.append(group_fusion_featuremap)
             keys_list.append(grp)
@@ -784,7 +878,7 @@ class Autoencoder:
 
             scope_name = '1_'+ grp
             temp_dim = int(len(data_list) / 3) + 1
-            group_fusion_featuremap = self.cnn_2d_fuse(temp_list, self.is_training, suffix = scope_name, output_dim =temp_dim)
+            group_fusion_featuremap = self.cnn_2d_grouping_fuse(temp_list, self.is_training, suffix = scope_name, output_dim =temp_dim)
             second_level_output_2d[grp] = group_fusion_featuremap
             second_order_encoder_list.append(group_fusion_featuremap)
             keys_list.append(grp)
@@ -797,7 +891,7 @@ class Autoencoder:
 
             scope_name = '1_'+ grp
             temp_dim = int(len(data_list) / 3) + 1
-            group_fusion_featuremap = self.cnn_3d_fuse(temp_list, self.is_training, suffix = scope_name, output_dim =temp_dim)
+            group_fusion_featuremap = self.cnn_3d_grouping_fuse(temp_list, self.is_training, suffix = scope_name, output_dim =temp_dim)
             second_level_output_3d[grp] = group_fusion_featuremap
             second_order_encoder_list.append(group_fusion_featuremap)
             keys_list.append(grp)
