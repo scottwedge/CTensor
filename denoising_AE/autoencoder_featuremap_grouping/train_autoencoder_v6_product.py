@@ -506,7 +506,7 @@ def main():
     # -------------- grouping -----------------------
     #####  may 10, 2020, grouping only within dim, based on alltoall product ###########
     grouping_dict_1d = {
-        'group_1': ['precipitation', 'pressure', 'airquality'],
+        'group_1': ['precipitation', 'pressure', 'airquality'],  
         'group_2':['temperature'],
     }
 
