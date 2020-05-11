@@ -221,7 +221,8 @@ class Autoencoder:
     def __init__(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
      rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
                    intersect_pos_set,
-                    demo_mask_arr, dim,grouping_dict,
+                    demo_mask_arr, dim,
+                    grouping_dict_1d, grouping_dict_2d, grouping_dict_3d,
                     channel, time_steps, height, width):
 
         self.time_steps = time_steps
@@ -254,22 +255,22 @@ class Autoencoder:
             self.rawdata_2d_tf_y_dict[k] = tf.placeholder(tf.float32, shape=[None, height, width, dim])
 
         # -------- 3d --------------#
-        building_permit_x = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
-        building_permit_y = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
-        collisions_x = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
-        collisions_y = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+        # building_permit_x = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+        # building_permit_y = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+        # collisions_x = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
+        # collisions_y = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
         seattle911calls_x = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
         seattle911calls_y = tf.placeholder(tf.float32, shape=[None,HOURLY_TIMESTEPS, height, width, 1])
 
         self.rawdata_3d_tf_x_dict = {
-            'building_permit': building_permit_x,
-            'collisions': collisions_x,
+            # 'building_permit': building_permit_x,
+            # 'collisions': collisions_x,
             'seattle911calls': seattle911calls_x
 
         }
         self.rawdata_3d_tf_y_dict = {
-              'building_permit': building_permit_y,
-            'collisions': collisions_y,
+            #   'building_permit': building_permit_y,
+            # 'collisions': collisions_y,
             'seattle911calls': seattle911calls_y
         }
 
