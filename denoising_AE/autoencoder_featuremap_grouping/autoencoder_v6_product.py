@@ -1540,7 +1540,6 @@ class Autoencoder:
             first_level_output_3d[k] = prediction_3d
 
 
-
         # ------------ grouping in encoder ------------- #
         # [group name: feature maps]
         second_level_output_1d = dict()
