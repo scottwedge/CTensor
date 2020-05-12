@@ -86,11 +86,11 @@ def lasso(input, feature_set):
             print(feature_set[i], clf.coef_[i])
 
         train_score=clf.score(X_train, y_train)
-        print(train_score)
+        # print(train_score)
         ave_train_score +=train_score
 
         test_score=clf.score(X_test,y_test)
-        print(test_score)
+        # print(test_score)
         ave_test_score += test_score
 
     ave_train_score = ave_train_score/ 5
