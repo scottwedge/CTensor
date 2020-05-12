@@ -493,7 +493,7 @@ class Autoencoder:
     # (batchsize, 168, # of features)
     def cnn_1d_fuse(self, feature_map_list, is_training, suffix = '', output_dim =1, seed=None):
         # var_scope = "1d_data_process_" + suffix
-        output_dim = int(len(feature_map_list) / 3) + 1
+        output_dim = len(feature_map_list)
         var_scope = "cnn_1d_fuse_" + suffix
         with tf.variable_scope(var_scope):
             fuse_feature =tf.concat(axis=-1,values=feature_map_list)
@@ -550,7 +550,7 @@ class Autoencoder:
                       activation=my_leaky_relu
                       #reuse = tf.AUTO_REUSE
                 )
-            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+            # conv3 = tf.layers.batch_normalization(conv3, training=is_training)
             # (batchsize, 168, dim)
             out = conv3
         return out
@@ -564,7 +564,8 @@ class Autoencoder:
     '''
     def cnn_2d_fuse(self, feature_map_list, is_training, suffix = '', output_dim = 1, seed=None):
         # var_scope = "2d_data_process_" + suffix
-        output_dim = int(len(feature_map_list) / 3) + 1
+        # output_dim = int(len(feature_map_list) / 3) + 1
+        output_dim = len(feature_map_list)
         var_scope = "cnn_2d_fuse_" + suffix
         with tf.variable_scope(var_scope):
             fuse_feature =tf.concat(axis=-1,values=feature_map_list)
@@ -614,7 +615,7 @@ class Autoencoder:
                       activation=my_leaky_relu
                       #reuse = tf.AUTO_REUSE
                 )
-            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+            # conv3 = tf.layers.batch_normalization(conv3, training=is_training)
             out = conv3
 
         # output size should be [None, height, width, 1]
@@ -626,7 +627,7 @@ class Autoencoder:
 
     def cnn_3d_fuse(self, feature_map_list, is_training, suffix = '', output_dim = 1, seed=None):
         # var_scope = "2d_data_process_" + suffix
-        output_dim = int(len(feature_map_list) / 3) + 1
+        output_dim = len(feature_map_list) 
         var_scope = "cnn_3d_fuse_" + suffix
         with tf.variable_scope(var_scope):
             fuse_feature =tf.concat(axis=-1,values=feature_map_list)
@@ -675,7 +676,7 @@ class Autoencoder:
                       padding="same",
                       activation=my_leaky_relu
                 )
-            conv3 = tf.layers.batch_normalization(conv3, training=is_training)
+            # conv3 = tf.layers.batch_normalization(conv3, training=is_training)
             out = conv3
         # output size should be [None, height, width, 1]
         return out
