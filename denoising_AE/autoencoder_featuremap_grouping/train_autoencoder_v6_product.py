@@ -505,8 +505,9 @@ def main():
 
     # -------------- grouping -----------------------
     #####  may 10, 2020, grouping only within dim, based on alltoall product ###########
+    '''
     grouping_dict_1d = {
-        'group_1': ['precipitation', 'pressure', 'airquality'],  
+        'group_1': ['precipitation', 'pressure', 'airquality'],
         'group_2':['temperature'],
     }
 
@@ -517,6 +518,25 @@ def main():
         'group_6':['POI_government', 'POI_publicservices',
                 'POI_recreation', 'seattle_street', 'transit_signals', 'transit_stop', 'bikelane'],
         'group_7': ['POI_hospitals', 'total_flow_count']
+    }
+
+    grouping_dict_3d = {
+        'group_8': ['seattle911calls']
+    }
+    '''
+    #################### raw data within dim grouping ####################
+
+    grouping_dict_1d = {
+        'group_1': ['temperature', 'pressure', 'airquality'],
+        'group_2':['precipitation'],
+    }
+
+    grouping_dict_2d = {
+        'group_3': ['house_price', 'POI_school', 'slope'],
+        'group_4':['POI_business', 'POI_food', 'POI_government', 'POI_publicservices', 'transit_signals'],
+        'group_5':['POI_hospitals'],
+        'group_6':['POI_recreation', 'seattle_street', 'total_flow_count', 'transit_routes', 'transit_stop', 'bikelane'],
+        'group_7': ['POI_transportation'],
     }
 
     grouping_dict_3d = {
