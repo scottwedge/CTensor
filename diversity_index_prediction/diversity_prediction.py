@@ -173,26 +173,31 @@ def main():
     print('spatial features only')
     spatial_feature_set = [ 'row_x',  'col_x']
     spatial_train_score, spatial_test_score = lasso(combined_df, spatial_feature_set)
+    print(spatial_train_score, spatial_test_score)
 
     # latent rep only
     print('latent rep only')
     latent_rep_set = ['latent_val_' +  str(c) for c in range(num_latent_rep)]
     latrep_train_score, latrep_test_score = lasso(combined_df, latent_rep_set)
+    print(latrep_train_score, latrep_test_score)
 
     # spatial + latent rep
     print('spatial + latent rep')
     spatial_latrep_set = latent_rep_set+ spatial_feature_set
     spatial_latrep_train_score, spatial_latrep_test_score = lasso(combined_df, spatial_latrep_set)
+    print(spatial_latrep_train_score, spatial_latrep_test_score)
 
     # oracle feature_set
     print('oracle feature_set')
     oracle_set = [ 'edu_uni',  'edu_high', 'poverty_po_norm', 'no_car_hh','age65', 'row_x',  'col_x' ]
     oracle_train_score, oracle_test_score = lasso(combined_df, oracle_set)
+    print(oracle_train_score, oracle_test_score)
 
     # oracle + latent rep
     print(' oracle + latent rep')
     oracle_latrep_set = oracle_set + latent_rep_set
     oracle_latrep_train_score, oracle_latrep_test_score = lasso(combined_df, oracle_latrep_set)
+    print(oracle_latrep_train_score, oracle_latrep_test_score)
 
     # save results to csv
     indexes = ['spatial', 'latent_rep', 'spatial_latrep', 'oracle', 'oracle_latrep']
