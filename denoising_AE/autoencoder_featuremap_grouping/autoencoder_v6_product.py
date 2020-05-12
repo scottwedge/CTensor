@@ -1507,7 +1507,8 @@ class Autoencoder:
     def get_latent_rep(self, rawdata_1d_dict, rawdata_2d_dict, rawdata_3d_dict,
                         rawdata_1d_corrupted_dict, rawdata_2d_corrupted_dict, rawdata_3d_corrupted_dict,
                         train_hours,
-                     demo_mask_arr, save_folder_path, dim, grouping_dict,
+                     demo_mask_arr, save_folder_path, dim,
+                     grouping_dict_1d,  grouping_dict_2d,  grouping_dict_3d,
                     checkpoint_path = None,
                        epochs=1, batch_size=32):
                 # first level output [dataset name: output]
