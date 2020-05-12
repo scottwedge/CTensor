@@ -58,7 +58,7 @@ def lasso(input, feature_set):
     #
     # test_score=clf.score(X_test,y_test)
     # print(test_score)
-    n_splits = 10
+    n_splits = 20
     ss = ShuffleSplit(n_splits=n_splits, test_size=0.2, random_state=0)
     X_train_list = []
     X_test_list = []
