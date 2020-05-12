@@ -35,6 +35,7 @@ from sklearn import linear_model
 from sklearn.linear_model import Lasso
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
+from sklearn.model_selection import ShuffleSplit
 
 HEIGHT = 32
 WIDTH = 20
