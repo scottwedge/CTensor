@@ -82,8 +82,9 @@ def lasso(input, feature_set):
 
         clf = linear_model.Lasso(alpha= ALPHA)
         clf.fit(X_train, y_train)
-        for i in range(0, len(feature_set)):
-            print(feature_set[i], clf.coef_[i])
+        #
+        # for i in range(0, len(feature_set)):
+        #     print(feature_set[i], clf.coef_[i])
 
         train_score=clf.score(X_train, y_train)
         # print(train_score)
