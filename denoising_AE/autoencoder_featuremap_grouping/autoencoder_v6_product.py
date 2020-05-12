@@ -2049,14 +2049,16 @@ class Autoencoder_entry:
         predictor = Autoencoder(self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
          self.rawdata_1d_corrupted_dict, self.rawdata_2d_corrupted_dict, self.rawdata_3d_corrupted_dict,
                         self.intersect_pos_set,
-                     self.demo_mask_arr, self.dim, self.grouping_dict,
+                     self.demo_mask_arr, self.dim,
+                     self.grouping_dict_1d,self.grouping_dict_2d,self.grouping_dict_3d,
                      channel=CHANNEL, time_steps=TIMESTEPS, height=HEIGHT, width = WIDTH)
 
         train_lat_rep, test_lat_rep, encoded_list, test_encoded_list, keys_list, final_reconstruction_dict = predictor.inference_autoencoder(
                         self.rawdata_1d_dict, self.rawdata_2d_dict, self.rawdata_3d_dict,
                          self.rawdata_1d_corrupted_dict, self.rawdata_2d_corrupted_dict, self.rawdata_3d_corrupted_dict,
                         self.train_hours,
-                         self.demo_mask_arr, self.save_path, self.dim, self.grouping_dict,
+                         self.demo_mask_arr, self.save_path, self.dim,
+                         self.grouping_dict_1d,self.grouping_dict_2d,self.grouping_dict_3d,
                         self.checkpoint_path,
                      epochs=TRAINING_STEPS, batch_size=BATCH_SIZE)
 
