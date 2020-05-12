@@ -627,7 +627,7 @@ class Autoencoder:
 
     def cnn_3d_fuse(self, feature_map_list, is_training, suffix = '', output_dim = 1, seed=None):
         # var_scope = "2d_data_process_" + suffix
-        output_dim = len(feature_map_list) 
+        output_dim = len(feature_map_list)
         var_scope = "cnn_3d_fuse_" + suffix
         with tf.variable_scope(var_scope):
             fuse_feature =tf.concat(axis=-1,values=feature_map_list)
@@ -871,7 +871,7 @@ class Autoencoder:
                 temp_list.append(first_level_output_1d[ds])
 
             scope_name = '1_'+ grp
-            temp_dim = int(len(data_list) / 3) + 1
+            temp_dim = int(len(data_list) / 2) + 1
             group_fusion_featuremap = self.cnn_1d_grouping_fuse(temp_list, self.is_training, suffix = scope_name, output_dim =temp_dim)
             second_level_output_1d[grp] = group_fusion_featuremap
             second_order_encoder_list.append(group_fusion_featuremap)
@@ -884,7 +884,7 @@ class Autoencoder:
                 temp_list.append(first_level_output_2d[ds])
 
             scope_name = '1_'+ grp
-            temp_dim = int(len(data_list) / 3) + 1
+            temp_dim = int(len(data_list) / 2) + 1
             group_fusion_featuremap = self.cnn_2d_grouping_fuse(temp_list, self.is_training, suffix = scope_name, output_dim =temp_dim)
             second_level_output_2d[grp] = group_fusion_featuremap
             second_order_encoder_list.append(group_fusion_featuremap)
@@ -897,7 +897,7 @@ class Autoencoder:
                 temp_list.append(first_level_output_3d[ds])
 
             scope_name = '1_'+ grp
-            temp_dim = int(len(data_list) / 3) + 1
+            temp_dim = int(len(data_list) / 2) + 1
             group_fusion_featuremap = self.cnn_3d_grouping_fuse(temp_list, self.is_training, suffix = scope_name, output_dim =temp_dim)
             second_level_output_3d[grp] = group_fusion_featuremap
             second_order_encoder_list.append(group_fusion_featuremap)
