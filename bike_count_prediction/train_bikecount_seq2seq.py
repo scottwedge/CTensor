@@ -260,6 +260,9 @@ def main():
 
 
     with open(save_path + 'bikecount_output.txt', 'w') as the_file:
+        the_file.write('encoding_dir\n')
+        the_file.write(str(encoding_dir) + '\n')
+
         the_file.write('use_1d_fea\n')
         the_file.write(str(use_1d_fea) + '\n')
 
