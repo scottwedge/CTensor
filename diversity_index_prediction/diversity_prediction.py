@@ -95,8 +95,8 @@ def lasso(input, feature_set):
         ave_test_score += test_score
         print('train_score, test_score: ', train_score, test_score)
 
-    ave_train_score = ave_train_score/ 5
-    ave_test_score = ave_test_score/5
+    ave_train_score = ave_train_score/ n_splits
+    ave_test_score = ave_test_score/n_splits
 
     return ave_train_score, ave_test_score
 
