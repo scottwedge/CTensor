@@ -65,12 +65,12 @@ def lasso(input, feature_set):
     y_train_list = []
     y_test_list = []
     for train_index, test_index in ss.split(X):
-        X_train_list.append(train_index)
-        X_test_list.append(test_index)
+        X_train_list.append(X[X.index.isin(list(train_index))])
+        X_test_list.append(X[X.index.isin(list(test_index))])
 
     for train_index, test_index in ss.split(y):
-        y_train_list.append(train_index)
-        y_test_list.append(test_index)
+        y_train_list.append(y[y.index.isin(list(train_index))])
+        y_test_list.append(y[y.index.isin(list(test_index))])
 
     ave_train_score = 0
     ave_test_score = 0
