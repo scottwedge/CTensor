@@ -45,21 +45,57 @@ def lasso(input, feature_set):
     target_var = ['diversity_index']
     X = input[feature_set]
     y = input[target_var]
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42)
+    # X_train, X_test, y_train, y_test = train_test_split(
+    #     X, y, test_size=0.2, random_state=42)
+    # clf = linear_model.Lasso(alpha= ALPHA)
+    # clf.fit(X_train, y_train)
+    # for i in range(0, len(feature_set)):
+    #     print(feature_set[i], clf.coef_[i])
+    #
+    # train_score=clf.score(X_train, y_train)
+    # print(train_score)
+    #
+    # test_score=clf.score(X_test,y_test)
+    # print(test_score)
 
-    clf = linear_model.Lasso(alpha= ALPHA)
-    clf.fit(X_train, y_train)
-    for i in range(0, len(feature_set)):
-        print(feature_set[i], clf.coef_[i])
+    ss = ShuffleSplit(n_splits=5, test_size=0.2, random_state=0)
+    X_train_list = []
+    X_test_list = []
+    y_train_list = []
+    y_test_list = []
+    for train_index, test_index in ss.split(X):
+        X_train_list.append(train_index)
+        X_test_list.append(test_index)
 
-    train_score=clf.score(X_train, y_train)
-    print(train_score)
+    for train_index, test_index in ss.split(y):
+        y_train_list.append(train_index)
+        y_test_list.append(test_index)
 
-    test_score=clf.score(X_test,y_test)
-    print(test_score)
+    ave_train_score = 0
+    ave_test_score = 0
+    for i in range(5):
+        X_train = X_train_list[i]
+        X_test = X_test_list[i]
+        y_train = y_train_list[i]
+        y_test = y_test_list[i]
 
-    return train_score, test_score
+        clf = linear_model.Lasso(alpha= ALPHA)
+        clf.fit(X_train, y_train)
+        for i in range(0, len(feature_set)):
+            print(feature_set[i], clf.coef_[i])
+
+        train_score=clf.score(X_train, y_train)
+        print(train_score)
+        ave_train_score +=train_score
+
+        test_score=clf.score(X_test,y_test)
+        print(test_score)
+        ave_test_score += test_score
+
+    ave_train_score = ave_train_score/ 5
+    ave_test_score = ave_test_score/5
+
+    return ave_train_score, ave_test_score
 
 
 
