@@ -137,7 +137,7 @@ def main():
 
     #hourly_grid_timeseries = pd.read_csv('./hourly_grid_1000_timeseries_trail.csv', index_col = 0)
     hourly_grid_timeseries = pd.read_csv('../data_processing/airquality_2014_2019_clean.csv', index_col = 0)
-    hourly_grid_timeseries = pd.DataFrame(hourly_grid_timeseries['beacon_hill'])
+    hourly_grid_timeseries = pd.DataFrame(hourly_grid_timeseries[['beacon_hill', 'format_original_time']])
 
 
     # -------  load extra features --------------------- #
