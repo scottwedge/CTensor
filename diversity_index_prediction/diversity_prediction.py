@@ -232,11 +232,11 @@ def main():
     # latent rep only
     print('latent rep only')
     latent_rep_set = ['latent_val_' +  str(c) for c in range(num_latent_rep)]
-    for l in latent_rep_set:
-        print('latent_rep: ', l)
+    # for l in latent_rep_set:
+    #     print('latent_rep: ', l)
         #latrep_train_score, latrep_test_score = lasso(combined_df, latent_rep_set)
-        latrep_train_score, latrep_test_score = mlp(combined_df, [l])
-        print(latrep_train_score, latrep_test_score)
+    latrep_train_score, latrep_test_score = mlp(combined_df, [l])
+    #print(latrep_train_score, latrep_test_score)
 
     # spatial + latent rep
     print('spatial + latent rep')
