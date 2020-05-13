@@ -241,8 +241,8 @@ class SeriesPredictor:
                             feed_dict={self.x: batch_x, self.y: batch_y, self.decoder_inputs: batch_decoder_inputs})
                 loss_per100 += train_err
                 if i % 100 == 0 and i!= 0:
-                    print('step: {}\t\ttrain err: {}'.format(i, train_err))
-                    loss_per100 = float(loss_per100/100)
+                    # print('step: {}\t\ttrain err: {}'.format(i, train_err))
+                    # loss_per100 = float(loss_per100/100)
                     print('step: {}\t\ttrain err per100: {}'.format(i, loss_per100))
 
                     # Testing
