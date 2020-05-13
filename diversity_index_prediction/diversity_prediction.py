@@ -36,6 +36,7 @@ from sklearn.linear_model import Lasso
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import ShuffleSplit
+from sklearn.neural_network import MLPRegressor
 
 HEIGHT = 32
 WIDTH = 20
@@ -99,6 +100,57 @@ def lasso(input, feature_set):
     ave_test_score = ave_test_score/n_splits
 
     return ave_train_score, ave_test_score
+
+
+
+def mlp(input, feature_set):
+    target_var = ['diversity_index']
+    X = input[feature_set]
+    y = input[target_var]
+
+    n_splits = 20
+    ss = ShuffleSplit(n_splits=n_splits, test_size=0.2, random_state=0)
+    X_train_list = []
+    X_test_list = []
+    y_train_list = []
+    y_test_list = []
+    for train_index, test_index in ss.split(X):
+        X_train_list.append(X[X.index.isin(list(train_index))])
+        X_test_list.append(X[X.index.isin(list(test_index))])
+
+    for train_index, test_index in ss.split(y):
+        y_train_list.append(y[y.index.isin(list(train_index))])
+        y_test_list.append(y[y.index.isin(list(test_index))])
+
+    ave_train_score = 0
+    ave_test_score = 0
+    for i in range(n_splits):
+        X_train = X_train_list[i]
+        X_test = X_test_list[i]
+        y_train = y_train_list[i]
+        y_test = y_test_list[i]
+
+        clf = MLPRegressor(hidden_layer_sizes=(10, 10),
+            random_state=1, max_iter=500, batch_size = 32)
+        clf.fit(X_train, y_train)
+        #
+        # for i in range(0, len(feature_set)):
+        #     print(feature_set[i], clf.coef_[i])
+
+        train_score=clf.score(X_train, y_train)
+        # print(train_score)
+        ave_train_score +=train_score
+
+        test_score=clf.score(X_test,y_test)
+        # print(test_score)
+        ave_test_score += test_score
+        print('train_score, test_score: ', train_score, test_score)
+
+    ave_train_score = ave_train_score/ n_splits
+    ave_test_score = ave_test_score/n_splits
+
+    return ave_train_score, ave_test_score
+
 
 
 
@@ -173,31 +225,36 @@ def main():
     # spatial features only
     print('spatial features only')
     spatial_feature_set = [ 'row_x',  'col_x']
-    spatial_train_score, spatial_test_score = lasso(combined_df, spatial_feature_set)
+    # spatial_train_score, spatial_test_score = lasso(combined_df, spatial_feature_set)
+    spatial_train_score, spatial_test_score = mlp(combined_df, spatial_feature_set)
     print(spatial_train_score, spatial_test_score)
 
     # latent rep only
     print('latent rep only')
     latent_rep_set = ['latent_val_' +  str(c) for c in range(num_latent_rep)]
-    latrep_train_score, latrep_test_score = lasso(combined_df, latent_rep_set)
+    #latrep_train_score, latrep_test_score = lasso(combined_df, latent_rep_set)
+    spatial_train_score, spatial_test_score = mlp(combined_df, spatial_feature_set)
     print(latrep_train_score, latrep_test_score)
 
     # spatial + latent rep
     print('spatial + latent rep')
     spatial_latrep_set = latent_rep_set+ spatial_feature_set
-    spatial_latrep_train_score, spatial_latrep_test_score = lasso(combined_df, spatial_latrep_set)
+    #spatial_latrep_train_score, spatial_latrep_test_score = lasso(combined_df, spatial_latrep_set)
+    spatial_latrep_train_score, spatial_latrep_test_score = mlp(combined_df, spatial_latrep_set)
     print(spatial_latrep_train_score, spatial_latrep_test_score)
 
     # oracle feature_set
     print('oracle feature_set')
     oracle_set = [ 'edu_uni',  'edu_high', 'poverty_po_norm', 'no_car_hh','age65', 'row_x',  'col_x' ]
-    oracle_train_score, oracle_test_score = lasso(combined_df, oracle_set)
+    #oracle_train_score, oracle_test_score = lasso(combined_df, oracle_set)
+    oracle_train_score, oracle_test_score = mlp(combined_df, oracle_set)
     print(oracle_train_score, oracle_test_score)
 
     # oracle + latent rep
     print(' oracle + latent rep')
     oracle_latrep_set = oracle_set + latent_rep_set
-    oracle_latrep_train_score, oracle_latrep_test_score = lasso(combined_df, oracle_latrep_set)
+    #oracle_latrep_train_score, oracle_latrep_test_score = lasso(combined_df, oracle_latrep_set)
+    oracle_latrep_train_score, oracle_latrep_test_score = mlp(combined_df, oracle_latrep_set)
     print(oracle_latrep_train_score, oracle_latrep_test_score)
 
     # save results to csv
