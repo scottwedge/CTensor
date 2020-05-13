@@ -206,7 +206,7 @@ def main():
 
 
 
-    hourly_grid_timeseries.index = pd.to_datetime(hourly_grid_timeseries.index)
+    hourly_grid_timeseries.index = pd.to_datetime(hourly_grid_timeseries['format_original_time'])
     print(hourly_grid_timeseries.head())
     print(list(hourly_grid_timeseries))
     # ################## !!!!! ####################################
