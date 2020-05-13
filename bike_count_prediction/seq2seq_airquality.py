@@ -242,7 +242,7 @@ class SeriesPredictor:
                 loss_per100 += train_err
                 if i % 100 == 0 and i!= 0:
                     # print('step: {}\t\ttrain err: {}'.format(i, train_err))
-                    # loss_per100 = float(loss_per100/100)
+                    loss_per100 = float(loss_per100/100)
                     print('step: {}\t\ttrain err per100: {}'.format(i, loss_per100))
 
                     # Testing
@@ -253,7 +253,7 @@ class SeriesPredictor:
                                 feed_dict={self.x: test_data.X, self.y: test_data.y, self.decoder_inputs:  test_data.decoder_inputs})
 
                     # save epoch statistics to csv
-                    ecoch_res_df = pd.DataFrame([[loss_per100/100, test_err]],
+                    ecoch_res_df = pd.DataFrame([[loss_per100, test_err]],
                         columns=[ 'train_loss', 'test_lost'])
                     print('step: {}\t\ttest err: {}'.format(i, test_err))
                     print('prediction VS GT: ', pred, test_data.y)
