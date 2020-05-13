@@ -233,7 +233,7 @@ def main():
     print('latent rep only')
     latent_rep_set = ['latent_val_' +  str(c) for c in range(num_latent_rep)]
     #latrep_train_score, latrep_test_score = lasso(combined_df, latent_rep_set)
-    spatial_train_score, spatial_test_score = mlp(combined_df, spatial_feature_set)
+    latrep_train_score, latrep_test_score = mlp(combined_df, latent_rep_set)
     print(latrep_train_score, latrep_test_score)
 
     # spatial + latent rep
