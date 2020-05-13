@@ -130,7 +130,7 @@ def mlp(input, feature_set):
         y_train = y_train_list[i]
         y_test = y_test_list[i]
 
-        clf = MLPRegressor(hidden_layer_sizes=(10, 10),
+        clf = MLPRegressor(hidden_layer_sizes=(20, 20),
             random_state=1, max_iter=500, batch_size = 32)
         clf.fit(X_train, y_train)
         #
