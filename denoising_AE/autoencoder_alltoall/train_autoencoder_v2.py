@@ -485,9 +485,6 @@ def main():
         'seattle911calls': seattle911calls_arr # (45984, 32, 20)  # core
         }
 
-    keys_1d = list(rawdata_1d_dict.keys())
-    keys_2d = list(rawdata_2d_dict.keys())
-    keys_3d = list(rawdata_3d_dict.keys())
 
 
 
@@ -512,7 +509,9 @@ def main():
         rawdata_2d_dict.clear()
         rawdata_1d_dict.clear()
 
-
+    keys_1d = list(rawdata_1d_dict.keys())
+    keys_2d = list(rawdata_2d_dict.keys())
+    keys_3d = list(rawdata_3d_dict.keys())
     # train_obj.train_hours = datetime_utils.get_total_hour_range(train_obj.train_start_time, train_obj.train_end_time)
     print('train_hours: ', train_obj.train_hours)
 
