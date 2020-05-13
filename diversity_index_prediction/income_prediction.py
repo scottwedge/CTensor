@@ -40,7 +40,7 @@ from sklearn.model_selection import ShuffleSplit
 HEIGHT = 32
 WIDTH = 20
 
-ALPHA = 0.01
+ALPHA = 0.001
 
 def lasso(input, feature_set):
     target_var = ['ave_hh_inc_k']
