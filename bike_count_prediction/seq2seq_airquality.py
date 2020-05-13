@@ -248,10 +248,15 @@ class SeriesPredictor:
                     # Testing
                     _, test_err = sess.run([self.train_op, self.cost],
                             feed_dict={self.x: test_data.X, self.y: test_data.y, self.decoder_inputs:  test_data.decoder_inputs})
+
+                    pred = sess.run([self.train_pred],
+                                feed_dict={self.x: test_data.X, self.y: test_data.y, self.decoder_inputs:  test_data.decoder_inputs})
+
                     # save epoch statistics to csv
                     ecoch_res_df = pd.DataFrame([[loss_per100, test_err]],
                         columns=[ 'train_loss', 'test_lost'])
-
+                    print('step: {}\t\ttest err: {}'.format(i, test_err))
+                    print('prediction VS GT: ', pred, test_data.y)
                     res_csv_path = self.save_path + 'err_df' +'.csv'
                     with open(res_csv_path, 'a') as f:
                         # Add header if file is being created, otherwise skip it
