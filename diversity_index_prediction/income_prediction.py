@@ -150,7 +150,7 @@ def main():
                 # print('pos', pos)
                 idx = latent_series_df[latent_series_df['pos'] == pos].index
                 # print(idx)
-                latent_series_df.loc[idx, colname] = latent_series_mean[i, j, c]
+                latent_series_df.loc[idx, colname] = latent_series_mean[31 -i, j, c]
 
     # read diversity groud truth
     print('combining diversity_df and latent rep')
