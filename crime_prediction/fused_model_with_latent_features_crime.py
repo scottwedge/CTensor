@@ -1468,7 +1468,7 @@ class Conv3D:
         globals()['LATENT_CHANNEL'] = self.latent_test_series.shape[-1]
 
         print('LATENT_CHANNEL set to: ', LATENT_CHANNEL)
-        print('Conv3D recieved: ')
+        print('Conv3D received: ')
         print('HEIGHT: ', HEIGHT)
         print('start learning rate: ',LEARNING_RATE)
 

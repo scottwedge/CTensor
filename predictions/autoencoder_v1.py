@@ -658,7 +658,7 @@ class Autoencoder_entry:
         globals()['TRAINING_STEPS']  = TRAINING_STEPS
         globals()['LEARNING_RATE']  = LEARNING_RATE
 
-        print('Conv3D recieved: ')
+        print('Conv3D received: ')
         print('HEIGHT: ', HEIGHT)
         print('start learning rate: ',LEARNING_RATE)
 
