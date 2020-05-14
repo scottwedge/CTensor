@@ -358,7 +358,7 @@ class train:
         train_arr: e.g.:[(169, # of training examples, 30, 30)]
     '''
     def train_test_split(self,raw_seq_arr):
-        train_hours = datetime_utils.get_total_3hour_range(self.train_start_time, self.train_end_time)
+        train_hours = datetime_utils.get_total_daily_range(self.train_start_time, self.train_end_time)
         # train_arr = raw_seq_arr[:, :train_hours, :, :]
         # test_arr = raw_seq_arr[:, train_hours:, :, :]
         train_arr = raw_seq_arr[:, :train_hours]
