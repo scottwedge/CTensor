@@ -153,6 +153,9 @@ def main():
         hourly_grid_timeseries['precipitation'] = list(weather_arr[:,0].flatten())
         hourly_grid_timeseries['temperature'] = list(weather_arr[:,1].flatten())
         hourly_grid_timeseries['pressure'] = list(weather_arr[:,2].flatten())
+        print(hourly_grid_timeseries['precipitation'][:300].corr(hourly_grid_timeseries['beacon_hill'][:300]))
+        print(hourly_grid_timeseries['temperature'][:300].corr(hourly_grid_timeseries['beacon_hill'][:300]))
+        print(hourly_grid_timeseries['pressure'][:300].corr(hourly_grid_timeseries['beacon_hill'][:300]))
 
 
     if use_3d_fea:
