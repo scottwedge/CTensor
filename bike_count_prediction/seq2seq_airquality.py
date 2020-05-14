@@ -177,7 +177,9 @@ class SeriesPredictor:
         """
         #cell = rnn.BasicLSTMCell(self.hidden_dim)
         with tf.variable_scope('encoding'):
-            encoder_cell = tf.nn.rnn_cell.LSTMCell(self.hidden_dim, name = 'encoder_cell')
+            encoder_cell_1 = tf.nn.rnn_cell.LSTMCell(self.hidden_dim, name = 'encoder_cell_1')
+            encoder_cell_2 = tf.nn.rnn_cell.LSTMCell(self.hidden_dim, name = 'encoder_cell_2')
+            multi_rnn_cell = tf.nn.rnn_cell.MultiRNNCell([encoder_cell_1, encoder_cell_2])
             # num_examples = batch_size = 100
             #num_examples = tf.shape(self.x)[0]
             # added->  [timesteps, batch_size, 1]
@@ -186,12 +188,15 @@ class SeriesPredictor:
             # https://stackoverflow.com/questions/44162432/analysis-of-the-output-from-tf-nn-dynamic-rnn-tensorflow-function
 
             # # tf.Tensor 'rnn_3/transpose:0' shape=(batchsize, 168, 100) dtype=float32
-            encoder_outputs, encoder_states = tf.nn.dynamic_rnn(encoder_cell, self.x, dtype=tf.float32)
+            encoder_outputs, encoder_states = tf.nn.dynamic_rnn(multi_rnn_cell, self.x, dtype=tf.float32)
             # output shape (?, 168, 100)
         with tf.variable_scope('decoding'):
-            decoder_cell = tf.nn.rnn_cell.LSTMCell(self.hidden_dim, name = 'decoder_cell')
+            decoder_cell_1 = tf.nn.rnn_cell.LSTMCell(self.hidden_dim, name = 'decoder_cell_1')
+            decoder_cell_2 = tf.nn.rnn_cell.LSTMCell(self.hidden_dim, name = 'decoder_cell_2')
+            multi_rnn_cell_decoder = tf.nn.rnn_cell.MultiRNNCell([decoder_cell_1, decoder_cell_2])
+
             # At this point decoder_cell output is a hidden_units sized vector at every timestep
-            decoder_outputs, decoder_states = tf.nn.dynamic_rnn(decoder_cell, self.decoder_inputs,
+            decoder_outputs, decoder_states = tf.nn.dynamic_rnn(multi_rnn_cell_decoder, self.decoder_inputs,
                                 initial_state=encoder_states, dtype=tf.float32)
             print('decoder_outputs.shape: ', decoder_outputs.shape) # decoder_outputs.shape:
             out = tf.contrib.layers.fully_connected(decoder_outputs, 1)
