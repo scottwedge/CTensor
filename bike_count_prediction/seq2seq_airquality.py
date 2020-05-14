@@ -37,7 +37,7 @@ TRAINING_STEPS = 3000
 # that is 20 batches an epoch. Run 30 epoches, -> 600 steps
 BATCH_SIZE = 256
 #PRINT_STEPS = TRAINING_STEPS / 100
-N_HIDDEN = 128 # previously 30
+N_HIDDEN = 256 # previously 30
 LEARNING_RATE = 0.001
 
 
