@@ -906,10 +906,16 @@ class Autoencoder:
                     final_output.extend(batch_output)
 
                     # temp, only ouput the first batch of reconstruction
-                    if itr == 0:
+                    if itr == 0 :
                         batch_reconstruction_dict = sess.run([reconstruction_dict], feed_dict= feed_dict_all)
                         final_reconstruction_dict = copy.deepcopy(batch_reconstruction_dict)
-
+                        # save the indexes
+                        indexes = start_index_list[start_idx: end_idx]
+                        txt_name = save_folder_path + 'reconstruction_dict_start_indexes' +  '.txt'
+                        with open(txt_name, 'w') as the_file:
+                            for item in indexes:
+                                the_file.write("%s\n" % item)
+                                the_file.close()
 
 
                     # record results every 50 iterations, that is about 900 samples
