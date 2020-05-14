@@ -19,7 +19,7 @@ class evaluation(object):
         self.pred_df = pred_df
         self.rmse_val = self.rmse()
         self.mae_val = self.mae()
-        self.mape_val = self.mape()
+        # self.mape_val = self.mape()
         self.demo_raw = demo_raw
         # self.mae_df = self.mae_over_city()
         # self.rmse_df = self.rmse_over_city()
