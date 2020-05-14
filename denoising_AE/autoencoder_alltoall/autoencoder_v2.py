@@ -915,7 +915,7 @@ class Autoencoder:
                         with open(txt_name, 'w') as the_file:
                             for item in indexes:
                                 the_file.write("%s\n" % item)
-                                the_file.close()
+                            the_file.close()
 
 
                     # record results every 50 iterations, that is about 900 samples
